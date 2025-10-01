@@ -97,6 +97,7 @@ OUTPUT RULES:
 - Maintain the core message
 - Sound human, not AI
 - No preamble or explanation - just the adapted content
+- **FORBIDDEN: Never use em dashes (—). Use periods, commas, or line breaks instead.**
 
 ADAPTED CONTENT:`
 
@@ -118,7 +119,13 @@ ADAPTED CONTENT:`
       throw new Error('No content in response')
     }
 
-    return adaptedText.trim()
+    // Remove em dashes (forbidden in Chudi's protocol)
+    const cleanedText = adaptedText
+      .replace(/—/g, ',')  // Replace em dash with comma
+      .replace(/–/g, ',')  // Replace en dash with comma
+      .trim()
+
+    return cleanedText
   } catch (error) {
     console.error(`Error adapting content for ${platform}:`, error)
     throw error
