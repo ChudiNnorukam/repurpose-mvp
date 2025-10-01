@@ -27,8 +27,8 @@ const platformGuidelines = {
   },
   linkedin: {
     maxLength: 3000,
-    style: 'Professional and thoughtful. Focus on insights and value. Use professional language.',
-    format: 'Well-structured with paragraphs. Can include relevant professional hashtags at the end.',
+    style: 'Short essay format. Punchy. Direct. Use bullet points (→). Ask questions. Break up thoughts with spacing. Real insights, not corporate speak.',
+    format: 'Start with a hook. Use short paragraphs (1-3 lines). Add → bullet points. Ask direct questions. End with engagement prompt (Tag someone / Ever tried that? / ↓). NO polished conclusions.',
   },
   instagram: {
     maxLength: 400,
@@ -89,7 +89,23 @@ HUMANIZATION PROTOCOL (APPLY ALL):
 
 PLATFORM-SPECIFIC ADJUSTMENTS:
 ${platform === 'twitter' ? '- Keep it punchy but authentic. Break thoughts naturally.' : ''}
-${platform === 'linkedin' ? '- Professional but human. Share real insights, not LinkedIn polish.' : ''}
+${platform === 'linkedin' ? `- Use short essay format like this example:
+
+STRUCTURE:
+• Hook (1-2 lines that grab attention)
+• Spacing
+• Problem or observation (short paragraphs)
+• Bullet points with → arrows
+• Direct questions ("Ever tried that?")
+• Engagement prompt at end ("Tag someone" / "↓")
+
+STYLE:
+• NO corporate speak
+• NO polished conclusions
+• Real insights only
+• Break up with spacing
+• Ask direct questions
+• Use → for bullet points` : ''}
 ${platform === 'instagram' ? '- Casual and real. Emojis only if natural. Story-driven.' : ''}
 
 OUTPUT RULES:
