@@ -1,12 +1,12 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
-const apiKey = process.env.ANTHROPIC_API_KEY
+const apiKey = process.env.OPENAI_API_KEY
 
 if (!apiKey) {
-  throw new Error('Missing ANTHROPIC_API_KEY environment variable')
+  throw new Error('Missing OPENAI_API_KEY environment variable')
 }
 
-export const anthropic = new Anthropic({
+export const openai = new OpenAI({
   apiKey,
 })
 
@@ -79,23 +79,24 @@ INSTRUCTIONS:
 ADAPTED CONTENT FOR ${platform.toUpperCase()}:`
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
       messages: [
         {
           role: 'user',
           content: prompt,
         },
       ],
+      max_tokens: 1024,
+      temperature: 0.7,
     })
 
-    const textContent = message.content.find((block) => block.type === 'text')
-    if (!textContent || textContent.type !== 'text') {
-      throw new Error('No text content in response')
+    const adaptedText = completion.choices[0]?.message?.content
+    if (!adaptedText) {
+      throw new Error('No content in response')
     }
 
-    return textContent.text.trim()
+    return adaptedText.trim()
   } catch (error) {
     console.error(`Error adapting content for ${platform}:`, error)
     throw error
