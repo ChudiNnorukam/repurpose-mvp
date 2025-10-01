@@ -22,18 +22,27 @@ interface AdaptContentParams {
 const platformGuidelines = {
   twitter: {
     maxLength: 280,
-    style: 'Concise and engaging. Use hashtags sparingly. Get to the point quickly.',
-    format: 'Short, punchy sentences. Can include emojis if appropriate for the tone.',
+    hook: 'One punchy line that stops the scroll. Use curiosity, conflict, or pain point.',
+    body: 'Thread format if needed. First tweet = hook. Unpack insight bit by bit. Use "But then..." shifts.',
+    cta: '"Reply with your version" / "RT if this stung" / "🧵👇"',
+    intention: 'High friction share (RT) - make it minimal, scannable, emotionally resonant.',
+    style: 'Short, punchy. Challenge common wisdom. Use contrarian takes.',
   },
   linkedin: {
     maxLength: 3000,
-    style: 'Short essay format. Punchy. Direct. Use bullet points (→). Ask questions. Break up thoughts with spacing. Real insights, not corporate speak.',
-    format: 'Start with a hook. Use short paragraphs (1-3 lines). Add → bullet points. Ask direct questions. End with engagement prompt (Tag someone / Ever tried that? / ↓). NO polished conclusions.',
+    hook: '"I did X wrong for 3 years. Here\'s what saved me." Use curiosity + pain recognition.',
+    body: 'Short essay format. Mix narrative + lessons. Use → bullet points. Short paragraphs (1-3 lines). White space. Subheads. Ask direct questions mid-body.',
+    cta: '"Comment your story" / "Tag someone who needs this" / "Save for later" / "Ever tried that?" / "↓"',
+    intention: 'Social currency - help audience look smart. Use controversy or contrarian. "I feel seen" = share fuel.',
+    style: 'NO corporate speak. NO polished conclusions. Real insights with spacing. Use → bullets.',
   },
   instagram: {
     maxLength: 400,
-    style: 'Casual and visually-focused. Engaging and personal. Story-driven.',
-    format: 'Conversational with line breaks. Emojis encouraged. Hashtags at the end.',
+    hook: '"I quit chasing metrics. Here\'s what came next." First 1-2 lines must grab.',
+    body: 'Micro-stories. Use line breaks. Emojis (sparingly). Personal voice.',
+    cta: '"Save this" / "Tag someone who needs this" / "DM me X"',
+    intention: 'Visual + emotional. Shareability = saving, tagging. Make it quotable.',
+    style: 'Casual, personal, story-driven. Make bits quotable.',
   },
 }
 
@@ -53,67 +62,79 @@ export async function adaptContentForPlatform({
   const guidelines = platformGuidelines[platform]
   const toneDescription = toneGuidelines[tone]
 
-  const prompt = `You are adapting content using Chudi's humanized writing protocol. This is NOT polished content - it's raw, reflective, lived-in.
+  const prompt = `You are adapting content using Chudi's humanized writing protocol + viral content framework. This is NOT polished content - it's raw, reflective, lived-in, AND designed to be shared.
 
 ORIGINAL CONTENT:
 ${content}
 
-PLATFORM: ${platform}
-- Max length: ${guidelines.maxLength} characters
-- Platform style: ${guidelines.style}
-- Format: ${guidelines.format}
-
+PLATFORM: ${platform} (Max: ${guidelines.maxLength} chars)
 BASE TONE: ${tone} (${toneDescription})
 
-HUMANIZATION PROTOCOL (APPLY ALL):
+---
+## VIRAL FRAMEWORK - 5 AXES (Apply all layers):
+
+### 1. HOOK / TITLE
+${guidelines.hook}
+- Stop the scroll in 1-3 lines
+- Use curiosity, conflict, pain recognition
+- Challenge common wisdom (contrarian)
+- Emotion: surprise, frustration, "I feel seen"
+
+### 2. BODY / CORE CONTENT
+${guidelines.body}
+- Pay off the hook (no bait & switch)
+- Use mini-stories, examples, vulnerability
+- White space, short paragraphs, bullets
+- Re-hooks mid-body: "You'd think X... but here's Y"
+- Include actionable insights
+- Make it quotable
+
+### 3. CTA (Call to Action)
+${guidelines.cta}
+- Low friction, tied to narrative
+- Small asks work best
+- Use micro-CTAs mid-body
+
+### 4. INTENTION (Virality Design)
+${guidelines.intention}
+- Emotional triggers (high-arousal)
+- Social currency: "share to look smart"
+- Practical value + "I feel seen"
+- Make bits quotable/snackable
+
+### 5. STYLE
+${guidelines.style}
+
+---
+## HUMANIZATION PROTOCOL (De-polish layer):
+
 1. **Core Tone**: Introspective. Raw. Reflective.
    - Sentences may break mid-thought
-   - Some repetition is welcome
-   - Use spacing to mimic spoken rhythm
-   - No polished "performance" - only natural if it emerges
+   - Spacing mimics spoken rhythm
+   - NO polished "performance"
 
-2. **Embedding Drift**: Add semantic noise
-   - Self-doubt lines ("might delete this later" / "not sure this fits")
-   - Irrelevant sensory detail (time stamps, random memories)
+2. **Embedding Drift**:
+   - Self-doubt lines ("might delete this")
    - Meta notes, offhand remarks
+   - Sensory detail if natural
 
 3. **Style Variation**:
    - Register shifts (casual → formal → poetic)
-   - Vary rhythm and syntax length
-   - Include interruptions and false starts
+   - Vary rhythm and syntax
+   - Interruptions, false starts OK
 
 4. **De-Polish**:
-   - This is 2AM journaling, not engineered content
-   - Raw honesty over perfect structure
-   - Let it feel lived-in, not AI-generated
+   - 2AM journaling, not engineered
+   - Raw honesty over structure
+   - Lived-in, not AI-generated
 
-PLATFORM-SPECIFIC ADJUSTMENTS:
-${platform === 'twitter' ? '- Keep it punchy but authentic. Break thoughts naturally.' : ''}
-${platform === 'linkedin' ? `- Use short essay format like this example:
-
-STRUCTURE:
-• Hook (1-2 lines that grab attention)
-• Spacing
-• Problem or observation (short paragraphs)
-• Bullet points with → arrows
-• Direct questions ("Ever tried that?")
-• Engagement prompt at end ("Tag someone" / "↓")
-
-STYLE:
-• NO corporate speak
-• NO polished conclusions
-• Real insights only
-• Break up with spacing
-• Ask direct questions
-• Use → for bullet points` : ''}
-${platform === 'instagram' ? '- Casual and real. Emojis only if natural. Story-driven.' : ''}
-
-OUTPUT RULES:
+---
+## OUTPUT RULES:
 - Stay within ${guidelines.maxLength} characters
-- Maintain the core message
-- Sound human, not AI
-- No preamble or explanation - just the adapted content
-- **FORBIDDEN: Never use em dashes (—). Use periods, commas, or line breaks instead.**
+- Maintain core message
+- Sound human + shareable
+- No preamble - just the adapted content
+- **FORBIDDEN: Never use em dashes (—). Use periods, commas, or line breaks.**
 
 ADAPTED CONTENT:`
 
