@@ -31,7 +31,7 @@ const platformGuidelines = {
     format: 'Well-structured with paragraphs. Can include relevant professional hashtags at the end.',
   },
   instagram: {
-    maxLength: 2200,
+    maxLength: 400,
     style: 'Casual and visually-focused. Engaging and personal. Story-driven.',
     format: 'Conversational with line breaks. Emojis encouraged. Hashtags at the end.',
   },
