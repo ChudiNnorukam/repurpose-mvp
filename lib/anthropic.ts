@@ -53,30 +53,52 @@ export async function adaptContentForPlatform({
   const guidelines = platformGuidelines[platform]
   const toneDescription = toneGuidelines[tone]
 
-  const prompt = `You are a social media content expert. Adapt the following content for ${platform}.
+  const prompt = `You are adapting content using Chudi's humanized writing protocol. This is NOT polished content - it's raw, reflective, lived-in.
 
 ORIGINAL CONTENT:
 ${content}
 
-PLATFORM GUIDELINES:
-- Platform: ${platform}
+PLATFORM: ${platform}
 - Max length: ${guidelines.maxLength} characters
-- Style: ${guidelines.style}
+- Platform style: ${guidelines.style}
 - Format: ${guidelines.format}
 
-TONE REQUIREMENTS:
-- Desired tone: ${tone}
-- Tone description: ${toneDescription}
+BASE TONE: ${tone} (${toneDescription})
 
-INSTRUCTIONS:
-1. Rewrite the content to fit ${platform}'s style and audience
-2. Maintain the core message and key points
-3. Ensure the tone is ${tone}
-4. Stay within ${guidelines.maxLength} characters
-5. Make it engaging and platform-appropriate
-6. Do not add any preamble or explanation - just return the adapted content
+HUMANIZATION PROTOCOL (APPLY ALL):
+1. **Core Tone**: Introspective. Raw. Reflective.
+   - Sentences may break mid-thought
+   - Some repetition is welcome
+   - Use spacing to mimic spoken rhythm
+   - No polished "performance" - only natural if it emerges
 
-ADAPTED CONTENT FOR ${platform.toUpperCase()}:`
+2. **Embedding Drift**: Add semantic noise
+   - Self-doubt lines ("might delete this later" / "not sure this fits")
+   - Irrelevant sensory detail (time stamps, random memories)
+   - Meta notes, offhand remarks
+
+3. **Style Variation**:
+   - Register shifts (casual → formal → poetic)
+   - Vary rhythm and syntax length
+   - Include interruptions and false starts
+
+4. **De-Polish**:
+   - This is 2AM journaling, not engineered content
+   - Raw honesty over perfect structure
+   - Let it feel lived-in, not AI-generated
+
+PLATFORM-SPECIFIC ADJUSTMENTS:
+${platform === 'twitter' ? '- Keep it punchy but authentic. Break thoughts naturally.' : ''}
+${platform === 'linkedin' ? '- Professional but human. Share real insights, not LinkedIn polish.' : ''}
+${platform === 'instagram' ? '- Casual and real. Emojis only if natural. Story-driven.' : ''}
+
+OUTPUT RULES:
+- Stay within ${guidelines.maxLength} characters
+- Maintain the core message
+- Sound human, not AI
+- No preamble or explanation - just the adapted content
+
+ADAPTED CONTENT:`
 
   try {
     const completion = await openai.chat.completions.create({
