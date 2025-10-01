@@ -11,13 +11,16 @@ type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusia
 interface AdaptedContent {
   platform: Platform
   content: string
+  scheduledTime?: string
 }
 
 export default function CreatePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [adapting, setAdapting] = useState(false)
+  const [scheduling, setScheduling] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
 
   // Form state
@@ -59,6 +62,52 @@ export default function CreatePage() {
         ? prev.filter(p => p !== platform)
         : [...prev, platform]
     )
+  }
+
+  const updateScheduledTime = (platform: Platform, time: string) => {
+    setAdaptedContent(prev =>
+      prev.map(item =>
+        item.platform === platform ? { ...item, scheduledTime: time } : item
+      )
+    )
+  }
+
+  const handleSchedulePost = async (platform: Platform) => {
+    const post = adaptedContent.find(item => item.platform === platform)
+    if (!post || !post.scheduledTime) {
+      setError('Please select a date and time')
+      return
+    }
+
+    setScheduling(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await fetch('/api/schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          platform,
+          content: post.content,
+          originalContent,
+          scheduledTime: post.scheduledTime,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to schedule post')
+      }
+
+      setSuccess(`Post scheduled for ${platform}!`)
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (error: any) {
+      setError(error.message || 'Failed to schedule post. Please try again.')
+    } finally {
+      setScheduling(false)
+    }
   }
 
   const handleAdaptContent = async () => {
@@ -219,6 +268,12 @@ export default function CreatePage() {
               </div>
             )}
 
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                {success}
+              </div>
+            )}
+
             <button
               onClick={handleAdaptContent}
               disabled={adapting || !originalContent.trim() || selectedPlatforms.length === 0}
@@ -252,9 +307,32 @@ export default function CreatePage() {
                         Copy
                       </button>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{item.content}</p>
-                    <div className="mt-3 text-sm text-gray-500">
+                    <p className="text-gray-700 whitespace-pre-wrap mb-4">{item.content}</p>
+                    <div className="text-sm text-gray-500 mb-4">
                       {item.content.length} characters
+                    </div>
+
+                    {/* Scheduling */}
+                    <div className="border-t pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Schedule for later
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="datetime-local"
+                          value={item.scheduledTime || ''}
+                          onChange={(e) => updateScheduledTime(item.platform, e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          min={new Date().toISOString().slice(0, 16)}
+                        />
+                        <button
+                          onClick={() => handleSchedulePost(item.platform)}
+                          disabled={scheduling || !item.scheduledTime}
+                          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {scheduling ? 'Scheduling...' : 'Schedule'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
