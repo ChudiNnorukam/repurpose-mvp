@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 type Platform = 'twitter' | 'linkedin' | 'instagram'
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user from session
+    // Get user from session using SSR client
     const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
 
-    // Create a Supabase client with the cookies
-    const supabaseClient = supabase
+    const supabaseClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          },
+        },
+      }
+    )
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
 
