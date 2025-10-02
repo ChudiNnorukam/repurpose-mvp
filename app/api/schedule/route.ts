@@ -84,8 +84,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Set up QStash scheduled job to post at the scheduled time
-    // For MVP, we'll add this in the next step
+    // Schedule QStash job to post at the scheduled time
+    try {
+      const { schedulePostJob } = await import('@/lib/qstash')
+
+      const messageId = await schedulePostJob(
+        {
+          postId: post.id,
+          platform: platform as Platform,
+          content,
+          userId: user.id,
+        },
+        scheduledDate
+      )
+
+      console.log(`QStash job scheduled: ${messageId} for post ${post.id}`)
+    } catch (qstashError) {
+      console.error('Failed to schedule QStash job:', qstashError)
+      // Don't fail the request - post is still in DB as scheduled
+      // We can retry or handle manually if needed
+    }
 
     return NextResponse.json({
       success: true,
