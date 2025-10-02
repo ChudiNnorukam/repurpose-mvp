@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 interface SocialAccount {
   id: string
@@ -29,13 +30,11 @@ export default function ConnectionsPage() {
     const errorParam = searchParams.get('error')
 
     if (connected) {
-      setMessage(`Successfully connected ${connected}!`)
-      setTimeout(() => setMessage(null), 5000)
+      toast.success(`Successfully connected ${connected}!`)
     }
 
     if (errorParam) {
-      setError(`Error: ${errorParam}`)
-      setTimeout(() => setError(null), 5000)
+      toast.error(`Error: ${errorParam}`)
     }
   }, [searchParams])
 
@@ -77,10 +76,40 @@ export default function ConnectionsPage() {
     router.push('/login')
   }
 
+  const handleConnect = async (platform: string) => {
+    try {
+      const platformName = platform.charAt(0).toUpperCase() + platform.slice(1)
+      const loadingToast = toast.loading(`Connecting to ${platformName}...`)
+
+      const endpoint = platform === 'twitter' ? '/api/auth/init-twitter' : '/api/auth/init-linkedin'
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      })
+
+      const { authUrl, error } = await response.json()
+
+      if (error) {
+        toast.error(`Failed to connect: ${error}`, { id: loadingToast })
+        return
+      }
+
+      toast.dismiss(loadingToast)
+      // Redirect to OAuth
+      window.location.href = authUrl
+    } catch (error) {
+      toast.error('Failed to initiate connection')
+    }
+  }
+
   const handleDisconnect = async (platform: string) => {
     if (!confirm(`Are you sure you want to disconnect ${platform}?`)) {
       return
     }
+
+    const loadingToast = toast.loading(`Disconnecting ${platform}...`)
 
     const { error } = await supabase
       .from('social_accounts')
@@ -89,11 +118,11 @@ export default function ConnectionsPage() {
       .eq('platform', platform)
 
     if (error) {
-      setError(`Failed to disconnect ${platform}`)
+      toast.error(`Failed to disconnect ${platform}`, { id: loadingToast })
       return
     }
 
-    setMessage(`Disconnected ${platform}`)
+    toast.success(`Disconnected ${platform}`, { id: loadingToast })
     await loadAccounts(user.id)
   }
 
@@ -183,18 +212,18 @@ export default function ConnectionsPage() {
                   Disconnect
                 </button>
               ) : (
-                <a
-                  href="/api/auth/twitter"
+                <button
+                  onClick={() => handleConnect('twitter')}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   Connect Twitter
-                </a>
+                </button>
               )}
             </div>
           </div>
 
-          {/* LinkedIn - Coming soon */}
-          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+          {/* LinkedIn */}
+          <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-blue-700 rounded-lg flex items-center justify-center text-white text-xl font-bold">
@@ -202,15 +231,30 @@ export default function ConnectionsPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">LinkedIn</h3>
-                  <p className="text-sm text-gray-500">Coming soon</p>
+                  {isConnected('linkedin') ? (
+                    <p className="text-sm text-green-600">
+                      Connected as {accounts.find(a => a.platform === 'linkedin')?.account_username}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">Not connected</p>
+                  )}
                 </div>
               </div>
-              <button
-                disabled
-                className="px-4 py-2 text-sm font-medium text-gray-400 border border-gray-300 rounded-md cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
+              {isConnected('linkedin') ? (
+                <button
+                  onClick={() => handleDisconnect('linkedin')}
+                  className="px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleConnect('linkedin')}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-md hover:bg-blue-800"
+                >
+                  Connect LinkedIn
+                </button>
+              )}
             </div>
           </div>
 

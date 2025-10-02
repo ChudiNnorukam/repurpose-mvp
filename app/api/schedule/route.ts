@@ -6,37 +6,20 @@ type Platform = 'twitter' | 'linkedin' | 'instagram'
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user from session using SSR client
-    const cookieStore = await cookies()
+    const body = await request.json()
+    const { platform, content, originalContent, scheduledTime, userId } = body
 
-    const supabaseClient = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
-
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
-
-    if (userError || !user) {
+    // Validate userId is provided
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'User ID required' },
         { status: 401 }
       )
     }
 
-    const body = await request.json()
-    const { platform, content, originalContent, scheduledTime } = body
+    // Use service role client for database operations
+    const { getSupabaseAdmin } = await import('@/lib/supabase')
+    const supabaseClient = getSupabaseAdmin()
 
     // Validate input
     if (!platform || !content || !scheduledTime) {
@@ -66,7 +49,7 @@ export async function POST(request: NextRequest) {
     const { data: post, error: insertError } = await supabaseClient
       .from('posts')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         platform: platform as Platform,
         original_content: originalContent || content,
         adapted_content: content,
@@ -93,7 +76,7 @@ export async function POST(request: NextRequest) {
           postId: post.id,
           platform: platform as Platform,
           content,
-          userId: user.id,
+          userId: userId,
         },
         scheduledDate
       )

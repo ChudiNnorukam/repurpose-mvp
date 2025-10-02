@@ -26,11 +26,22 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Refresh session to ensure we have the latest auth state
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (userError || !user) {
-      return NextResponse.redirect(new URL('/login', request.url))
+    console.log('Twitter auth - Session check:', {
+      hasSession: !!session,
+      sessionError: sessionError?.message,
+      cookies: cookieStore.getAll().map(c => c.name)
+    })
+
+    if (sessionError || !session) {
+      console.log('No session found, redirecting to login')
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
+      return NextResponse.redirect(new URL('/login', baseUrl))
     }
+
+    const user = session.user
 
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex')

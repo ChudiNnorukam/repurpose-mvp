@@ -88,9 +88,9 @@ async function handler(request: NextRequest) {
         await postTweet(socialAccount.access_token, content)
         postSuccess = true
       } else if (platform === 'linkedin') {
-        // TODO: Implement LinkedIn posting
-        console.log('LinkedIn posting not yet implemented')
-        errorMessage = 'LinkedIn posting not yet implemented'
+        const { postToLinkedIn } = await import('@/lib/linkedin')
+        await postToLinkedIn(socialAccount.access_token, content)
+        postSuccess = true
       } else if (platform === 'instagram') {
         // TODO: Implement Instagram posting
         console.log('Instagram posting not yet implemented')

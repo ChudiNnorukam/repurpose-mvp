@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { getTwitterAccessToken, getTwitterUser } from '@/lib/twitter'
+import { getLinkedInAccessToken, getLinkedInUser } from '@/lib/linkedin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,33 +34,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Use service role client to insert data directly (we already have userId from state)
+    // Use service role client to insert data directly
     const { getSupabaseAdmin } = await import('@/lib/supabase')
     const supabase = getSupabaseAdmin()
 
     // Exchange code for access token
-    const { accessToken, refreshToken } = await getTwitterAccessToken(code)
+    const { accessToken } = await getLinkedInAccessToken(code)
 
-    // Get Twitter user info
-    const twitterUser = await getTwitterUser(accessToken)
+    // Get LinkedIn user info
+    const linkedInUser = await getLinkedInUser(accessToken)
 
     // Save to database
     const { error: dbError } = await supabase
       .from('social_accounts')
       .upsert({
         user_id: userId,
-        platform: 'twitter',
+        platform: 'linkedin',
         access_token: accessToken,
-        refresh_token: refreshToken,
-        account_username: twitterUser.username,
-        account_id: twitterUser.id,
+        refresh_token: null, // LinkedIn doesn't provide refresh tokens by default
+        account_username: linkedInUser.name,
+        account_id: linkedInUser.id,
         connected_at: new Date().toISOString(),
       }, {
         onConflict: 'user_id,platform'
       })
 
     if (dbError) {
-      console.error('Error saving Twitter account:', dbError)
+      console.error('Error saving LinkedIn account:', dbError)
       return NextResponse.redirect(
         new URL('/connections?error=save_failed', baseUrl)
       )
@@ -70,10 +68,10 @@ export async function GET(request: NextRequest) {
 
     // Redirect to connections page with success
     return NextResponse.redirect(
-      new URL('/connections?connected=twitter', baseUrl)
+      new URL('/connections?connected=linkedin', baseUrl)
     )
   } catch (error: any) {
-    console.error('Twitter OAuth callback error:', error)
+    console.error('LinkedIn OAuth callback error:', error)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
     return NextResponse.redirect(
       new URL(`/connections?error=${encodeURIComponent(error.message)}`, baseUrl)

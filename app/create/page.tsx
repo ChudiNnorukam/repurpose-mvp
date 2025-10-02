@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 type Platform = 'twitter' | 'linkedin' | 'instagram'
 type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusiastic'
@@ -75,13 +76,13 @@ export default function CreatePage() {
   const handleSchedulePost = async (platform: Platform) => {
     const post = adaptedContent.find(item => item.platform === platform)
     if (!post || !post.scheduledTime) {
-      setError('Please select a date and time')
+      toast.error('Please select a date and time')
       return
     }
 
     setScheduling(true)
-    setError(null)
-    setSuccess(null)
+
+    const loadingToast = toast.loading(`Scheduling ${platform} post...`)
 
     try {
       const response = await fetch('/api/schedule', {
@@ -94,6 +95,7 @@ export default function CreatePage() {
           content: post.content,
           originalContent,
           scheduledTime: post.scheduledTime,
+          userId: user.id,
         }),
       })
 
@@ -101,10 +103,9 @@ export default function CreatePage() {
         throw new Error('Failed to schedule post')
       }
 
-      setSuccess(`Post scheduled for ${platform}!`)
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success(`Post scheduled for ${platform}!`, { id: loadingToast })
     } catch (error: any) {
-      setError(error.message || 'Failed to schedule post. Please try again.')
+      toast.error(error.message || 'Failed to schedule post. Please try again.', { id: loadingToast })
     } finally {
       setScheduling(false)
     }
@@ -112,17 +113,18 @@ export default function CreatePage() {
 
   const handleAdaptContent = async () => {
     if (!originalContent.trim()) {
-      setError('Please enter some content to adapt')
+      toast.error('Please enter some content to adapt')
       return
     }
 
     if (selectedPlatforms.length === 0) {
-      setError('Please select at least one platform')
+      toast.error('Please select at least one platform')
       return
     }
 
     setAdapting(true)
-    setError(null)
+
+    const loadingToast = toast.loading('Adapting content for platforms...')
 
     try {
       const response = await fetch('/api/adapt', {
@@ -143,8 +145,9 @@ export default function CreatePage() {
 
       const data = await response.json()
       setAdaptedContent(data.adaptedContent)
+      toast.success('Content adapted successfully!', { id: loadingToast })
     } catch (error: any) {
-      setError(error.message || 'Failed to adapt content. Please try again.')
+      toast.error(error.message || 'Failed to adapt content. Please try again.', { id: loadingToast })
     } finally {
       setAdapting(false)
     }
