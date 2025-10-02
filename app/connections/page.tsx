@@ -1,0 +1,241 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+
+interface SocialAccount {
+  id: string
+  platform: string
+  account_username: string
+  connected_at: string
+}
+
+export default function ConnectionsPage() {
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [accounts, setAccounts] = useState<SocialAccount[]>([])
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    checkUser()
+
+    // Check for OAuth callback messages
+    const connected = searchParams.get('connected')
+    const errorParam = searchParams.get('error')
+
+    if (connected) {
+      setMessage(`Successfully connected ${connected}!`)
+      setTimeout(() => setMessage(null), 5000)
+    }
+
+    if (errorParam) {
+      setError(`Error: ${errorParam}`)
+      setTimeout(() => setError(null), 5000)
+    }
+  }, [searchParams])
+
+  const checkUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      setUser(user)
+      await loadAccounts(user.id)
+    } catch (error) {
+      console.error('Error checking user:', error)
+      router.push('/login')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadAccounts = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('social_accounts')
+      .select('*')
+      .eq('user_id', userId)
+
+    if (error) {
+      console.error('Error loading accounts:', error)
+      return
+    }
+
+    setAccounts(data || [])
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  const handleDisconnect = async (platform: string) => {
+    if (!confirm(`Are you sure you want to disconnect ${platform}?`)) {
+      return
+    }
+
+    const { error } = await supabase
+      .from('social_accounts')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('platform', platform)
+
+    if (error) {
+      setError(`Failed to disconnect ${platform}`)
+      return
+    }
+
+    setMessage(`Disconnected ${platform}`)
+    await loadAccounts(user.id)
+  }
+
+  const isConnected = (platform: string) => {
+    return accounts.some(acc => acc.platform === platform)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
+            Repurpose
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+              Dashboard
+            </Link>
+            <Link href="/create" className="text-sm text-gray-600 hover:text-gray-900">
+              Create
+            </Link>
+            <span className="text-sm text-gray-600">{user?.email}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">Connected Accounts</h2>
+          <p className="mt-2 text-gray-600">
+            Connect your social media accounts to publish content automatically
+          </p>
+        </div>
+
+        {message && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+            {message}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {/* Twitter */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl font-bold">
+                  𝕏
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Twitter</h3>
+                  {isConnected('twitter') ? (
+                    <p className="text-sm text-green-600">
+                      Connected as @{accounts.find(a => a.platform === 'twitter')?.account_username}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">Not connected</p>
+                  )}
+                </div>
+              </div>
+              {isConnected('twitter') ? (
+                <button
+                  onClick={() => handleDisconnect('twitter')}
+                  className="px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <a
+                  href="/api/auth/twitter"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                >
+                  Connect Twitter
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* LinkedIn - Coming soon */}
+          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-700 rounded-lg flex items-center justify-center text-white text-xl font-bold">
+                  in
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">LinkedIn</h3>
+                  <p className="text-sm text-gray-500">Coming soon</p>
+                </div>
+              </div>
+              <button
+                disabled
+                className="px-4 py-2 text-sm font-medium text-gray-400 border border-gray-300 rounded-md cursor-not-allowed"
+              >
+                Coming Soon
+              </button>
+            </div>
+          </div>
+
+          {/* Instagram - Coming soon */}
+          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-lg flex items-center justify-center text-white text-xl font-bold">
+                  IG
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Instagram</h3>
+                  <p className="text-sm text-gray-500">Coming soon</p>
+                </div>
+              </div>
+              <button
+                disabled
+                className="px-4 py-2 text-sm font-medium text-gray-400 border border-gray-300 rounded-md cursor-not-allowed"
+              >
+                Coming Soon
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}

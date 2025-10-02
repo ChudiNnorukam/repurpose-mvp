@@ -78,12 +78,29 @@ async function handler(request: NextRequest) {
       )
     }
 
-    // TODO: Actually post to social media platform
-    // For now, we'll mark it as posted (you'll implement OAuth + posting next)
-    console.log(`Would post to ${platform}:`, content)
+    // Post to social media platform
+    let postSuccess = false
+    let errorMessage = ''
 
-    // Simulate posting (replace with actual API calls later)
-    const postSuccess = true
+    try {
+      if (platform === 'twitter') {
+        const { postTweet } = await import('@/lib/twitter')
+        await postTweet(socialAccount.access_token, content)
+        postSuccess = true
+      } else if (platform === 'linkedin') {
+        // TODO: Implement LinkedIn posting
+        console.log('LinkedIn posting not yet implemented')
+        errorMessage = 'LinkedIn posting not yet implemented'
+      } else if (platform === 'instagram') {
+        // TODO: Implement Instagram posting
+        console.log('Instagram posting not yet implemented')
+        errorMessage = 'Instagram posting not yet implemented'
+      }
+    } catch (postError: any) {
+      console.error(`Error posting to ${platform}:`, postError)
+      errorMessage = postError.message || 'Failed to publish post'
+      postSuccess = false
+    }
 
     if (postSuccess) {
       // Update post status to posted
@@ -106,12 +123,12 @@ async function handler(request: NextRequest) {
         .from('posts')
         .update({
           status: 'failed',
-          error_message: 'Failed to publish post',
+          error_message: errorMessage,
         })
         .eq('id', postId)
 
       return NextResponse.json(
-        { error: 'Failed to publish post' },
+        { error: errorMessage || 'Failed to publish post' },
         { status: 500 }
       )
     }
