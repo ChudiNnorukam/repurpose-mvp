@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -13,7 +13,7 @@ interface SocialAccount {
   connected_at: string
 }
 
-export default function ConnectionsPage() {
+function ConnectionsContent() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [accounts, setAccounts] = useState<SocialAccount[]>([])
@@ -281,5 +281,17 @@ export default function ConnectionsPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function ConnectionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    }>
+      <ConnectionsContent />
+    </Suspense>
   )
 }
