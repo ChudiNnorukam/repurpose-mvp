@@ -229,7 +229,6 @@ export default function TemplatesPage() {
               <Link href="/create" className="text-gray-600 hover:text-gray-900">Create</Link>
               <Link href="/posts" className="text-gray-600 hover:text-gray-900">Posts</Link>
               <Link href="/templates" className="text-gray-900 font-semibold">Templates</Link>
-              <Link href="/analytics" className="text-gray-600 hover:text-gray-900">Analytics</Link>
               <Link href="/connections" className="text-gray-600 hover:text-gray-900">Connections</Link>
               <button onClick={handleSignOut} className="text-gray-600 hover:text-gray-900">Sign Out</button>
             </nav>
@@ -247,7 +246,6 @@ export default function TemplatesPage() {
               <Link href="/create" className="block py-2 text-gray-600">Create</Link>
               <Link href="/posts" className="block py-2 text-gray-600">Posts</Link>
               <Link href="/templates" className="block py-2 text-gray-900 font-semibold">Templates</Link>
-              <Link href="/analytics" className="block py-2 text-gray-600">Analytics</Link>
               <Link href="/connections" className="block py-2 text-gray-600">Connections</Link>
               <button onClick={handleSignOut} className="block py-2 text-gray-600 w-full text-left">Sign Out</button>
             </div>
