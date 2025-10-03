@@ -100,7 +100,8 @@ export default function CreatePage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to schedule post')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to schedule post')
       }
 
       toast.success(`Post scheduled for ${platform}!`, { id: loadingToast })
