@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@/lib/supabase/server'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,16 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const { category, platform, userContext } = await request.json()
 
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    console.log('Auth check:', { user: !!user, authError })
-
-    if (!user) {
-      console.error('No user found:', authError)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    // No auth check needed - just generating text
     // Prompt templates for different categories
     const prompts = {
       educational: `Generate a LinkedIn promotional post for a content repurposing tool called "Repurpose".
