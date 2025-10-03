@@ -36,11 +36,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate scheduled time is in the future
+    // Validate scheduled time is in the future (with 1 minute grace period for timezone issues)
     const scheduledDate = new Date(scheduledTime)
-    if (scheduledDate <= new Date()) {
+    const now = new Date()
+    const oneMinuteAgo = new Date(now.getTime() - 60000) // 1 minute grace period
+
+    if (scheduledDate <= oneMinuteAgo) {
+      console.log('Schedule time validation failed:', {
+        scheduledTime,
+        scheduledDate: scheduledDate.toISOString(),
+        now: now.toISOString(),
+        diff: (scheduledDate.getTime() - now.getTime()) / 1000 + ' seconds'
+      })
       return NextResponse.json(
-        { error: 'Scheduled time must be in the future' },
+        { error: `Scheduled time must be in the future. You selected: ${scheduledDate.toISOString()}, current time: ${now.toISOString()}` },
         { status: 400 }
       )
     }
