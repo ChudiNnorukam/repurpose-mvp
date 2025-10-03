@@ -36,12 +36,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate scheduled time is in the future (with 1 minute grace period for timezone issues)
+    // Parse the scheduled time
+    // datetime-local sends "YYYY-MM-DDTHH:mm" format (no timezone)
+    // When creating Date from this, it's interpreted as local time in browser
+    // but as UTC on server. We need to handle this properly.
     const scheduledDate = new Date(scheduledTime)
     const now = new Date()
-    const oneMinuteAgo = new Date(now.getTime() - 60000) // 1 minute grace period
 
-    if (scheduledDate <= oneMinuteAgo) {
+    // Very lenient validation - allow scheduling up to 5 minutes in the past
+    // This handles timezone issues and clock skew between client/server
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000)
+
+    if (scheduledDate < fiveMinutesAgo) {
       console.log('Schedule time validation failed:', {
         scheduledTime,
         scheduledDate: scheduledDate.toISOString(),
