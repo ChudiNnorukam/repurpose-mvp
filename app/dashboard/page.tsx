@@ -176,6 +176,12 @@ export default function DashboardPage() {
               <Link href="/posts" className="text-sm text-gray-600 hover:text-gray-900">
                 Posts
               </Link>
+              <Link href="/templates" className="text-sm text-gray-600 hover:text-gray-900">
+                Templates
+              </Link>
+              <Link href="/analytics" className="text-sm text-gray-600 hover:text-gray-900">
+                Analytics
+              </Link>
               <Link href="/connections" className="text-sm text-gray-600 hover:text-gray-900">
                 Connections
               </Link>
@@ -205,6 +211,12 @@ export default function DashboardPage() {
               </Link>
               <Link href="/posts" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
                 Posts
+              </Link>
+              <Link href="/templates" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
+                Templates
+              </Link>
+              <Link href="/analytics" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
+                Analytics
               </Link>
               <Link href="/connections" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
                 Connections
