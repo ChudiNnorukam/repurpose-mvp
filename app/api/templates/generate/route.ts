@@ -11,9 +11,12 @@ export async function POST(request: NextRequest) {
     const { category, platform, userContext } = await request.json()
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    console.log('Auth check:', { user: !!user, authError })
 
     if (!user) {
+      console.error('No user found:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
