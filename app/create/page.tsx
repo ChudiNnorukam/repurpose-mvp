@@ -85,6 +85,12 @@ export default function CreatePage() {
     const loadingToast = toast.loading(`Scheduling ${platform} post...`)
 
     try {
+      // Convert datetime-local to ISO string with user's timezone
+      // datetime-local gives "2025-10-03T14:23" (no timezone info)
+      // new Date() interprets this as LOCAL time, then toISOString() converts to UTC properly
+      const localDateTime = new Date(post.scheduledTime)
+      const isoString = localDateTime.toISOString()
+
       const response = await fetch('/api/schedule', {
         method: 'POST',
         headers: {
@@ -94,7 +100,7 @@ export default function CreatePage() {
           platform,
           content: post.content,
           originalContent,
-          scheduledTime: post.scheduledTime,
+          scheduledTime: isoString,
           userId: user.id,
         }),
       })
