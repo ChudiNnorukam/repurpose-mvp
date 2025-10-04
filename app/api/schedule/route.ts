@@ -76,8 +76,14 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Error inserting post:', insertError)
+      console.error('Insert error details:', {
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
+        code: insertError.code
+      })
       return NextResponse.json(
-        { error: 'Failed to schedule post' },
+        { error: `Failed to schedule post: ${insertError.message}` },
         { status: 500 }
       )
     }
