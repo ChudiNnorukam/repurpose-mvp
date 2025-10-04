@@ -96,11 +96,24 @@ export async function POST(request: NextRequest) {
         scheduledDate
       )
 
-      console.log(`QStash job scheduled: ${messageId} for post ${post.id}`)
-    } catch (qstashError) {
-      console.error('Failed to schedule QStash job:', qstashError)
-      // Don't fail the request - post is still in DB as scheduled
-      // We can retry or handle manually if needed
+      console.log(`✅ QStash job scheduled: ${messageId} for post ${post.id}`)
+    } catch (qstashError: any) {
+      console.error('❌ Failed to schedule QStash job:', qstashError)
+
+      // Update post to failed status since QStash scheduling failed
+      await supabaseClient
+        .from('posts')
+        .update({
+          status: 'failed',
+          error_message: `QStash scheduling failed: ${qstashError.message}`,
+        })
+        .eq('id', post.id)
+
+      // Return error to user so they know it failed
+      return NextResponse.json(
+        { error: `Failed to schedule QStash job: ${qstashError.message}` },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({

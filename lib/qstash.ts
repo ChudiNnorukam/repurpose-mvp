@@ -25,12 +25,21 @@ export async function schedulePostJob(
     const delay = Math.floor((scheduledTime.getTime() - Date.now()) / 1000)
 
     if (delay <= 0) {
-      throw new Error('Scheduled time must be in the future')
+      throw new Error(`Scheduled time must be in the future. Delay calculated: ${delay} seconds`)
     }
+
+    // Ensure base URL doesn't have trailing slash
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')
+    if (!baseUrl) {
+      throw new Error('NEXT_PUBLIC_APP_URL environment variable is not set')
+    }
+
+    const callbackUrl = `${baseUrl}/api/post/execute`
+    console.log(`Scheduling QStash job to ${callbackUrl} with delay ${delay}s`)
 
     // Schedule a delayed message to our post execution endpoint
     const response = await qstash.publishJSON({
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/post/execute`,
+      url: callbackUrl,
       body: jobData,
       delay: delay,
       headers: {
@@ -38,9 +47,15 @@ export async function schedulePostJob(
       },
     })
 
+    console.log('QStash response:', response)
     return response.messageId
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error scheduling QStash job:', error)
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      body: error.body,
+    })
     throw error
   }
 }
