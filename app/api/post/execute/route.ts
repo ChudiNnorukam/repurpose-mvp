@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { verifySignatureAppRouter } from '@upstash/qstash/nextjs'
-import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from "next/server"
+import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
+import { getSupabaseAdmin } from "@/lib/supabase"
+import { refreshIfNeeded } from "@/lib/social-media/refresh"
 
-type Platform = 'twitter' | 'linkedin' | 'instagram'
+type Platform = "twitter" | "linkedin" | "instagram"
 
 interface PostJobData {
   postId: string
@@ -16,61 +17,49 @@ async function handler(request: NextRequest) {
     const body: PostJobData = await request.json()
     const { postId, platform, content, userId } = body
 
-    console.log(`Executing scheduled post: ${postId} for platform: ${platform}`)
+    console.log(`🚀 Executing scheduled post: ${postId} for platform: ${platform}`)
 
-    // Create Supabase admin client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
+    const supabase = getSupabaseAdmin()
 
     // Get the post from database
     const { data: post, error: fetchError } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('id', postId)
+      .from("posts")
+      .select("*")
+      .eq("id", postId)
       .single()
 
     if (fetchError || !post) {
-      console.error('Post not found:', postId)
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      )
+      console.error("❌ Post not found:", postId)
+      return NextResponse.json({ error: "Post not found" }, { status: 404 })
     }
 
     // Check if already posted
-    if (post.status === 'posted') {
-      console.log('Post already posted:', postId)
+    if (post.status === "posted") {
+      console.log("✅ Post already posted:", postId)
       return NextResponse.json({
         success: true,
-        message: 'Post already posted',
+        message: "Post already posted",
       })
     }
 
-    // Get user's social account for this platform
+    // ✅ Get user's social account for this platform
     const { data: socialAccount, error: accountError } = await supabase
-      .from('social_accounts')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('platform', platform)
+      .from("social_accounts")
+      .select("id, access_token, refresh_token")
+      .eq("user_id", userId)
+      .eq("platform", platform)
       .single()
 
     if (accountError || !socialAccount) {
-      // Update post status to failed
+      console.error(`❌ No connected ${platform} account found for user ${userId}`)
+
       await supabase
-        .from('posts')
+        .from("posts")
         .update({
-          status: 'failed',
+          status: "failed",
           error_message: `No connected ${platform} account found`,
         })
-        .eq('id', postId)
+        .eq("id", postId)
 
       return NextResponse.json(
         { error: `No connected ${platform} account found` },
@@ -78,39 +67,52 @@ async function handler(request: NextRequest) {
       )
     }
 
-    // Post to social media platform
+    // ✅ Refresh token if needed
+    let accessToken: string
+    try {
+      accessToken = await refreshIfNeeded(socialAccount, platform)
+      console.log(`✅ Access token refreshed for ${platform}`)
+    } catch (refreshError: any) {
+      console.error(`❌ Token refresh failed for ${platform}:`, refreshError)
+      accessToken = socialAccount.access_token // Fall back to existing token
+    }
+
+    // ✅ Post to social media platform
     let postSuccess = false
-    let errorMessage = ''
+    let errorMessage = ""
 
     try {
-      if (platform === 'twitter') {
-        const { postTweet } = await import('@/lib/twitter')
-        await postTweet(socialAccount.access_token, content)
+      if (platform === "twitter") {
+        const { postTweet } = await import("@/lib/twitter")
+        await postTweet(accessToken, content)
         postSuccess = true
-      } else if (platform === 'linkedin') {
-        const { postToLinkedIn } = await import('@/lib/linkedin')
-        await postToLinkedIn(socialAccount.access_token, content)
+        console.log(`✅ Successfully posted to Twitter`)
+      } else if (platform === "linkedin") {
+        const { postToLinkedIn } = await import("@/lib/linkedin")
+        await postToLinkedIn(accessToken, content)
         postSuccess = true
-      } else if (platform === 'instagram') {
-        // TODO: Implement Instagram posting
-        console.log('Instagram posting not yet implemented')
-        errorMessage = 'Instagram posting not yet implemented'
+        console.log(`✅ Successfully posted to LinkedIn`)
+      } else if (platform === "instagram") {
+        console.log("⚠️  Instagram posting not yet implemented")
+        errorMessage = "Instagram posting not yet implemented"
       }
     } catch (postError: any) {
-      console.error(`Error posting to ${platform}:`, postError)
-      errorMessage = postError.message || 'Failed to publish post'
+      console.error(`❌ Error posting to ${platform}:`, postError)
+      errorMessage = postError.message || "Failed to publish post"
       postSuccess = false
     }
 
     if (postSuccess) {
       // Update post status to posted
       await supabase
-        .from('posts')
+        .from("posts")
         .update({
-          status: 'posted',
+          status: "posted",
           posted_at: new Date().toISOString(),
         })
-        .eq('id', postId)
+        .eq("id", postId)
+
+      console.log(`✅ Post ${postId} marked as posted`)
 
       return NextResponse.json({
         success: true,
@@ -120,25 +122,27 @@ async function handler(request: NextRequest) {
     } else {
       // Update post status to failed
       await supabase
-        .from('posts')
+        .from("posts")
         .update({
-          status: 'failed',
+          status: "failed",
           error_message: errorMessage,
         })
-        .eq('id', postId)
+        .eq("id", postId)
+
+      console.log(`❌ Post ${postId} marked as failed: ${errorMessage}`)
 
       return NextResponse.json(
-        { error: errorMessage || 'Failed to publish post' },
+        { error: errorMessage || "Failed to publish post" },
         { status: 500 }
       )
     }
   } catch (error: any) {
-    console.error('Error executing post:', error)
+    console.error("❌ Error executing post:", error)
 
     return NextResponse.json(
       {
-        error: 'Failed to execute post',
-        details: error.message
+        error: "Failed to execute post",
+        details: error.message,
       },
       { status: 500 }
     )

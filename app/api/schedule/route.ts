@@ -1,86 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from "next/server"
+import { getSupabaseAdmin } from "@/lib/supabase"
+import { schedulePostJob } from "@/lib/qstash"
 
-type Platform = 'twitter' | 'linkedin' | 'instagram'
+type Platform = "twitter" | "linkedin" | "instagram"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { platform, content, originalContent, scheduledTime, userId } = body
 
-    // Validate userId is provided
-    if (!userId) {
+    // Validate input
+    if (!platform || !content || !scheduledTime || !userId) {
       return NextResponse.json(
-        { error: 'User ID required' },
-        { status: 401 }
+        { error: "Missing required fields" },
+        { status: 400 }
       )
     }
 
-    // Use service role client for database operations
-    const { getSupabaseAdmin } = await import('@/lib/supabase')
+    if (!["twitter", "linkedin", "instagram"].includes(platform)) {
+      return NextResponse.json(
+        { error: "Invalid platform" },
+        { status: 400 }
+      )
+    }
+
     const supabaseClient = getSupabaseAdmin()
 
-    // Validate input
-    if (!platform || !content || !scheduledTime) {
+    // ✅ Verify user exists in auth.users
+    const { data: authUser, error: userError } =
+      await supabaseClient.auth.admin.getUserById(userId)
+
+    if (userError || !authUser?.user) {
+      console.error("User verification failed:", userError)
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "User does not exist or session invalid" },
         { status: 400 }
       )
     }
 
-    if (!['twitter', 'linkedin', 'instagram'].includes(platform)) {
-      return NextResponse.json(
-        { error: 'Invalid platform' },
-        { status: 400 }
-      )
-    }
-
-    // Parse the scheduled time
-    // datetime-local sends "YYYY-MM-DDTHH:mm" format (no timezone)
-    // When creating Date from this, it's interpreted as local time in browser
-    // but as UTC on server. We need to handle this properly.
+    // Parse and validate scheduled time
     const scheduledDate = new Date(scheduledTime)
     const now = new Date()
-
-    // Very lenient validation - allow scheduling up to 5 minutes in the past
-    // This handles timezone issues and clock skew between client/server
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000)
 
     if (scheduledDate < fiveMinutesAgo) {
-      console.log('Schedule time validation failed:', {
+      console.log("Schedule time validation failed:", {
         scheduledTime,
         scheduledDate: scheduledDate.toISOString(),
         now: now.toISOString(),
-        diff: (scheduledDate.getTime() - now.getTime()) / 1000 + ' seconds'
+        diff: (scheduledDate.getTime() - now.getTime()) / 1000 + " seconds",
       })
       return NextResponse.json(
-        { error: `Scheduled time must be in the future. You selected: ${scheduledDate.toISOString()}, current time: ${now.toISOString()}` },
+        {
+          error: `Scheduled time must be in the future. You selected: ${scheduledDate.toISOString()}, current time: ${now.toISOString()}`,
+        },
         { status: 400 }
       )
     }
 
-    // Save to database
+    // ✅ Insert post into database
     const { data: post, error: insertError } = await supabaseClient
-      .from('posts')
+      .from("posts")
       .insert({
         user_id: userId,
         platform: platform as Platform,
         original_content: originalContent || content,
         adapted_content: content,
         scheduled_time: scheduledTime,
-        status: 'scheduled',
+        status: "scheduled",
       })
       .select()
       .single()
 
     if (insertError) {
-      console.error('Error inserting post:', insertError)
-      console.error('Insert error details:', {
+      console.error("Insert error:", insertError)
+      console.error("Insert error details:", {
         message: insertError.message,
         details: insertError.details,
         hint: insertError.hint,
-        code: insertError.code
+        code: insertError.code,
       })
       return NextResponse.json(
         { error: `Failed to schedule post: ${insertError.message}` },
@@ -88,9 +86,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Schedule QStash job to post at the scheduled time
+    // ✅ Schedule QStash job
     try {
-      const { schedulePostJob } = await import('@/lib/qstash')
+      const delay = Math.max(
+        0,
+        Math.floor((scheduledDate.getTime() - Date.now()) / 1000)
+      )
 
       const messageId = await schedulePostJob(
         {
@@ -102,18 +103,31 @@ export async function POST(request: NextRequest) {
         scheduledDate
       )
 
-      console.log(`✅ QStash job scheduled: ${messageId} for post ${post.id}`)
+      console.log(`✅ Post scheduled successfully:`, {
+        postId: post.id,
+        platform,
+        qstashMessageId: messageId,
+        scheduledFor: scheduledDate.toISOString(),
+        delaySeconds: delay,
+      })
+
+      return NextResponse.json({
+        success: true,
+        post,
+        qstashMessageId: messageId,
+        message: "Post scheduled successfully",
+      })
     } catch (qstashError: any) {
-      console.error('❌ Failed to schedule QStash job:', qstashError)
+      console.error("❌ Failed to schedule QStash job:", qstashError)
 
       // Update post to failed status since QStash scheduling failed
       await supabaseClient
-        .from('posts')
+        .from("posts")
         .update({
-          status: 'failed',
+          status: "failed",
           error_message: `QStash scheduling failed: ${qstashError.message}`,
         })
-        .eq('id', post.id)
+        .eq("id", post.id)
 
       // Return error to user so they know it failed
       return NextResponse.json(
@@ -121,19 +135,13 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-
-    return NextResponse.json({
-      success: true,
-      post,
-      message: 'Post scheduled successfully',
-    })
   } catch (error: any) {
-    console.error('Error in /api/schedule:', error)
+    console.error("Error in /api/schedule:", error)
 
     return NextResponse.json(
       {
-        error: 'Failed to schedule post. Please try again.',
-        details: error.message
+        error: "Failed to schedule post. Please try again.",
+        details: error.message,
       },
       { status: 500 }
     )
