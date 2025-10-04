@@ -333,7 +333,17 @@ export default function CreatePage() {
                           value={item.scheduledTime || ''}
                           onChange={(e) => updateScheduledTime(item.platform, e.target.value)}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          min={new Date().toISOString().slice(0, 16)}
+                          min={(() => {
+                            // Get current time in user's local timezone for datetime-local
+                            const now = new Date()
+                            // Format as YYYY-MM-DDTHH:MM for datetime-local
+                            const year = now.getFullYear()
+                            const month = String(now.getMonth() + 1).padStart(2, '0')
+                            const day = String(now.getDate()).padStart(2, '0')
+                            const hours = String(now.getHours()).padStart(2, '0')
+                            const minutes = String(now.getMinutes()).padStart(2, '0')
+                            return `${year}-${month}-${day}T${hours}:${minutes}`
+                          })()}
                         />
                         <button
                           onClick={() => handleSchedulePost(item.platform)}
