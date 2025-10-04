@@ -124,7 +124,7 @@ export function Hero() {
   }, [showDemo])
 
   return (
-    <section className="relative w-full overflow-hidden bg-background py-20 text-foreground md:py-32" data-testid="hero-section">
+    <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 text-[#ededed] md:py-32" data-testid="hero-section">
       <AuroraBackground className="absolute inset-0 -z-10" />
 
       <div className="container mx-auto flex max-w-6xl flex-col items-center px-6 text-center sm:px-8">
@@ -249,7 +249,7 @@ export default function Page() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       <Hero />
     </main>
   )
