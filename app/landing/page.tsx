@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
 
 /** Lightweight animated aurora background */
 function AuroraBackground({ className = "" }: { className?: string }) {
@@ -70,39 +71,57 @@ function RadialVisual() {
   )
 }
 
-function PrimaryButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { className = "", children, ...rest } = props
-  return (
-    <button
-      {...rest}
-      className={
-        "inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-medium text-white shadow-lg transition focus:outline-none focus:ring-2 focus:ring-offset-2 " +
-        "bg-gradient-to-r from-blue-500 to-indigo-600 hover:brightness-110 focus:ring-indigo-400 " +
-        className
-      }
-    >
-      {children}
-    </button>
-  )
-}
-
-function SecondaryButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { className = "", children, ...rest } = props
-  return (
-    <button
-      {...rest}
-      className={
-        "inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-base font-medium text-white/90 shadow-sm backdrop-blur transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 " +
-        className
-      }
-    >
-      {children}
-    </button>
-  )
-}
 
 export function Hero() {
   const [showDemo, setShowDemo] = useState(false)
+  const overlayRef = React.useRef<HTMLDivElement>(null)
+
+  // Handle esc key to close overlay
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showDemo) {
+        setShowDemo(false)
+      }
+    }
+    document.addEventListener("keydown", handleEsc)
+    return () => document.removeEventListener("keydown", handleEsc)
+  }, [showDemo])
+
+  // Focus trap inside overlay
+  useEffect(() => {
+    if (!showDemo || !overlayRef.current) return
+
+    const overlay = overlayRef.current
+    const focusableElements = overlay.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    // Focus first element when overlay opens
+    firstElement?.focus()
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    overlay.addEventListener("keydown", handleTab as any)
+    return () => overlay.removeEventListener("keydown", handleTab as any)
+  }, [showDemo])
 
   return (
     <section className="relative w-full overflow-hidden bg-background py-20 text-foreground md:py-32" data-testid="hero-section">
@@ -135,29 +154,84 @@ export function Hero() {
           transition={{ delay: 0.5, duration: 0.6 }}
           className="mt-10 flex flex-col gap-4 sm:flex-row"
         >
-          <PrimaryButton aria-label="Get started with AI repurposing" data-testid="cta-primary">
+          <Button
+            variant="primary"
+            aria-label="Get started with AI repurposing"
+            data-testid="cta-primary"
+          >
             Get Started → Transform
-          </PrimaryButton>
-          <SecondaryButton aria-label="Open example demo" data-testid="cta-secondary" onClick={() => setShowDemo(true)}>
+          </Button>
+          <Button
+            variant="secondary"
+            aria-label="Open example demo"
+            data-testid="cta-secondary"
+            onClick={() => setShowDemo(true)}
+          >
             See Example
-          </SecondaryButton>
+          </Button>
         </motion.div>
 
         <RadialVisual />
 
         {showDemo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-            <div className="relative max-w-lg rounded-xl bg-background p-8 shadow-2xl">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            onClick={() => setShowDemo(false)}
+            data-testid="overlay-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="demo-title"
+          >
+            <div
+              ref={overlayRef}
+              className="relative max-w-2xl w-full rounded-xl bg-background p-8 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 onClick={() => setShowDemo(false)}
-                className="absolute right-4 top-4 text-sm text-white/70 hover:text-white"
+                className="absolute right-4 top-4 text-sm text-white/70 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 rounded px-2 py-1"
+                aria-label="Close demo"
+                data-testid="close-demo"
               >
-                Close
+                Close ✕
               </button>
-              <h2 className="mb-4 text-xl font-semibold">Example Demo</h2>
-              <p className="text-muted-foreground">
-                This is where a lightweight demo of content transformation would appear.
-              </p>
+              <h2 id="demo-title" className="mb-6 text-2xl font-semibold">Example Transformation</h2>
+
+              {/* Mock content preview */}
+              <div className="space-y-4">
+                <div className="rounded-lg border border-white/15 bg-white/5 p-4">
+                  <div className="text-xs text-white/60 mb-2">Original</div>
+                  <p className="text-sm text-white/90">
+                    Just shipped a new feature that lets you repurpose content across platforms in seconds!
+                  </p>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                    <div className="text-xs text-blue-400 mb-2 flex items-center gap-1">
+                      <span>🐦</span> Twitter
+                    </div>
+                    <p className="text-sm text-white/90">
+                      🚀 New feature alert! Repurpose content across platforms in seconds ⚡
+
+                      No more copy-paste. Just smart automation.
+
+                      #ContentCreation #AI
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-4">
+                    <div className="text-xs text-indigo-400 mb-2 flex items-center gap-1">
+                      <span>💼</span> LinkedIn
+                    </div>
+                    <p className="text-sm text-white/90">
+                      I'm excited to announce our latest feature: instant content repurposing across all major platforms.
+
+                      This is a game-changer for content creators who want to maximize their reach without the manual work.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
