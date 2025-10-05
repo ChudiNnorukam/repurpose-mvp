@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 /** Lightweight animated aurora background */
 function AuroraBackground({ className = "" }: { className?: string }) {
@@ -75,6 +77,7 @@ function RadialVisual() {
 export function Hero() {
   const [showDemo, setShowDemo] = useState(false)
   const overlayRef = React.useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   // Handle esc key to close overlay
   useEffect(() => {
@@ -127,6 +130,27 @@ export function Hero() {
     <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 text-[#ededed] md:py-32" data-testid="hero-section">
       <AuroraBackground className="absolute inset-0 -z-10" />
 
+      {/* Navigation Header */}
+      <nav className="absolute top-0 left-0 right-0 z-20 border-b border-white/10 bg-black/20 backdrop-blur-sm">
+        <div className="container mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-8">
+          <Link href="/landing" className="text-xl font-bold">
+            Repurpose<span className="text-blue-500">AI</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                Login
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button variant="primary" size="sm">
+                Sign Up
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       <div className="container mx-auto flex max-w-6xl flex-col items-center px-6 text-center sm:px-8">
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -158,6 +182,7 @@ export function Hero() {
             variant="primary"
             aria-label="Get started with AI repurposing"
             data-testid="cta-primary"
+            onClick={() => router.push('/signup')}
           >
             Get Started → Transform
           </Button>
