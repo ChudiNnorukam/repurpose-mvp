@@ -59,7 +59,10 @@ export type Database = {
           user_id: string
           platform: 'twitter' | 'linkedin' | 'instagram'
           access_token: string
+          refresh_token: string | null
+          expires_at: string | null
           account_username: string
+          account_id: string
           connected_at: string
         }
         Insert: {
@@ -67,7 +70,10 @@ export type Database = {
           user_id: string
           platform: 'twitter' | 'linkedin' | 'instagram'
           access_token: string
+          refresh_token?: string | null
+          expires_at?: string | null
           account_username: string
+          account_id?: string
           connected_at?: string
         }
         Update: {
@@ -75,7 +81,10 @@ export type Database = {
           user_id?: string
           platform?: 'twitter' | 'linkedin' | 'instagram'
           access_token?: string
+          refresh_token?: string | null
+          expires_at?: string | null
           account_username?: string
+          account_id?: string
           connected_at?: string
         }
       }
@@ -89,6 +98,8 @@ export type Database = {
           scheduled_time: string | null
           status: 'draft' | 'scheduled' | 'posted' | 'failed'
           posted_at: string | null
+          error_message: string | null
+          qstash_message_id: string | null
           created_at: string
         }
         Insert: {
@@ -100,6 +111,8 @@ export type Database = {
           scheduled_time?: string | null
           status?: 'draft' | 'scheduled' | 'posted' | 'failed'
           posted_at?: string | null
+          error_message?: string | null
+          qstash_message_id?: string | null
           created_at?: string
         }
         Update: {
@@ -111,6 +124,8 @@ export type Database = {
           scheduled_time?: string | null
           status?: 'draft' | 'scheduled' | 'posted' | 'failed'
           posted_at?: string | null
+          error_message?: string | null
+          qstash_message_id?: string | null
           created_at?: string
         }
       }
