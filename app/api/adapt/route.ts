@@ -3,6 +3,7 @@ import { adaptContentForPlatform } from '@/lib/anthropic'
 import { createClient } from '@/lib/supabase/server'
 import { Platform, Tone } from '@/lib/types'
 import { ErrorResponses, ErrorCode, createErrorResponse } from '@/lib/api/errors'
+import { aiRateLimiter, getRateLimitIdentifier, checkRateLimit } from '@/lib/rate-limit'
 
 const MAX_CONTENT_LENGTH = 5000
 const VALID_PLATFORMS: Platform[] = ['twitter', 'linkedin', 'instagram']
@@ -16,6 +17,27 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return ErrorResponses.unauthorized()
+    }
+
+    // Rate limiting - prevent API abuse (10 requests per hour per user)
+    const identifier = getRateLimitIdentifier(request, user.id)
+    const rateLimitResult = await checkRateLimit(aiRateLimiter, identifier)
+
+    if (!rateLimitResult.success) {
+      const resetTime = new Date(rateLimitResult.reset).toLocaleTimeString()
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded. You can make ${rateLimitResult.limit} requests per hour. Try again after ${resetTime}.`,
+          code: ErrorCode.RATE_LIMIT_EXCEEDED,
+          limit: rateLimitResult.limit,
+          remaining: rateLimitResult.remaining,
+          reset: rateLimitResult.reset,
+        },
+        {
+          status: 429,
+          headers: rateLimitResult.headers,
+        }
+      )
     }
 
     const body = await request.json()

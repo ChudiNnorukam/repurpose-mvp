@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { schedulePostJob } from "@/lib/qstash"
-
-type Platform = "twitter" | "linkedin" | "instagram"
+import { Platform } from "@/lib/types"
+import { apiRateLimiter, getRateLimitIdentifier, checkRateLimit } from "@/lib/rate-limit"
+import { ErrorCode } from "@/lib/api/errors"
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      )
+    }
+
+    // Rate limiting - prevent scheduling spam (30 requests per minute per user)
+    const identifier = getRateLimitIdentifier(request, userId)
+    const rateLimitResult = await checkRateLimit(apiRateLimiter, identifier)
+
+    if (!rateLimitResult.success) {
+      const resetTime = new Date(rateLimitResult.reset).toLocaleTimeString()
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded. You can schedule ${rateLimitResult.limit} posts per minute. Try again after ${resetTime}.`,
+          code: ErrorCode.RATE_LIMIT_EXCEEDED,
+          limit: rateLimitResult.limit,
+          remaining: rateLimitResult.remaining,
+          reset: rateLimitResult.reset,
+        },
+        {
+          status: 429,
+          headers: rateLimitResult.headers,
+        }
       )
     }
 
