@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, Zap, Clock, Target, ChevronDown } from "lucide-react"
+import { Sparkles, Zap, Clock, Target, ChevronDown, ArrowDown } from "lucide-react"
 
 /** Lightweight animated aurora background */
 function AuroraBackground({ className = "" }: { className?: string }) {
@@ -36,16 +36,18 @@ function AuroraBackground({ className = "" }: { className?: string }) {
 /** Radial spread visual */
 function RadialVisual() {
   const items = [
-    { label: "LinkedIn Post", angle: -20 },
-    { label: "Twitter Thread", angle: 20 },
-    { label: "IG Caption", angle: 60 },
-    { label: "Carousel Copy", angle: 140 },
-    { label: "FB Question", angle: -140 },
+    { label: "LinkedIn Post", angle: -30 },
+    { label: "Twitter Thread", angle: 30 },
+    { label: "IG Caption", angle: 90 },
+    { label: "Carousel Copy", angle: 150 },
+    { label: "FB Question", angle: -150 },
   ] as const
 
   return (
-    <div className="relative mt-16 h-80 w-80 select-none sm:h-96 sm:w-96" data-testid="hero-radial">
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-600/20 blur-2xl" />
+    <div className="relative mt-12 h-[400px] w-full max-w-[500px] select-none" data-testid="hero-radial">
+      <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-600/20 blur-2xl" />
+
+      {/* Center "Your Post" */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -54,22 +56,35 @@ function RadialVisual() {
       >
         Your Post
       </motion.div>
-      {items.map((it, i) => (
-        <motion.div
-          key={it.label}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 + i * 0.07, duration: 0.4 }}
-          className="absolute left-1/2 top-1/2 origin-left"
-          style={{ transform: `rotate(${it.angle}deg)` }}
-        >
-          <div className="h-px w-24 translate-x-2 bg-gradient-to-r from-white/20 to-white/0 sm:w-28" />
-          <div className="translate-x-28 -translate-y-3.5 whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/90 shadow-md backdrop-blur transition hover:scale-[1.05] hover:border-white/25 hover:bg-white/10 sm:translate-x-32">
-            {it.label}
-          </div>
-        </motion.div>
-      ))}
-      <div className="absolute inset-0 rounded-full ring-1 ring-white/10" />
+
+      {/* Platform labels positioned around center */}
+      {items.map((it, i) => {
+        const angle = it.angle
+        const radians = (angle * Math.PI) / 180
+        const distance = 140
+        const x = Math.cos(radians) * distance
+        const y = Math.sin(radians) * distance
+
+        return (
+          <motion.div
+            key={it.label}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{
+              marginLeft: `${x}px`,
+              marginTop: `${y}px`
+            }}
+          >
+            <div className="whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/90 shadow-md backdrop-blur transition hover:scale-[1.05] hover:border-white/25 hover:bg-white/10">
+              {it.label}
+            </div>
+          </motion.div>
+        )
+      })}
+
+      <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1 ring-white/10" />
     </div>
   )
 }
@@ -128,7 +143,7 @@ export function Hero() {
   }, [showDemo])
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 text-[#ededed] md:py-32" data-testid="hero-section">
+    <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-16 text-[#ededed] md:py-24" data-testid="hero-section">
       <AuroraBackground className="absolute inset-0 -z-10" />
 
       {/* Navigation Header */}
@@ -202,7 +217,19 @@ export function Hero() {
 
         <RadialVisual />
 
-        {showDemo && (
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ delay: 1, duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="mt-12 flex flex-col items-center gap-2"
+        >
+          <span className="text-xs text-white/40">Scroll to explore</span>
+          <ArrowDown className="h-6 w-6 text-white/40" />
+        </motion.div>
+      </div>
+
+      {showDemo && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
             onClick={() => setShowDemo(false)}
@@ -264,7 +291,6 @@ export function Hero() {
             </div>
           </div>
         )}
-      </div>
     </section>
   )
 }
