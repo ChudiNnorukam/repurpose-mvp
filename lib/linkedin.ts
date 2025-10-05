@@ -1,5 +1,3 @@
-import { randomBytes } from 'crypto'
-
 export function getLinkedInAuthUrl(state: string): string {
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
   const clientId = process.env.LINKEDIN_CLIENT_ID!

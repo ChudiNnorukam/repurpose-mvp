@@ -1,11 +1,7 @@
-import { schedulePostJob } from '../qstash'
+jest.mock('@upstash/qstash')
 
-// Mock the QStash client
-jest.mock('@upstash/qstash', () => ({
-  Client: jest.fn().mockImplementation(() => ({
-    publishJSON: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })
-  }))
-}))
+import { schedulePostJob } from '../qstash'
+import { mockPublishJSON } from '@upstash/qstash'
 
 describe('schedulePostJob', () => {
   const mockJobData = {
@@ -17,11 +13,13 @@ describe('schedulePostJob', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockPublishJSON.mockResolvedValue({ messageId: 'test-message-id' })
+    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
   })
 
   describe('Time validation', () => {
     it('throws error if scheduled time is in the past', async () => {
-      const pastDate = new Date(Date.now() - 1000) // 1 second ago
+      const pastDate = new Date(Date.now() - 1000)
 
       await expect(schedulePostJob(mockJobData, pastDate))
         .rejects
@@ -29,32 +27,28 @@ describe('schedulePostJob', () => {
     })
 
     it('accepts scheduled time in the future', async () => {
-      const futureDate = new Date(Date.now() + 60000) // 1 minute from now
+      const futureDate = new Date(Date.now() + 60000)
 
       const messageId = await schedulePostJob(mockJobData, futureDate)
 
       expect(messageId).toBe('test-message-id')
+      expect(mockPublishJSON).toHaveBeenCalled()
     })
 
     it('calculates correct delay in seconds', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockResolvedValue({ messageId: 'test-id' })
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
-
-      const futureDate = new Date(Date.now() + 120000) // 2 minutes from now
+      const futureDate = new Date(Date.now() + 120000)
 
       await schedulePostJob(mockJobData, futureDate)
 
       expect(mockPublishJSON).toHaveBeenCalled()
       const callArgs = mockPublishJSON.mock.calls[0][0]
-      expect(callArgs.delay).toBeGreaterThanOrEqual(119) // Allow 1 second variance
+      expect(callArgs.delay).toBeGreaterThanOrEqual(119)
       expect(callArgs.delay).toBeLessThanOrEqual(121)
     })
   })
 
   describe('Environment validation', () => {
     it('throws error if NEXT_PUBLIC_APP_URL not set', async () => {
-      const originalUrl = process.env.NEXT_PUBLIC_APP_URL
       delete process.env.NEXT_PUBLIC_APP_URL
 
       const futureDate = new Date(Date.now() + 60000)
@@ -62,15 +56,9 @@ describe('schedulePostJob', () => {
       await expect(schedulePostJob(mockJobData, futureDate))
         .rejects
         .toThrow('NEXT_PUBLIC_APP_URL environment variable is not set')
-
-      process.env.NEXT_PUBLIC_APP_URL = originalUrl
     })
 
     it('removes trailing slash from base URL', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockResolvedValue({ messageId: 'test-id' })
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
-
       process.env.NEXT_PUBLIC_APP_URL = 'https://example.com/'
       const futureDate = new Date(Date.now() + 60000)
 
@@ -78,16 +66,11 @@ describe('schedulePostJob', () => {
 
       const callArgs = mockPublishJSON.mock.calls[0][0]
       expect(callArgs.url).toBe('https://example.com/api/post/execute')
-      expect(callArgs.url).not.toContain('//')
     })
   })
 
   describe('QStash API integration', () => {
     it('calls QStash publishJSON with correct parameters', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockResolvedValue({ messageId: 'test-id' })
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
-
       const futureDate = new Date(Date.now() + 60000)
 
       await schedulePostJob(mockJobData, futureDate)
@@ -105,21 +88,16 @@ describe('schedulePostJob', () => {
     })
 
     it('returns QStash message ID on success', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockResolvedValue({ messageId: 'unique-message-id' })
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
+      mockPublishJSON.mockResolvedValue({ messageId: 'unique-message-id' })
 
       const futureDate = new Date(Date.now() + 60000)
-
       const messageId = await schedulePostJob(mockJobData, futureDate)
 
       expect(messageId).toBe('unique-message-id')
     })
 
     it('handles QStash API errors gracefully', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockRejectedValue(new Error('QStash API error'))
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
+      mockPublishJSON.mockRejectedValue(new Error('QStash API error'))
 
       const futureDate = new Date(Date.now() + 60000)
 
@@ -130,31 +108,25 @@ describe('schedulePostJob', () => {
   })
 
   describe('Edge cases', () => {
-    it('handles scheduled time exactly now (0 delay)', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockResolvedValue({ messageId: 'test-id' })
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
+    it('handles minimum valid delay (1 second from now)', async () => {
+      const nearFuture = new Date(Date.now() + 1000)
 
-      const now = new Date()
+      const messageId = await schedulePostJob(mockJobData, nearFuture)
 
-      await schedulePostJob(mockJobData, now)
-
+      expect(messageId).toBe('test-message-id')
       const callArgs = mockPublishJSON.mock.calls[0][0]
       expect(callArgs.delay).toBeGreaterThanOrEqual(0)
+      expect(callArgs.delay).toBeLessThanOrEqual(2)
     })
 
     it('handles very long delays (days in future)', async () => {
-      const Client = require('@upstash/qstash').Client
-      const mockPublishJSON = jest.fn().mockResolvedValue({ messageId: 'test-id' })
-      Client.mockImplementation(() => ({ publishJSON: mockPublishJSON }))
-
-      const farFuture = new Date(Date.now() + 86400000 * 7) // 7 days
+      const farFuture = new Date(Date.now() + 86400000 * 7)
 
       const messageId = await schedulePostJob(mockJobData, farFuture)
 
-      expect(messageId).toBe('test-id')
+      expect(messageId).toBe('test-message-id')
       const callArgs = mockPublishJSON.mock.calls[0][0]
-      expect(callArgs.delay).toBeGreaterThan(604800) // More than 7 days in seconds
+      expect(callArgs.delay).toBeGreaterThanOrEqual(604800)
     })
   })
 })

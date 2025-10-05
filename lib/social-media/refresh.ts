@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { logger } from "@/lib/logger"
 
 interface SocialAccount {
   id: string
@@ -6,6 +7,22 @@ interface SocialAccount {
   refresh_token?: string | null
 }
 
+/**
+ * Refreshes OAuth access token if a refresh token is available
+ *
+ * Attempts to obtain a new access token using the refresh token for Twitter or LinkedIn.
+ * If refresh fails or no refresh token exists, returns the existing access token.
+ *
+ * @param account - Social account with access token and optional refresh token
+ * @param platform - Social media platform ('twitter' or 'linkedin')
+ * @returns Fresh access token (new if refreshed, existing if refresh failed/unavailable)
+ *
+ * @example
+ * const freshToken = await refreshIfNeeded(
+ *   { id: '123', access_token: 'old_token', refresh_token: 'refresh_token' },
+ *   'twitter'
+ * )
+ */
 export async function refreshIfNeeded(account: SocialAccount, platform: string): Promise<string> {
   // If no refresh token, return existing access token
   if (!account.refresh_token) {
@@ -44,7 +61,8 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
     })
 
     if (!res.ok) {
-      console.error(`Failed to refresh ${platform} token:`, await res.text())
+      const errorText = await res.text()
+      logger.warn('Failed to refresh token', { platform, accountId: account.id, error: errorText })
       return account.access_token
     }
 
@@ -60,13 +78,13 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
         })
         .eq("id", account.id)
 
-      console.log(`✅ Refreshed ${platform} token for account ${account.id}`)
+      logger.info('Token refreshed successfully', { platform, accountId: account.id })
       return json.access_token
     }
 
     return account.access_token
   } catch (error) {
-    console.error(`Error refreshing ${platform} token:`, error)
+    logger.error('Error refreshing token', error as Error, { platform, accountId: account.id })
     return account.access_token
   }
 }
