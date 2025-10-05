@@ -40,8 +40,21 @@ export async function GET(request: NextRequest) {
     const { getSupabaseAdmin } = await import('@/lib/supabase')
     const supabase = getSupabaseAdmin()
 
-    // Exchange code for access token
-    const { accessToken, refreshToken } = await getTwitterAccessToken(code)
+    // Retrieve code verifier from cookie
+    const cookieStore = await cookies()
+    const codeVerifier = cookieStore.get('twitter_code_verifier')?.value
+
+    if (!codeVerifier) {
+      return NextResponse.redirect(
+        new URL('/connections?error=missing_code_verifier', baseUrl)
+      )
+    }
+
+    // Exchange code for access token using PKCE
+    const { accessToken, refreshToken } = await getTwitterAccessToken(code, codeVerifier)
+
+    // Delete the code verifier cookie (one-time use)
+    cookieStore.delete('twitter_code_verifier')
 
     // Get Twitter user info
     const twitterUser = await getTwitterUser(accessToken)

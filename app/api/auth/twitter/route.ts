@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getTwitterAuthUrl } from '@/lib/twitter'
+import { getTwitterAuthUrl, generateCodeVerifier } from '@/lib/twitter'
 import { randomBytes } from 'crypto'
 
 export async function GET(request: NextRequest) {
@@ -43,6 +43,9 @@ export async function GET(request: NextRequest) {
 
     const user = session.user
 
+    // Generate PKCE code verifier (cryptographically secure)
+    const codeVerifier = generateCodeVerifier()
+
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex')
 
@@ -54,8 +57,17 @@ export async function GET(request: NextRequest) {
       maxAge: 60 * 10, // 10 minutes
     })
 
-    // Get Twitter authorization URL
-    const authUrl = getTwitterAuthUrl(state)
+    // Store code verifier in httpOnly cookie (secure, not accessible via JS)
+    cookieStore.set('twitter_code_verifier', codeVerifier, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 600, // 10 minutes
+      path: '/',
+    })
+
+    // Get Twitter authorization URL with PKCE
+    const authUrl = getTwitterAuthUrl(state, codeVerifier)
 
     return NextResponse.redirect(authUrl)
   } catch (error) {

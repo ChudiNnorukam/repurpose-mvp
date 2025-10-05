@@ -1,4 +1,5 @@
 import { TwitterApi } from 'twitter-api-v2'
+import { randomBytes, createHash } from 'crypto'
 
 const clientId = process.env.TWITTER_CLIENT_ID
 const clientSecret = process.env.TWITTER_CLIENT_SECRET
@@ -7,9 +8,33 @@ if (!clientId || !clientSecret) {
   console.warn('Twitter OAuth credentials not configured')
 }
 
-// Generate OAuth 2.0 authorization URL
-export function getTwitterAuthUrl(state: string): string {
+/**
+ * Generates a cryptographically secure PKCE code verifier
+ * @returns Base64URL-encoded random string (32 bytes)
+ */
+export function generateCodeVerifier(): string {
+  return randomBytes(32).toString('base64url')
+}
+
+/**
+ * Generates PKCE code challenge from verifier using SHA256
+ * @param verifier - The code verifier to hash
+ * @returns Base64URL-encoded SHA256 hash of verifier
+ */
+export function generateCodeChallenge(verifier: string): string {
+  return createHash('sha256')
+    .update(verifier)
+    .digest('base64url')
+}
+
+/**
+ * Generate OAuth 2.0 authorization URL with secure PKCE
+ * @param state - CSRF protection state
+ * @param codeVerifier - PKCE code verifier (must be stored for callback)
+ */
+export function getTwitterAuthUrl(state: string, codeVerifier: string): string {
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/twitter/callback`
+  const challenge = generateCodeChallenge(codeVerifier)
 
   const authUrl = new URL('https://twitter.com/i/oauth2/authorize')
   authUrl.searchParams.append('response_type', 'code')
@@ -17,14 +42,21 @@ export function getTwitterAuthUrl(state: string): string {
   authUrl.searchParams.append('redirect_uri', callbackUrl)
   authUrl.searchParams.append('scope', 'tweet.read tweet.write users.read offline.access')
   authUrl.searchParams.append('state', state)
-  authUrl.searchParams.append('code_challenge', 'challenge')
-  authUrl.searchParams.append('code_challenge_method', 'plain')
+  authUrl.searchParams.append('code_challenge', challenge)
+  authUrl.searchParams.append('code_challenge_method', 'S256')
 
   return authUrl.toString()
 }
 
-// Exchange authorization code for access token
-export async function getTwitterAccessToken(code: string): Promise<{
+/**
+ * Exchange authorization code for access token using PKCE
+ * @param code - OAuth authorization code
+ * @param codeVerifier - PKCE code verifier (from initiation)
+ */
+export async function getTwitterAccessToken(
+  code: string,
+  codeVerifier: string
+): Promise<{
   accessToken: string
   refreshToken: string
   expiresIn: number
@@ -38,7 +70,7 @@ export async function getTwitterAccessToken(code: string): Promise<{
 
   const { accessToken, refreshToken, expiresIn } = await client.loginWithOAuth2({
     code,
-    codeVerifier: 'challenge',
+    codeVerifier,
     redirectUri: callbackUrl,
   })
 
