@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adaptContentForPlatform } from '@/lib/anthropic'
+import { createClient } from '@/lib/supabase/server'
 
 type Platform = 'twitter' | 'linkedin' | 'instagram'
 type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusiastic'
 
 export async function POST(request: NextRequest) {
   try {
+    // Authentication check - prevent unauthorized API usage
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please log in to adapt content.' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { content, tone, platforms } = body
 
