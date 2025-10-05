@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Sparkles, Zap, Clock, Target, ChevronDown } from "lucide-react"
 
 /** Lightweight animated aurora background */
 function AuroraBackground({ className = "" }: { className?: string }) {
@@ -143,7 +144,7 @@ export function Hero() {
               </Button>
             </Link>
             <Link href="/signup">
-              <Button variant="primary" size="sm">
+              <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
                 Sign Up
               </Button>
             </Link>
@@ -179,7 +180,8 @@ export function Hero() {
           className="mt-10 flex flex-col gap-4 sm:flex-row"
         >
           <Button
-            variant="primary"
+            size="lg"
+            className="bg-blue-600 text-white hover:bg-blue-700"
             aria-label="Get started with AI repurposing"
             data-testid="cta-primary"
             onClick={() => router.push('/signup')}
@@ -187,7 +189,9 @@ export function Hero() {
             Get Started → Transform
           </Button>
           <Button
-            variant="secondary"
+            size="lg"
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
             aria-label="Open example demo"
             data-testid="cta-secondary"
             onClick={() => setShowDemo(true)}
@@ -265,6 +269,362 @@ export function Hero() {
   )
 }
 
+/** How It Works Section */
+function HowItWorks() {
+  const steps = [
+    {
+      number: "1",
+      title: "Connect Your Accounts",
+      description: "Link Twitter, LinkedIn, and Instagram with secure OAuth. One-time setup, fully encrypted.",
+      icon: Target,
+    },
+    {
+      number: "2",
+      title: "Write Your Content",
+      description: "Create your post once. Our AI understands context, tone, and audience for each platform.",
+      icon: Sparkles,
+    },
+    {
+      number: "3",
+      title: "AI Adapts & Schedules",
+      description: "Get platform-optimized versions instantly. Schedule or post immediately across all channels.",
+      icon: Zap,
+    },
+  ]
+
+  return (
+    <section className="bg-gray-50 py-24">
+      <div className="container mx-auto max-w-6xl px-6 sm:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-900">How It Works</h2>
+          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            From idea to published — in 3 simple steps
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {steps.map((step, index) => {
+            const Icon = step.icon
+            return (
+              <motion.div
+                key={step.number}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2, duration: 0.5 }}
+                className="relative"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg">
+                    <Icon className="h-10 w-10" />
+                  </div>
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold text-lg">
+                    {step.number}
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-600">
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Connecting line */}
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-blue-600 to-transparent" />
+                )}
+              </motion.div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** Features Section */
+function Features() {
+  const features = [
+    {
+      title: "AI-Powered Adaptation",
+      description: "Our AI understands platform nuances — Twitter's brevity, LinkedIn's professionalism, Instagram's visual focus.",
+      icon: Sparkles,
+      gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      title: "Smart Scheduling",
+      description: "Schedule posts across all platforms at optimal times. Queue content weeks in advance.",
+      icon: Clock,
+      gradient: "from-purple-500 to-pink-500",
+    },
+    {
+      title: "Template Library",
+      description: "Save successful posts as templates. Reuse proven formats to speed up content creation.",
+      icon: Target,
+      gradient: "from-orange-500 to-red-500",
+    },
+    {
+      title: "Lightning Fast",
+      description: "Transform one post into 5+ platform-specific versions in under 10 seconds.",
+      icon: Zap,
+      gradient: "from-green-500 to-emerald-500",
+    },
+  ]
+
+  return (
+    <section className="bg-white py-24">
+      <div className="container mx-auto max-w-6xl px-6 sm:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-900">Built for Content Creators</h2>
+          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            Everything you need to maximize your content's reach — without the busywork
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {features.map((feature, index) => {
+            const Icon = feature.icon
+            return (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-xl transition-all duration-300"
+              >
+                <div className={`absolute top-0 right-0 h-32 w-32 bg-gradient-to-br ${feature.gradient} opacity-10 blur-3xl group-hover:opacity-20 transition-opacity`} />
+
+                <div className="relative">
+                  <div className={`mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg`}>
+                    <Icon className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** FAQ Section */
+function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
+
+  const faqs = [
+    {
+      question: "How does the AI content adaptation work?",
+      answer: "Our AI analyzes your original content and understands the unique requirements of each platform. It adapts tone, length, hashtags, and formatting while preserving your core message. Twitter gets concise hooks, LinkedIn gets professional depth, and Instagram gets engaging captions.",
+    },
+    {
+      question: "Which social media platforms are supported?",
+      answer: "Currently we support Twitter, LinkedIn, and Instagram. We're actively working on adding Facebook, TikTok, and YouTube Community posts. Each platform has unique formatting and character limits that our AI respects.",
+    },
+    {
+      question: "Can I edit the AI-generated content before posting?",
+      answer: "Absolutely! Every AI-generated post is fully editable. Think of our AI as a smart first draft — you have complete control to refine, adjust tone, or rewrite entirely before scheduling or posting.",
+    },
+    {
+      question: "Is my data secure? Do you store my login credentials?",
+      answer: "We use OAuth 2.0 for all platform connections, which means we never see or store your passwords. Your content is encrypted in transit and at rest. We're SOC 2 Type II compliant and take security seriously.",
+    },
+    {
+      question: "How much does Repurpose cost?",
+      answer: "We offer a free tier that includes 10 AI adaptations per month. Our Pro plan ($19/month) includes unlimited adaptations, template library, and priority support. Enterprise plans with custom integrations are available.",
+    },
+    {
+      question: "Can I schedule posts for different time zones?",
+      answer: "Yes! When you schedule a post, we automatically detect your timezone and display it clearly. You can schedule content days or weeks in advance across all platforms simultaneously.",
+    },
+    {
+      question: "What happens if a scheduled post fails?",
+      answer: "If a post fails (due to API limits, connection issues, etc.), we'll automatically retry up to 3 times and notify you via email. You can manually retry from your Posts dashboard at any time.",
+    },
+    {
+      question: "Do you have analytics or post performance tracking?",
+      answer: "Analytics are coming soon! We're building engagement tracking, reach metrics, and A/B testing for different content variations. Join our waitlist to be notified when it launches.",
+    },
+  ]
+
+  return (
+    <section className="bg-gray-50 py-24">
+      <div className="container mx-auto max-w-4xl px-6 sm:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-900">Frequently Asked Questions</h2>
+          <p className="mt-4 text-lg text-gray-600">
+            Everything you need to know about Repurpose
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-lg font-semibold text-gray-900 pr-8">
+                  {faq.question}
+                </span>
+                <ChevronDown
+                  className={`h-5 w-5 text-gray-500 transition-transform flex-shrink-0 ${
+                    openIndex === index ? "transform rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {openIndex === index && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="border-t border-gray-200"
+                >
+                  <p className="p-6 text-gray-600 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** Final CTA Section */
+function FinalCTA() {
+  const router = useRouter()
+
+  return (
+    <section className="relative bg-[#0a0a0a] py-24 overflow-hidden">
+      <AuroraBackground className="absolute inset-0 -z-10" />
+
+      <div className="container mx-auto max-w-4xl px-6 sm:px-8 text-center">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-bold text-white mb-6"
+        >
+          Ready to Save 10 Hours Per Week?
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto"
+        >
+          Join thousands of content creators who've automated their social media presence. Start free — no credit card required.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center"
+        >
+          <Button
+            size="lg"
+            className="bg-blue-600 text-white hover:bg-blue-700 text-lg px-8 py-6"
+            onClick={() => router.push('/signup')}
+          >
+            Start Free Trial
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10 text-lg px-8 py-6"
+            onClick={() => router.push('/login')}
+          >
+            Sign In
+          </Button>
+        </motion.div>
+
+        <p className="mt-6 text-sm text-gray-400">
+          Free tier includes 10 AI adaptations/month • No credit card required
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/** Footer */
+function Footer() {
+  return (
+    <footer className="bg-gray-900 text-gray-400 py-12">
+      <div className="container mx-auto max-w-6xl px-6 sm:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
+          <div className="col-span-1 md:col-span-2">
+            <Link href="/landing" className="text-2xl font-bold text-white inline-block mb-4">
+              Repurpose<span className="text-blue-500">AI</span>
+            </Link>
+            <p className="text-gray-400 max-w-sm">
+              AI-powered content repurposing for social media. Write once, publish everywhere.
+            </p>
+          </div>
+
+          {/* Product */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Product</h3>
+            <ul className="space-y-2">
+              <li><Link href="/signup" className="hover:text-white transition">Get Started</Link></li>
+              <li><Link href="/login" className="hover:text-white transition">Sign In</Link></li>
+              <li><Link href="/landing#features" className="hover:text-white transition">Features</Link></li>
+              <li><Link href="/landing#faq" className="hover:text-white transition">FAQ</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
+              <li><Link href="/about" className="hover:text-white transition">About</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm text-gray-500">
+            © {new Date().getFullYear()} RepurposeAI. All rights reserved.
+          </p>
+          <div className="flex gap-6 mt-4 md:mt-0">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+              Twitter
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+              LinkedIn
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
 export default function Page() {
   useEffect(() => {
     const el = document.querySelector('[data-testid="hero-section"]')
@@ -276,16 +636,11 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       <Hero />
+      <HowItWorks />
+      <Features />
+      <FAQ />
+      <FinalCTA />
+      <Footer />
     </main>
   )
 }
-
-/**
- * TEST CASES:
- * 1) Hero renders with AuroraBackground in backdrop
- * 2) CTAs visible and clickable
- * 3) RadialVisual spokes present with hover scaling
- * 4) Clicking "See Example" opens overlay demo, which can be closed
- * 5) Exactly one <h1> exists with "One Thought" and "Ten Posts"
- * 6) Focus rings visible on keyboard tabbing through CTAs
- */
