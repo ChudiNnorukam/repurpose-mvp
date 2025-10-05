@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
 interface Post {
   id: string
@@ -108,11 +109,6 @@ export default function PostsPage() {
     }
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'posted':
@@ -143,43 +139,16 @@ export default function PostsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
+      <DashboardLayout user={user}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-gray-600">Loading...</div>
+        </div>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-            Repurpose
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
-              Dashboard
-            </Link>
-            <Link href="/create" className="text-sm text-gray-600 hover:text-gray-900">
-              Create
-            </Link>
-            <Link href="/connections" className="text-sm text-gray-600 hover:text-gray-900">
-              Connections
-            </Link>
-            <span className="text-sm text-gray-600">{user?.email}</span>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <DashboardLayout user={user}>
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Manage Posts</h2>
           <p className="mt-2 text-gray-600">View, edit, and delete your scheduled and posted content</p>
@@ -368,7 +337,6 @@ export default function PostsPage() {
             )}
           </div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   )
 }

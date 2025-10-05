@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -27,7 +28,6 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [connectedAccounts, setConnectedAccounts] = useState<SocialAccount[]>([])
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -150,88 +150,16 @@ export default function DashboardPage() {
     })
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
+      <DashboardLayout user={user}>
+        <DashboardSkeleton />
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Repurpose</h1>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-4">
-              <Link href="/create" className="text-sm text-gray-600 hover:text-gray-900">
-                Create
-              </Link>
-              <Link href="/posts" className="text-sm text-gray-600 hover:text-gray-900">
-                Posts
-              </Link>
-              <Link href="/templates" className="text-sm text-gray-600 hover:text-gray-900">
-                Templates
-              </Link>
-              <Link href="/connections" className="text-sm text-gray-600 hover:text-gray-900">
-                Connections
-              </Link>
-              <span className="text-sm text-gray-600 hidden lg:inline">{user?.email}</span>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                Logout
-              </button>
-            </div>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600"
-            >
-              {mobileMenuOpen ? '✕' : '☰'}
-            </button>
-          </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 space-y-2">
-              <Link href="/create" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
-                Create
-              </Link>
-              <Link href="/posts" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
-                Posts
-              </Link>
-              <Link href="/templates" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
-                Templates
-              </Link>
-              <Link href="/connections" className="block text-sm text-gray-600 hover:text-gray-900 py-2">
-                Connections
-              </Link>
-              <div className="text-sm text-gray-600 py-2">{user?.email}</div>
-              <button
-                onClick={handleLogout}
-                className="block text-sm text-gray-600 hover:text-gray-900 py-2"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <DashboardLayout user={user}>
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
           <p className="mt-2 text-gray-600">Welcome back! Ready to repurpose some content?</p>
@@ -383,7 +311,6 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   )
 }

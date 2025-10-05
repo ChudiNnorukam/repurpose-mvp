@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
 interface Template {
   id: string
@@ -19,11 +20,11 @@ interface Template {
 }
 
 export default function TemplatesPage() {
+  const [user, setUser] = useState<any>(null)
   const [templates, setTemplates] = useState<Template[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Form state
   const [title, setTitle] = useState('')
@@ -46,7 +47,9 @@ export default function TemplatesPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/login')
+      return
     }
+    setUser(user)
   }
 
   const fetchTemplates = async () => {
@@ -202,11 +205,6 @@ export default function TemplatesPage() {
     }
   }
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
   const categoryColors = {
     educational: 'bg-blue-100 text-blue-800',
     product: 'bg-purple-100 text-purple-800',
@@ -215,46 +213,18 @@ export default function TemplatesPage() {
     behind_the_scenes: 'bg-pink-100 text-pink-800',
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Repurpose</h1>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-              <Link href="/create" className="text-gray-600 hover:text-gray-900">Create</Link>
-              <Link href="/posts" className="text-gray-600 hover:text-gray-900">Posts</Link>
-              <Link href="/templates" className="text-gray-900 font-semibold">Templates</Link>
-              <Link href="/connections" className="text-gray-600 hover:text-gray-900">Connections</Link>
-              <button onClick={handleSignOut} className="text-gray-600 hover:text-gray-900">Sign Out</button>
-            </nav>
-
-            {/* Mobile menu button */}
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2">
-              {mobileMenuOpen ? '✕' : '☰'}
-            </button>
-          </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 space-y-2">
-              <Link href="/dashboard" className="block py-2 text-gray-600">Dashboard</Link>
-              <Link href="/create" className="block py-2 text-gray-600">Create</Link>
-              <Link href="/posts" className="block py-2 text-gray-600">Posts</Link>
-              <Link href="/templates" className="block py-2 text-gray-900 font-semibold">Templates</Link>
-              <Link href="/connections" className="block py-2 text-gray-600">Connections</Link>
-              <button onClick={handleSignOut} className="block py-2 text-gray-600 w-full text-left">Sign Out</button>
-            </div>
-          )}
+  if (loading) {
+    return (
+      <DashboardLayout user={user}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-gray-600">Loading templates...</div>
         </div>
-      </header>
+      </DashboardLayout>
+    )
+  }
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  return (
+    <DashboardLayout user={user}>
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Content Templates</h2>
@@ -271,11 +241,7 @@ export default function TemplatesPage() {
           </button>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading templates...</p>
-          </div>
-        ) : templates.length === 0 ? (
+        {templates.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <p className="text-gray-600 mb-4">No templates yet. Create your first template!</p>
             <button
@@ -337,7 +303,6 @@ export default function TemplatesPage() {
             ))}
           </div>
         )}
-      </main>
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
@@ -482,6 +447,6 @@ export default function TemplatesPage() {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   )
 }
