@@ -74,7 +74,26 @@ async function handler(request: NextRequest) {
       console.log(`✅ Access token refreshed for ${platform}`)
     } catch (refreshError: any) {
       console.error(`❌ Token refresh failed for ${platform}:`, refreshError)
-      accessToken = socialAccount.access_token // Fall back to existing token
+
+      // Mark post as failed instead of proceeding with expired token
+      await supabase
+        .from("posts")
+        .update({
+          status: "failed",
+          error_message: `Authentication expired. Please reconnect your ${platform} account in Settings > Connections`,
+        })
+        .eq("id", postId)
+
+      console.log(`❌ Post ${postId} marked as failed due to token refresh failure`)
+
+      return NextResponse.json(
+        {
+          error: `Authentication expired for ${platform}. Please reconnect your account.`,
+          requiresReauth: true,
+          platform
+        },
+        { status: 401 }
+      )
     }
 
     // ✅ Post to social media platform
