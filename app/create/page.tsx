@@ -156,6 +156,45 @@ export default function CreatePage() {
     }
   }
 
+  const handleSaveDraft = async () => {
+    if (adaptedContent.length === 0) {
+      toast.error('No content to save')
+      return
+    }
+
+    const loadingToast = toast.loading(`Saving ${adaptedContent.length} draft(s)...`)
+
+    try {
+      const drafts = adaptedContent.map(item => ({
+        user_id: user.id,
+        original_content: originalContent,
+        platform: item.platform,
+        adapted_content: item.content,
+        tone,
+        status: 'draft',
+        is_draft: true,
+        scheduled_time: null,
+        qstash_message_id: null
+      }))
+
+      const { error } = await supabase
+        .from('posts')
+        .insert(drafts)
+
+      if (error) throw error
+
+      toast.success(`Saved ${adaptedContent.length} draft(s)!`, { id: loadingToast })
+
+      // Clear form and redirect to drafts
+      setOriginalContent('')
+      setAdaptedContent([])
+      router.push('/posts?filter=draft')
+    } catch (error: any) {
+      console.error('Error saving drafts:', error)
+      toast.error(error.message || 'Failed to save drafts', { id: loadingToast })
+    }
+  }
+
   if (loading) {
     return (
       <DashboardLayout user={user}>
@@ -266,6 +305,16 @@ export default function CreatePage() {
             >
               {adapting ? 'Adapting...' : 'Adapt Content'}
             </button>
+
+            {/* Save as Draft Button */}
+            {adaptedContent.length > 0 && (
+              <button
+                onClick={handleSaveDraft}
+                className="w-full mt-3 flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Save as Draft
+              </button>
+            )}
           </div>
 
           {/* Results Section */}

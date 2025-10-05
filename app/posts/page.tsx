@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { PostEditorModal } from '@/components/posts/PostEditorModal'
+import { BulkSelectToolbar } from '@/components/posts/BulkSelectToolbar'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface Post {
   id: string
@@ -17,14 +20,19 @@ interface Post {
   created_at: string
   posted_at: string | null
   error_message: string | null
+  qstash_message_id: string | null
+  tone: string | null
+  is_draft: boolean
 }
 
 export default function PostsPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [posts, setPosts] = useState<Post[]>([])
-  const [filter, setFilter] = useState<'all' | 'scheduled' | 'posted' | 'failed'>('all')
+  const [filter, setFilter] = useState<'all' | 'draft' | 'scheduled' | 'posted' | 'failed'>('all')
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [selectedPostIds, setSelectedPostIds] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -135,7 +143,39 @@ export default function PostsPage() {
 
   const filteredPosts = filter === 'all'
     ? posts
-    : posts.filter(p => p.status === filter)
+    : filter === 'draft'
+    ? posts.filter(p => p.is_draft)
+    : posts.filter(p => p.status === filter && !p.is_draft)
+
+  const toggleSelectPost = (postId: string) => {
+    setSelectedPostIds(prev =>
+      prev.includes(postId)
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedPostIds.length === filteredPosts.length) {
+      setSelectedPostIds([])
+    } else {
+      setSelectedPostIds(filteredPosts.map(p => p.id))
+    }
+  }
+
+  const handleBulkActionComplete = async () => {
+    setSelectedPostIds([])
+    if (user) {
+      await loadPosts(user.id)
+    }
+  }
+
+  const handleEditComplete = async () => {
+    setEditingPost(null)
+    if (user) {
+      await loadPosts(user.id)
+    }
+  }
 
   if (loading) {
     return (
@@ -155,7 +195,7 @@ export default function PostsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex gap-2 flex-wrap">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
@@ -167,6 +207,16 @@ export default function PostsPage() {
             All ({posts.length})
           </button>
           <button
+            onClick={() => setFilter('draft')}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              filter === 'draft'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Drafts ({posts.filter(p => p.is_draft).length})
+          </button>
+          <button
             onClick={() => setFilter('scheduled')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               filter === 'scheduled'
@@ -174,7 +224,7 @@ export default function PostsPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Scheduled ({posts.filter(p => p.status === 'scheduled').length})
+            Scheduled ({posts.filter(p => p.status === 'scheduled' && !p.is_draft).length})
           </button>
           <button
             onClick={() => setFilter('posted')}
@@ -208,30 +258,57 @@ export default function PostsPage() {
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Select All Header */}
+                <div className="flex items-center gap-3 px-2 py-2 bg-gray-50 rounded-md">
+                  <Checkbox
+                    checked={selectedPostIds.length === filteredPosts.length && filteredPosts.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-sm text-gray-600">
+                    {selectedPostIds.length > 0
+                      ? `${selectedPostIds.length} selected`
+                      : 'Select all'
+                    }
+                  </span>
+                </div>
+
+                {/* Posts List */}
                 {filteredPosts.map((post) => (
                   <div
                     key={post.id}
-                    onClick={() => setSelectedPost(post)}
-                    className={`bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-md transition-shadow ${
+                    className={`bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow ${
                       selectedPost?.id === post.id ? 'ring-2 ring-blue-500' : ''
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-900 capitalize">
-                          {post.platform}
-                        </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(post.status)}`}>
-                          {post.status}
-                        </span>
+                    <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedPostIds.includes(post.id)}
+                          onCheckedChange={() => toggleSelectPost(post.id)}
+                        />
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {formatDate(post.scheduled_time)}
-                      </span>
+
+                      {/* Post Content */}
+                      <div className="flex-1 cursor-pointer" onClick={() => setSelectedPost(post)}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium text-gray-900 capitalize">
+                              {post.platform}
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(post.status)}`}>
+                              {post.is_draft ? 'draft' : post.status}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {post.scheduled_time ? formatDate(post.scheduled_time) : 'Not scheduled'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {post.adapted_content}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {post.adapted_content}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -303,10 +380,20 @@ export default function PostsPage() {
                   )}
 
                   <div className="pt-4 border-t space-y-2">
+                    {/* Edit Button for Drafts and Scheduled Posts */}
+                    {(selectedPost.status === 'scheduled' || selectedPost.is_draft) && (
+                      <button
+                        onClick={() => setEditingPost(selectedPost)}
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                      >
+                        Edit Post
+                      </button>
+                    )}
+
                     {selectedPost.status === 'failed' && (
                       <button
                         onClick={() => handleRetry(selectedPost.id)}
-                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
                       >
                         Retry Post
                       </button>
@@ -337,6 +424,23 @@ export default function PostsPage() {
             )}
           </div>
         </div>
+
+        {/* Post Editor Modal */}
+        <PostEditorModal
+          post={editingPost}
+          isOpen={!!editingPost}
+          onClose={() => setEditingPost(null)}
+          onSave={handleEditComplete}
+        />
+
+        {/* Bulk Select Toolbar */}
+        <BulkSelectToolbar
+          selectedCount={selectedPostIds.length}
+          selectedPostIds={selectedPostIds}
+          userId={user?.id || ''}
+          onAction={handleBulkActionComplete}
+          onClear={() => setSelectedPostIds([])}
+        />
     </DashboardLayout>
   )
 }
