@@ -1,0 +1,96 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/**)",
+      "Glob(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/**)",
+      "Grep(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/**)",
+      "Edit(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/**)",
+      "Write(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/**)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(git:*)",
+      "Bash(node:*)",
+      "Bash(vercel:*)",
+      "Bash(supabase:*)"
+    ],
+    "deny": [
+      "Edit(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/.env.local)",
+      "Edit(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/.env.production.local)",
+      "Write(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/.env.local)",
+      "Write(//Users/chudinnorukam/Downloads/Repurpose MVP /repurpose/.env.production.local)",
+      "Bash(rm -rf:*)",
+      "Bash(dd:*)",
+      "Bash(mkfs:*)",
+      "Bash(format:*)"
+    ]
+  },
+  "hooks": {
+    "postToolUse": {
+      "Edit": {
+        "description": "Auto-format TypeScript files after editing",
+        "enabled": false,
+        "command": "npx prettier --write {filePath}"
+      }
+    },
+    "preToolUse": {
+      "Edit": {
+        "description": "Prevent editing environment files",
+        "enabled": true,
+        "command": "if echo '{filePath}' | grep -E '\\.(env|env\\.local|env\\.production)'; then echo 'ERROR: Cannot edit environment files. Modify via Vercel dashboard.' && exit 1; fi"
+      },
+      "Write": {
+        "description": "Prevent creating environment files",
+        "enabled": true,
+        "command": "if echo '{filePath}' | grep -E '\\.(env|env\\.local|env\\.production)'; then echo 'ERROR: Cannot create environment files. Modify via Vercel dashboard.' && exit 1; fi"
+      }
+    }
+  },
+  "customCommands": {
+    "audit": {
+      "description": "Re-run code quality audit",
+      "enabled": true
+    },
+    "fix-critical": {
+      "description": "Fix only CRITICAL severity issues from audit",
+      "enabled": true
+    },
+    "fix-security": {
+      "description": "Fix security vulnerabilities",
+      "enabled": true
+    },
+    "refactor-safe": {
+      "description": "Safe refactoring with test protection",
+      "enabled": true
+    },
+    "add-tests": {
+      "description": "Generate tests for untested code",
+      "enabled": true
+    },
+    "format-all": {
+      "description": "Format entire codebase",
+      "enabled": true
+    },
+    "review-phase": {
+      "description": "Review changes before committing",
+      "enabled": true
+    }
+  },
+  "safetyRules": {
+    "maxLinesPerEdit": 200,
+    "requireTestsForRefactoring": true,
+    "requireApprovalForCriticalFiles": [
+      "lib/twitter.ts",
+      "lib/linkedin.ts",
+      "lib/qstash.ts",
+      "lib/supabase.ts",
+      "app/api/post/execute/route.ts",
+      "app/api/schedule/route.ts"
+    ]
+  },
+  "refactoringConstraints": {
+    "maxLinesPerOperation": 50,
+    "noRenamingAndRefactoringInSameCommit": true,
+    "alwaysPreserveBehavior": true,
+    "askWhenUncertain": true
+  }
+}
