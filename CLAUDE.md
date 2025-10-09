@@ -9,6 +9,7 @@
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: Next.js 15.5.4 (App Router)
 - **Language**: TypeScript 5.x
 - **UI Library**: React 19.1.0
@@ -18,6 +19,7 @@
 - **Components**: Custom components + class-variance-authority for variants
 
 ### Backend
+
 - **Runtime**: Node.js (serverless via Vercel)
 - **API**: Next.js API Routes (`app/api/*/route.ts`)
 - **Database**: Supabase (PostgreSQL)
@@ -26,6 +28,7 @@
 - **AI**: OpenAI GPT-4 (`gpt-4o` model)
 
 ### External Services
+
 - **OpenAI** - Content adaptation via GPT-4
 - **Supabase** - Authentication + PostgreSQL database
 - **Upstash QStash** - Delayed job execution for scheduled posts
@@ -34,6 +37,7 @@
 - **Vercel** - Hosting and deployment
 
 ### DevOps
+
 - **Deployment**: Vercel
 - **Version Control**: Git
 - **Environment**: `.env.local` for local, Vercel env vars for production
@@ -112,6 +116,7 @@ repurpose/
 ## Commands
 
 ### Development
+
 ```bash
 npm run dev              # Start dev server with Turbopack
 npm run build            # Build for production with Turbopack
@@ -120,6 +125,7 @@ npm run lint             # Run ESLint
 ```
 
 ### Testing
+
 ```bash
 npx playwright test                    # Run all E2E tests
 npx playwright test --headed           # Run tests with browser UI
@@ -128,6 +134,7 @@ npx playwright show-report             # View test report
 ```
 
 ### Database
+
 ```bash
 # Supabase CLI commands (if using locally)
 supabase link --project-ref <project-id>
@@ -136,6 +143,7 @@ supabase gen types typescript          # Generate TypeScript types
 ```
 
 ### Deployment
+
 ```bash
 # Vercel deployment (automatic on git push to main)
 vercel                   # Deploy to preview
@@ -147,90 +155,93 @@ vercel --prod            # Deploy to production
 ## Code Patterns & Conventions
 
 ### API Routes Pattern
+
 ```typescript
 // app/api/example/route.ts
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await request.json();
 
     // 1. Validate input
     if (!body.field) {
-      return NextResponse.json(
-        { error: "Field is required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Field is required" }, { status: 400 });
     }
 
     // 2. Process
-    const result = await doSomething(body)
+    const result = await doSomething(body);
 
     // 3. Return success
     return NextResponse.json({
       success: true,
-      data: result
-    })
+      data: result,
+    });
   } catch (error: any) {
-    console.error("Error in /api/example:", error)
+    console.error("Error in /api/example:", error);
     return NextResponse.json(
       {
         error: "Failed to process request",
-        details: error.message
+        details: error.message,
       },
       { status: 500 }
-    )
+    );
   }
 }
 ```
 
 ### Authentication Pattern
+
 ```typescript
 // In page components (client-side)
-'use client'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+"use client";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
-const { data: { user } } = await supabase.auth.getUser()
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 if (!user) {
-  router.push('/login')
-  return
+  router.push("/login");
+  return;
 }
 ```
 
 ```typescript
 // In API routes (server-side with admin access)
-import { getSupabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from "@/lib/supabase";
 
-const supabaseClient = getSupabaseAdmin()
+const supabaseClient = getSupabaseAdmin();
 const { data: authUser, error: userError } =
-  await supabaseClient.auth.admin.getUserById(userId)
+  await supabaseClient.auth.admin.getUserById(userId);
 ```
 
 ### OAuth Pattern
+
 ```typescript
 // 1. Generate auth URL with state
-const state = randomBytes(16).toString('hex')
-const authUrl = getTwitterAuthUrl(state)
+const state = randomBytes(16).toString("hex");
+const authUrl = getTwitterAuthUrl(state);
 // Store state in session/cookies
 
 // 2. In callback, verify state matches
-const { code, state } = await request.json()
+const { code, state } = await request.json();
 // Verify state matches stored value
 
 // 3. Exchange code for tokens
-const { accessToken, refreshToken } = await getTwitterAccessToken(code)
+const { accessToken, refreshToken } = await getTwitterAccessToken(code);
 
 // 4. Store in database
-await supabase.from('social_accounts').insert({
+await supabase.from("social_accounts").insert({
   user_id: userId,
-  platform: 'twitter',
+  platform: "twitter",
   access_token: accessToken,
-  refresh_token: refreshToken
-})
+  refresh_token: refreshToken,
+});
 ```
 
 ### Content Adaptation Pattern
+
 ```typescript
 // User submits content → Adapt for platforms → Display results
 const adaptedContent = await Promise.all(
@@ -238,36 +249,40 @@ const adaptedContent = await Promise.all(
     const adapted = await adaptContentForPlatform({
       content,
       platform,
-      tone
-    })
-    return { platform, content: adapted }
+      tone,
+    });
+    return { platform, content: adapted };
   })
-)
+);
 ```
 
 ### Scheduling Pattern
+
 ```typescript
 // 1. Store post in database
 const { data: post } = await supabase
-  .from('posts')
+  .from("posts")
   .insert({
     user_id: userId,
     platform,
     adapted_content: content,
     scheduled_time: scheduledTime,
-    status: 'scheduled'
+    status: "scheduled",
   })
   .select()
-  .single()
+  .single();
 
 // 2. Schedule QStash job
-const delay = (scheduledDate.getTime() - Date.now()) / 1000
-await schedulePostJob({
-  postId: post.id,
-  platform,
-  content,
-  userId
-}, scheduledDate)
+const delay = (scheduledDate.getTime() - Date.now()) / 1000;
+await schedulePostJob(
+  {
+    postId: post.id,
+    platform,
+    content,
+    userId,
+  },
+  scheduledDate
+);
 
 // 3. QStash calls /api/post/execute at scheduled time
 // 4. Endpoint publishes post and updates status
@@ -280,11 +295,13 @@ await schedulePostJob({
 ### Tables
 
 #### `auth.users` (Supabase Auth - managed)
+
 - `id` (uuid, pk)
 - `email` (text)
 - `created_at` (timestamp)
 
 #### `public.social_accounts`
+
 ```sql
 id                uuid PRIMARY KEY DEFAULT gen_random_uuid()
 user_id           uuid REFERENCES auth.users(id)
@@ -297,6 +314,7 @@ connected_at      timestamptz DEFAULT now()
 ```
 
 #### `public.posts`
+
 ```sql
 id                uuid PRIMARY KEY DEFAULT gen_random_uuid()
 user_id           uuid REFERENCES auth.users(id)
@@ -316,6 +334,7 @@ created_at        timestamptz DEFAULT now()
 ## Environment Variables
 
 ### Required Variables
+
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
@@ -347,6 +366,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000  # or production URL
 ## Known Issues & Gotchas
 
 ### 🚨 Critical Security Issues (See AUDIT_REPORT.md)
+
 1. **CRIT-001**: `.env.local` and `.env.production.local` contain secrets and are in git
 2. **CRIT-002**: `/api/adapt` has no authentication check
 3. **CRIT-003**: Twitter OAuth uses hardcoded PKCE verifier (insecure)
@@ -356,32 +376,38 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000  # or production URL
 ### ⚠️ Common Pitfalls
 
 **1. File naming is misleading**
+
 - `lib/anthropic.ts` actually uses OpenAI, not Anthropic Claude
 - Consider renaming to `lib/openai.ts`
 
 **2. Timezone handling is fragile**
+
 - `datetime-local` input gives local time without timezone
 - Conversion to UTC happens client-side
 - Server assumes UTC
 - Test across timezones and DST transitions
 
 **3. QStash signature verification**
+
 - Must use `verifySignatureAppRouter` wrapper
 - Don't call handler directly
 - Signature verification prevents replay attacks
 
 **4. Supabase SSR vs Client**
+
 - Pages use `lib/supabase.ts` (client-side)
 - API routes use `lib/supabase/server.ts` or `getSupabaseAdmin()`
 - Don't mix client and server instances
 
 **5. Token refresh timing**
+
 - Twitter tokens expire in 2 hours
 - LinkedIn tokens expire in 60 days
 - Refresh happens just-in-time before posting
 - No background token refresh implemented
 
 **6. Error handling inconsistency**
+
 - Some endpoints return `{ error }`, some return `{ error, details }`
 - Console.log used instead of proper logging
 - Standardize error responses (see HIGH-002 in audit)
@@ -391,6 +417,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000  # or production URL
 ## Testing Approach
 
 ### E2E Tests (Playwright)
+
 **Location**: `tests/`
 **Run**: `npx playwright test`
 **Coverage**: Landing page, auth flows, scheduling
@@ -399,8 +426,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000  # or production URL
 Need refactoring to proper assertions (see TEST-002 in audit)
 
 ### Unit Tests
+
 **Status**: ❌ None exist
 **Needed for**:
+
 - OAuth token exchange (`lib/twitter.ts`, `lib/linkedin.ts`)
 - Token refresh logic (`lib/social-media/refresh.ts`)
 - Content adaptation (`lib/anthropic.ts`)
@@ -413,6 +442,7 @@ Need refactoring to proper assertions (see TEST-002 in audit)
 ## Development Workflow
 
 ### 1. Local Development
+
 ```bash
 # Start dev server
 npm run dev
@@ -425,6 +455,7 @@ cp .env.example .env.local
 ```
 
 ### 2. Testing OAuth Flows Locally
+
 ```bash
 # Use ngrok for localhost tunnels (OAuth callbacks need public URLs)
 ngrok http 3000
@@ -436,6 +467,7 @@ NEXT_PUBLIC_APP_URL=https://[random].ngrok.io
 ```
 
 ### 3. Database Changes
+
 ```bash
 # If using Supabase locally
 supabase db pull
@@ -445,6 +477,7 @@ supabase gen types typescript --local > lib/database.types.ts
 ```
 
 ### 4. Deployment
+
 ```bash
 # Push to main branch → Vercel auto-deploys
 
@@ -457,17 +490,20 @@ vercel --prod
 ## Performance Considerations
 
 ### Response Times
+
 - Content adaptation: 3-5s (OpenAI API latency)
 - Post scheduling: 500-800ms (DB + QStash)
 - Post execution: 1-2s (token refresh + platform API)
 
 ### Cost Drivers
+
 - **OpenAI API**: ~$0.01 per adaptation (GPT-4 pricing)
 - **QStash**: First 500 messages/month free, then $1/10k
 - **Supabase**: Free tier (500MB DB, 50K monthly active users)
 - **Vercel**: Hobby plan includes 100GB bandwidth
 
 ### Optimization Opportunities
+
 - ✅ Already using `Promise.all` for parallel platform adaptation
 - ❌ No caching of adapted content
 - ❌ No retry logic for transient failures
@@ -478,12 +514,14 @@ vercel --prod
 ## Monitoring & Observability
 
 ### Current State
+
 - ❌ No error tracking (Sentry, Rollbar)
 - ❌ No performance monitoring
 - ❌ No alerting
 - ✅ Console.log statements (not ideal for production)
 
 ### Recommended
+
 - Add Sentry for error tracking
 - Enable Vercel Analytics
 - Set up alerts for critical failures
@@ -496,22 +534,26 @@ See **ARCH-001** in AUDIT_REPORT.md
 ## Security Best Practices
 
 ### Authentication
+
 - ✅ Using Supabase Auth (industry standard)
 - ✅ SSR-compatible cookie-based sessions
 - ⚠️ Missing auth checks on some API routes (see CRIT-002)
 
 ### Authorization
+
 - ⚠️ Assuming RLS policies are configured (verify in Supabase)
 - ✅ Using service role key only on server-side
 - ❌ No rate limiting (see HIGH-001)
 
 ### OAuth Security
+
 - ⚠️ Twitter PKCE implementation is insecure (see CRIT-003)
 - ✅ LinkedIn OAuth is standard
 - ✅ State parameter used to prevent CSRF
 - ⚠️ State validation not implemented in callbacks
 
 ### API Security
+
 - ✅ QStash signature verification prevents unauthorized calls
 - ❌ No input sanitization on user content (see HIGH-003)
 - ❌ No length limits on user input
@@ -521,13 +563,15 @@ See **ARCH-001** in AUDIT_REPORT.md
 ## Debugging Tips
 
 ### Check if user is authenticated
+
 ```typescript
 // In browser console (on client pages)
-const { data } = await supabase.auth.getUser()
-console.log(data.user)
+const { data } = await supabase.auth.getUser();
+console.log(data.user);
 ```
 
 ### Check scheduled posts
+
 ```sql
 -- In Supabase SQL Editor
 SELECT * FROM posts
@@ -536,6 +580,7 @@ ORDER BY scheduled_time ASC;
 ```
 
 ### Check social account connections
+
 ```sql
 SELECT
   u.email,
@@ -547,6 +592,7 @@ JOIN auth.users u ON u.id = sa.user_id;
 ```
 
 ### Check QStash jobs
+
 ```bash
 # Visit Upstash console
 # https://console.upstash.com/qstash
@@ -554,13 +600,14 @@ JOIN auth.users u ON u.id = sa.user_id;
 ```
 
 ### Debug OAuth failures
+
 ```typescript
 // In OAuth callback route, add detailed logging
-console.log('OAuth callback received:', {
-  code: request.nextUrl.searchParams.get('code'),
-  state: request.nextUrl.searchParams.get('state'),
-  error: request.nextUrl.searchParams.get('error'),
-})
+console.log("OAuth callback received:", {
+  code: request.nextUrl.searchParams.get("code"),
+  state: request.nextUrl.searchParams.get("state"),
+  error: request.nextUrl.searchParams.get("error"),
+});
 ```
 
 ---
@@ -568,6 +615,7 @@ console.log('OAuth callback received:', {
 ## Deployment Checklist
 
 ### Before Production Deploy
+
 - [ ] Fix CRIT-001: Remove secrets from git, rotate keys
 - [ ] Fix CRIT-002: Add auth to `/api/adapt`
 - [ ] Fix CRIT-003: Implement secure Twitter PKCE
@@ -580,6 +628,7 @@ console.log('OAuth callback received:', {
 - [ ] Update OAuth callback URLs in developer consoles
 
 ### Environment Variable Setup (Production)
+
 ```bash
 # In Vercel dashboard → Project → Settings → Environment Variables
 # Add all variables from .env.example
@@ -591,6 +640,7 @@ console.log('OAuth callback received:', {
 ## Support & Resources
 
 ### Documentation
+
 - [Next.js 15 Docs](https://nextjs.org/docs)
 - [Supabase Docs](https://supabase.com/docs)
 - [OpenAI API Docs](https://platform.openai.com/docs)
@@ -599,6 +649,7 @@ console.log('OAuth callback received:', {
 - [QStash Docs](https://upstash.com/docs/qstash)
 
 ### Troubleshooting
+
 - **OAuth not working**: Check callback URLs match exactly
 - **Posts not executing**: Check QStash dashboard for errors
 - **Content adaptation fails**: Verify OpenAI API key and quota
@@ -609,17 +660,20 @@ console.log('OAuth callback received:', {
 ## Maintenance Tasks
 
 ### Weekly
+
 - [ ] Check QStash message queue (no stuck jobs)
 - [ ] Review failed posts and retry if needed
 - [ ] Monitor OpenAI API usage and costs
 
 ### Monthly
+
 - [ ] Review error logs for patterns
 - [ ] Check for API deprecations (Twitter, LinkedIn)
 - [ ] Update dependencies (`npm outdated`)
 - [ ] Rotate OAuth client secrets (security best practice)
 
 ### Quarterly
+
 - [ ] Review and optimize database queries
 - [ ] Analyze user behavior for feature improvements
 - [ ] Update content adaptation prompts based on performance
@@ -629,12 +683,14 @@ console.log('OAuth callback received:', {
 ## Contributing Guidelines
 
 ### Code Style
+
 - Use TypeScript strict mode
 - Prefer async/await over promises
 - Use meaningful variable names
 - Add JSDoc comments for exported functions
 
 ### Git Workflow
+
 ```bash
 # Create feature branch
 git checkout -b feature/description
@@ -647,6 +703,7 @@ git push origin feature/description
 ```
 
 ### Commit Message Format
+
 ```
 feat: add new feature
 fix: resolve bug
@@ -661,18 +718,162 @@ chore: update dependencies
 ## Quick Reference
 
 ### Type Definitions
+
 ```typescript
-type Platform = "twitter" | "linkedin" | "instagram"
-type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusiastic'
-type PostStatus = 'draft' | 'scheduled' | 'posted' | 'failed'
+type Platform = "twitter" | "linkedin" | "instagram";
+type Tone =
+  | "professional"
+  | "casual"
+  | "friendly"
+  | "authoritative"
+  | "enthusiastic";
+type PostStatus = "draft" | "scheduled" | "posted" | "failed";
 ```
 
 ### Important File Locations
+
 - API Routes: `app/api/*/route.ts`
 - Database Client: `lib/supabase.ts`
 - OAuth Helpers: `lib/twitter.ts`, `lib/linkedin.ts`
 - Content AI: `lib/anthropic.ts` (uses OpenAI)
 - Job Scheduler: `lib/qstash.ts`
+
+---
+
+## 🧩 1. `.env` Protection & Hygiene
+
+**Tasks**
+
+- Add to `.gitignore`:
+
+  ```bash
+  # Environment files
+  .env*
+  !.env.example
+  ```
+
+- Create `.env.example` with non-sensitive placeholders.
+- Rotate all keys in Supabase, OpenAI, Twitter, LinkedIn, and QStash after committing this change.
+- Verify in Vercel dashboard that no secrets live in the repo.
+
+**Commit**
+
+```
+chore(security): gitignore env files and add example env template
+```
+
+---
+
+## 🔐 2. Authentication Middleware (Protect /api/adapt + /api/schedule)
+
+**Create:** `middleware.ts`
+
+```ts
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+export async function middleware(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!token)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    return NextResponse.json({ error: "Invalid token" }, { status: 403 });
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/api/adapt/:path*", "/api/schedule/:path*"],
+};
+```
+
+**Commit**
+
+```
+feat(auth): add middleware to protect adapt and schedule endpoints
+```
+
+---
+
+## 🔑 3. Secure PKCE for Twitter OAuth
+
+**In** `lib/twitter.ts` (replace hardcoded verifier logic):
+
+```ts
+import crypto from "crypto";
+
+export function generatePKCE() {
+  const verifier = crypto.randomBytes(64).toString("base64url");
+  const challenge = crypto
+    .createHash("sha256")
+    .update(verifier)
+    .digest("base64url");
+  return { verifier, challenge };
+}
+```
+
+Store verifier server-side (Supabase session or encrypted cookie).
+During callback, retrieve and verify it before exchanging code for tokens.
+
+**Commit**
+
+```
+fix(oauth): implement secure PKCE flow for Twitter OAuth
+```
+
+---
+
+## 📊 4. Observability: Logging + Error Tracking
+
+**Add `lib/logger.ts`:**
+
+```ts
+import pino from "pino";
+const isProd = process.env.NODE_ENV === "production";
+
+export const logger = pino({
+  transport: isProd ? undefined : { target: "pino-pretty" },
+  level: isProd ? "info" : "debug",
+});
+```
+
+Replace `console.log` with `logger.info` or `logger.error`.
+
+**Add Sentry**
+
+```bash
+npm install @sentry/nextjs
+npx @sentry/wizard -i nextjs
+```
+
+Set env:
+
+```bash
+SENTRY_AUTH_TOKEN=...
+SENTRY_DSN=...
+```
+
+**Commit**
+
+```
+chore(observability): add Sentry and pino logger for structured logging
+```
+
+---
+
+### ✅ Minimal Deployment Checklist (after fixes)
+
+- [ ] `.env` sanitized and rotated
+- [ ] Middleware returns 401 on missing auth
+- [ ] Twitter OAuth verifier stored and validated
+- [ ] Sentry dashboard confirms events captured
 
 ---
 

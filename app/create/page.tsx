@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { CharacterCounter } from '@/components/ui/character-counter'
+import { PLATFORM_LIMITS, Platform as PlatformType } from '@/lib/constants'
+import { LoadingState, LoadingButton, ProgressBar } from '@/components/ui/loading'
 
 type Platform = 'twitter' | 'linkedin' | 'instagram'
 type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusiastic'
@@ -23,6 +26,7 @@ export default function CreatePage() {
   const [scheduling, setScheduling] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [adaptProgress, setAdaptProgress] = useState(0)
   const router = useRouter()
 
   // Form state
@@ -126,10 +130,16 @@ export default function CreatePage() {
     }
 
     setAdapting(true)
+    setAdaptProgress(0)
 
     const loadingToast = toast.loading('Adapting content for platforms...')
 
     try {
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setAdaptProgress(prev => Math.min(prev + 10, 90))
+      }, 200)
+
       const response = await fetch('/api/adapt', {
         method: 'POST',
         headers: {
@@ -142,6 +152,9 @@ export default function CreatePage() {
         }),
       })
 
+      clearInterval(progressInterval)
+      setAdaptProgress(100)
+
       if (!response.ok) {
         throw new Error('Failed to adapt content')
       }
@@ -152,7 +165,10 @@ export default function CreatePage() {
     } catch (error: any) {
       toast.error(error.message || 'Failed to adapt content. Please try again.', { id: loadingToast })
     } finally {
-      setAdapting(false)
+      setTimeout(() => {
+        setAdapting(false)
+        setAdaptProgress(0)
+      }, 300)
     }
   }
 
@@ -198,9 +214,7 @@ export default function CreatePage() {
   if (loading) {
     return (
       <DashboardLayout user={user}>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-gray-600">Loading...</div>
-        </div>
+        <LoadingState message="Loading content creator..." size="lg" className="min-h-[60vh]" />
       </DashboardLayout>
     )
   }
@@ -229,8 +243,8 @@ export default function CreatePage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter your content here... Share your thoughts, ideas, or message that you want to repurpose across platforms."
               />
-              <div className="mt-2 text-sm text-gray-500">
-                {originalContent.length} characters
+              <div className="mt-3">
+                <CharacterCounter content={originalContent} />
               </div>
             </div>
 
@@ -298,13 +312,24 @@ export default function CreatePage() {
               </div>
             )}
 
-            <button
-              onClick={handleAdaptContent}
-              disabled={adapting || !originalContent.trim() || selectedPlatforms.length === 0}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {adapting ? 'Adapting...' : 'Adapt Content'}
-            </button>
+            <div className="space-y-3">
+              <LoadingButton
+                onClick={handleAdaptContent}
+                disabled={adapting || !originalContent.trim() || selectedPlatforms.length === 0}
+                loading={adapting}
+                loadingText="Adapting content..."
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Adapt Content
+              </LoadingButton>
+
+              {adapting && adaptProgress > 0 && (
+                <ProgressBar
+                  progress={adaptProgress}
+                  message="Generating platform-optimized content..."
+                />
+              )}
+            </div>
 
             {/* Save as Draft Button */}
             {adaptedContent.length > 0 && (
@@ -341,10 +366,18 @@ export default function CreatePage() {
                         Copy
                       </button>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap mb-4">{item.content}</p>
-                    <div className="text-sm text-gray-500 mb-4">
-                      {item.content.length} characters
-                    </div>
+                    <textarea
+                      value={item.content}
+                      onChange={(e) => {
+                        const newContent = e.target.value
+                        setAdaptedContent(prev =>
+                          prev.map(i => i.platform === item.platform ? { ...i, content: newContent } : i)
+                        )
+                      }}
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-3"
+                    />
+                    <CharacterCounter content={item.content} platform={item.platform as PlatformType} className="mb-4" />
 
                     {/* Scheduling */}
                     <div className="border-t pt-4">

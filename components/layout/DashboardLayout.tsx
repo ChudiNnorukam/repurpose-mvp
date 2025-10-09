@@ -2,6 +2,7 @@
 
 import { AppHeader } from './AppHeader'
 import { ReactNode } from 'react'
+import { useGlobalKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -9,6 +10,9 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
+  // Enable global keyboard shortcuts
+  useGlobalKeyboardShortcuts()
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Skip to main content link for accessibility */}

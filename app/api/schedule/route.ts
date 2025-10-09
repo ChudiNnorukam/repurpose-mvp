@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/server"
 import { schedulePostJob } from "@/lib/qstash"
 import { Platform } from "@/lib/types"
 import { apiRateLimiter, getRateLimitIdentifier, checkRateLimit } from "@/lib/rate-limit"
-import { ErrorCode } from "@/lib/api/errors"
+import { ErrorCode, ErrorResponses } from "@/lib/api/errors"
 
 export async function POST(request: NextRequest) {
   try {
+    // Authentication check - prevent unauthorized scheduling
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return ErrorResponses.unauthorized()
+    }
+
     const body = await request.json()
     const { platform, content, originalContent, scheduledTime, userId } = body
 
@@ -18,8 +27,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verify the userId matches the authenticated user
+    if (userId !== user.id) {
+      return NextResponse.json(
+        { error: "Unauthorized: User ID mismatch" },
+        { status: 403 }
+      )
+    }
+
     // Rate limiting - prevent scheduling spam (30 requests per minute per user)
-    const identifier = getRateLimitIdentifier(request, userId)
+    const identifier = getRateLimitIdentifier(request, user.id)
     const rateLimitResult = await checkRateLimit(apiRateLimiter, identifier)
 
     if (!rateLimitResult.success) {
@@ -48,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     const supabaseClient = getSupabaseAdmin()
 
-    // ✅ Verify user exists in auth.users
+    // ✅ Verify user exists in auth.users (double check with admin client)
     const { data: authUser, error: userError } =
       await supabaseClient.auth.admin.getUserById(userId)
 
@@ -124,6 +141,16 @@ export async function POST(request: NextRequest) {
         },
         scheduledDate
       )
+
+      // ✅ CRITICAL FIX: Save QStash message ID for cancellation/rescheduling
+      const { error: updateError } = await supabaseClient
+        .from("posts")
+        .update({ qstash_message_id: messageId })
+        .eq("id", post.id)
+
+      if (updateError) {
+        console.warn('⚠️  Failed to save QStash message ID:', updateError)
+      }
 
       console.log(`✅ Post scheduled successfully:`, {
         postId: post.id,
