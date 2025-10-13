@@ -1,8 +1,75 @@
 # Repurpose - AI Agent Orchestration & Development Guide
 
-**Version**: 2.0.0
+**Version**: 2.1.0
 **Last Updated**: October 13, 2025
 **Purpose**: Comprehensive guide for Claude Code AI with integrated subagent workflows
+
+---
+
+## 🤖 Agent Orchestration Rules (NEW)
+
+### Active Agents
+- **feature-implementer**: Implements new features, endpoints, and functionality
+- **test-validator**: Writes and validates tests (unit, integration, E2E)
+- **code-reviewer**: Reviews code for quality, security, and best practices
+
+### Agent Invocation Rules
+
+**Rule 1: Keyword-Based Agent Matching**
+
+Main Claude agent analyzes user prompt and matches keywords:
+
+| Keywords | Agent to Invoke | Example Prompts |
+|----------|----------------|-----------------|
+| "implement", "feature", "add endpoint", "create", "build" | **feature-implementer** | "Implement Instagram OAuth", "Add /api/posts/bulk endpoint" |
+| "test", "verify", "edge cases", "failure", "coverage" | **test-validator** | "Test the scheduling flow", "Verify error handling" |
+| "review", "audit", "refactor", "optimize", "clean up" | **code-reviewer** | "Review the auth code", "Audit security issues" |
+
+**Rule 2: Automatic Agent Chaining**
+
+After `feature-implementer` completes, **automatically** invoke in sequence:
+1. ✅ **test-validator** → Writes tests for the new feature
+2. ✅ **code-reviewer** → Reviews code quality and security
+
+```
+User: "Implement Instagram OAuth"
+  ↓
+feature-implementer generates code
+  ↓ (automatic)
+test-validator writes tests
+  ↓ (automatic)
+code-reviewer audits implementation
+  ↓
+Claude presents final package to user
+```
+
+**Rule 3: Skip Agents for Small Changes**
+
+For trivial changes, skip agents:
+- **Small bugfixes** (< 10 lines): Skip all agents, fix directly
+- **Documentation updates**: Skip all agents
+- **Config changes**: Skip test-validator and code-reviewer
+- **Quick refactors**: Skip test-validator if tests already exist
+
+**Rule 4: Context Minimization**
+
+Keep context minimal between agent handoffs:
+- Pass only: file paths, function names, requirements
+- Don't pass: entire file contents, full codebase context
+- Use references: "Review app/api/schedule/route.ts lines 50-100"
+
+**Rule 5: Parallel Execution**
+
+When tasks are independent, run agents in parallel:
+```
+User: "Implement Twitter OAuth and LinkedIn OAuth"
+  ↓
+feature-implementer (Twitter) || feature-implementer (LinkedIn)
+  ↓ (both complete)
+test-validator (both)
+  ↓
+code-reviewer (both)
+```
 
 ---
 
@@ -111,9 +178,106 @@ Rate Limiting: Upstash Redis (sliding window)
 
 ---
 
+## 🎯 Practical Agent Examples
+
+### Example 1: New Feature Request
+
+**User**: "Implement Instagram OAuth"
+
+**Claude's Analysis**:
+- Keywords detected: "implement", "OAuth"
+- Match: **feature-implementer**
+- Auto-chain: test-validator → code-reviewer
+
+**Execution**:
+```bash
+1. Invoke feature-implementer
+   Input: "Implement Instagram OAuth following lib/twitter.ts pattern"
+   Output: lib/instagram.ts, app/api/auth/instagram/*.ts
+
+2. Auto-invoke test-validator
+   Input: "Write tests for lib/instagram.ts"
+   Output: lib/__tests__/instagram.test.ts (95% coverage)
+
+3. Auto-invoke code-reviewer
+   Input: "Review Instagram OAuth implementation"
+   Output: Security audit + suggestions
+
+4. Claude presents complete package to user
+```
+
+### Example 2: Bug Fix
+
+**User**: "Fix the timezone bug in scheduling"
+
+**Claude's Analysis**:
+- Small bugfix (< 10 lines expected)
+- Skip agents, fix directly
+
+**Execution**:
+```bash
+Claude fixes directly:
+- Read app/create/page.tsx
+- Fix datetime-local min attribute
+- Commit with clear message
+```
+
+### Example 3: Test Request
+
+**User**: "Test the scheduling flow for edge cases"
+
+**Claude's Analysis**:
+- Keywords: "test", "edge cases"
+- Match: **test-validator**
+- Skip auto-chain (no new code)
+
+**Execution**:
+```bash
+1. Invoke test-validator
+   Input: "Write comprehensive tests for app/api/schedule/route.ts"
+   Output: lib/__tests__/schedule.test.ts with edge cases
+```
+
+### Example 4: Parallel Features
+
+**User**: "Add Twitter and LinkedIn posting"
+
+**Claude's Analysis**:
+- Independent tasks
+- Use parallel execution
+
+**Execution**:
+```bash
+1. Invoke feature-implementer (Twitter) || feature-implementer (LinkedIn)
+   Both run simultaneously
+
+2. Wait for both to complete
+
+3. Invoke test-validator (both)
+   Input: "Test both implementations"
+
+4. Invoke code-reviewer (both)
+   Input: "Review both implementations"
+```
+
+---
+
 ## 3. Subagent Orchestration System
 
 ### 3.1 Orchestration Philosophy
+
+**Primary Agents (Use These First)**:
+- **feature-implementer**: For new features and endpoints
+- **test-validator**: For writing and validating tests
+- **code-reviewer**: For code quality and security reviews
+
+**Legacy Specialized Agents (Use When Needed)**:
+- API Security & Authentication Agent (OAuth, auth flows)
+- Content Adaptation & AI Agent (OpenAI prompts)
+- Database & Schema Architect Agent (Supabase, migrations)
+- Job Scheduling & Queue Agent (QStash, cron)
+- Frontend UX Engineering Agent (React components, UI)
+- Deployment & DevOps Agent (Vercel, env vars)
 
 **When to invoke subagents:**
 - Complex, multi-step tasks requiring specialized expertise
@@ -122,7 +286,7 @@ Rate Limiting: Upstash Redis (sliding window)
 - Parallel execution opportunities (multiple independent tasks)
 
 **When to handle directly:**
-- Simple, single-file edits
+- Simple, single-file edits (< 10 lines)
 - Quick bug fixes with clear context
 - Documentation updates
 - Configuration changes
