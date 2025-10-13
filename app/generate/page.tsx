@@ -52,27 +52,33 @@ export default function GeneratePage() {
 
   const fetchConnectedAccounts = async (userId: string) => {
     try {
-      const response = await fetch('/api/auth/accounts')
+      // Fetch directly from Supabase instead of using API route
+      // This avoids cookie authentication issues
+      const { data: accounts, error: fetchError } = await supabase
+        .from('social_accounts')
+        .select('id, platform, account_username, connected_at, expires_at')
+        .eq('user_id', userId)
+        .order('connected_at', { ascending: false })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('Failed to fetch accounts:', errorData)
-        throw new Error(errorData.error || 'Failed to fetch accounts')
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.accounts) {
-        setConnectedAccounts(data.accounts)
-      } else {
+      if (fetchError) {
+        console.error('Error fetching accounts:', fetchError)
         setConnectedAccounts([])
+        return
       }
+
+      // Check for expired tokens and flag them
+      const accountsWithStatus = accounts?.map(account => {
+        const isExpired = account.expires_at && new Date(account.expires_at) < new Date()
+        return {
+          ...account,
+          isExpired,
+          needsReconnection: isExpired,
+        }
+      }) || []
+
+      setConnectedAccounts(accountsWithStatus as ConnectedAccount[])
     } catch (error: any) {
       console.error('Error fetching accounts:', error)
-      // Don't show error toast if there are just no accounts - that's a valid state
-      if (error.message !== 'Failed to fetch accounts') {
-        console.error('Accounts API error details:', error.message)
-      }
       setConnectedAccounts([])
     }
   }
