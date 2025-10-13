@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -19,22 +19,233 @@ interface AdaptedContent {
   scheduledTime?: string
 }
 
+type ScheduleState = 'idle' | 'loading' | 'success' | 'error'
+
+interface ScheduleRunMeta {
+  timestamp: string
+  message: string
+  code?: string
+  traceId?: string | null
+}
+
+interface ScheduleFeedback {
+  state: ScheduleState
+  lastRun?: ScheduleRunMeta
+}
+
+type ScheduleFeedbackMap = Record<Platform, ScheduleFeedback>
+
+interface ScheduleErrorState {
+  platform: Platform
+  message: string
+  code?: string
+  field?: string
+  details?: string
+  traceId?: string | null
+  status: number
+}
+
+interface ScheduleSuccessState {
+  platform: Platform
+  message: string
+  traceId?: string | null
+}
+
+const INITIAL_FEEDBACK: ScheduleFeedbackMap = {
+  twitter: { state: 'idle' },
+  linkedin: { state: 'idle' },
+  instagram: { state: 'idle' },
+}
+
+function formatTimestamp(timestamp?: string) {
+  if (!timestamp) return '—'
+  return new Date(timestamp).toLocaleString()
+}
+
+function DetailedErrorBanner({
+  error,
+  onDismiss,
+}: {
+  error: ScheduleErrorState
+  onDismiss: () => void
+}) {
+  return (
+    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-semibold">
+            Failed to schedule {error.platform} post
+          </p>
+          <p className="mt-1 text-red-700">{error.message}</p>
+        </div>
+        <button
+          onClick={onDismiss}
+          className="rounded border border-red-200 px-3 py-1 text-xs font-medium uppercase tracking-wide text-red-600 hover:bg-red-100"
+        >
+          Dismiss
+        </button>
+      </div>
+
+      <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+        {error.code && (
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-red-500">
+              Error Code
+            </dt>
+            <dd className="mt-0.5 font-mono text-xs">{error.code}</dd>
+          </div>
+        )}
+        {error.field && (
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-red-500">
+              Field
+            </dt>
+            <dd className="mt-0.5 text-xs">{error.field}</dd>
+          </div>
+        )}
+        {error.status && (
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-red-500">
+              HTTP Status
+            </dt>
+            <dd className="mt-0.5 text-xs">{error.status}</dd>
+          </div>
+        )}
+        {error.traceId && (
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-red-500">
+              Trace ID
+            </dt>
+            <dd className="mt-0.5 break-all font-mono text-xs">{error.traceId}</dd>
+          </div>
+        )}
+      </dl>
+
+      {error.details && (
+        <div className="mt-3 rounded bg-white/70 p-3 font-mono text-xs text-red-700">
+          {error.details}
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {error.traceId && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(error.traceId!)
+              toast.success('Trace ID copied to clipboard')
+            }}
+            className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+          >
+            Copy Trace ID
+          </button>
+        )}
+        {error.details && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(error.details!)
+              toast.success('Error details copied')
+            }}
+            className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+          >
+            Copy Details
+          </button>
+        )}
+        <Link
+          href="/settings/connections"
+          className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+        >
+          Manage Connections
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function SuccessBanner({
+  success,
+  onDismiss,
+}: {
+  success: ScheduleSuccessState
+  onDismiss: () => void
+}) {
+  return (
+    <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-semibold">
+            Scheduled {success.platform} post successfully
+          </p>
+          <p className="mt-1 text-green-700">{success.message}</p>
+          {success.traceId && (
+            <p className="mt-2 text-xs text-green-600">
+              Trace ID:{' '}
+              <span className="font-mono">{success.traceId}</span>
+            </p>
+          )}
+        </div>
+        <button
+          onClick={onDismiss}
+          className="rounded border border-green-200 px-3 py-1 text-xs font-medium uppercase tracking-wide text-green-700 hover:bg-green-100"
+        >
+          Dismiss
+        </button>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <Link
+          href="/posts?filter=scheduled"
+          className="rounded border border-green-200 px-3 py-1 font-medium text-green-700 hover:bg-green-100"
+        >
+          View scheduled posts
+        </Link>
+        {success.traceId && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(success.traceId!)
+              toast.success('Trace ID copied to clipboard')
+            }}
+            className="rounded border border-green-200 px-3 py-1 font-medium text-green-700 hover:bg-green-100"
+          >
+            Copy Trace ID
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ScheduleStatusPill({ state }: { state: ScheduleState }) {
+  const labelMap: Record<ScheduleState, { label: string; classes: string }> = {
+    idle: { label: 'Idle', classes: 'bg-gray-100 text-gray-600' },
+    loading: { label: 'Scheduling…', classes: 'bg-blue-100 text-blue-700' },
+    success: { label: 'Success', classes: 'bg-green-100 text-green-700' },
+    error: { label: 'Error', classes: 'bg-red-100 text-red-700' },
+  }
+
+  const { label, classes } = labelMap[state]
+
+  return (
+    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${classes}`}>
+      {label}
+    </span>
+  )
+}
+
 export default function CreatePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [adapting, setAdapting] = useState(false)
-  const [scheduling, setScheduling] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [adaptProgress, setAdaptProgress] = useState(0)
-  const router = useRouter()
-  const supabase = createClient()
-
-  // Form state
-  const [originalContent, setOriginalContent] = useState('')
-  const [tone, setTone] = useState<Tone>('professional')
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['twitter', 'linkedin', 'instagram'])
   const [adaptedContent, setAdaptedContent] = useState<AdaptedContent[]>([])
+  const [scheduleFeedback, setScheduleFeedback] = useState<ScheduleFeedbackMap>(INITIAL_FEEDBACK)
+  const [activeError, setActiveError] = useState<ScheduleErrorState | null>(null)
+  const [activeSuccess, setActiveSuccess] = useState<ScheduleSuccessState | null>(null)
+
+  const [originalContent, setOriginalContent] = useState('')
+  const [tone, setTone] = useState<Tone>('professional')
+
+  const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     checkUser()
@@ -58,6 +269,16 @@ export default function CreatePage() {
     }
   }
 
+  const updateScheduleFeedback = useCallback(
+    (platform: Platform, updater: (prev: ScheduleFeedback) => ScheduleFeedback) => {
+      setScheduleFeedback((prev) => ({
+        ...prev,
+        [platform]: updater(prev[platform]),
+      }))
+    },
+    [],
+  )
+
   const togglePlatform = (platform: Platform) => {
     setSelectedPlatforms(prev =>
       prev.includes(platform)
@@ -74,29 +295,34 @@ export default function CreatePage() {
     )
   }
 
-  const handleSchedulePost = async (platform: Platform) => {
+  const handleSchedulePost = useCallback(async (platform: Platform) => {
     const post = adaptedContent.find(item => item.platform === platform)
     if (!post || !post.scheduledTime) {
       toast.error('Please select a date and time')
       return
     }
 
-    setScheduling(true)
+    if (!user) {
+      toast.error('Session expired. Please log in again.')
+      router.push('/login')
+      return
+    }
+
+    setActiveError(null)
+    setActiveSuccess(null)
 
     const loadingToast = toast.loading(`Scheduling ${platform} post...`)
+    updateScheduleFeedback(platform, () => ({
+      state: 'loading',
+      lastRun: {
+        timestamp: new Date().toISOString(),
+        message: 'Submitting schedule request…',
+      },
+    }))
 
     try {
-      // Convert datetime-local to ISO string with user's timezone
-      // datetime-local gives "2025-10-03T14:23" (no timezone info)
-      // new Date() interprets this as LOCAL time, then toISOString() converts to UTC properly
       const localDateTime = new Date(post.scheduledTime)
       const isoString = localDateTime.toISOString()
-
-      console.log('📤 Sending schedule request:', {
-        platform,
-        scheduledTime: isoString,
-        userId: user.id
-      })
 
       const response = await fetch('/api/schedule', {
         method: 'POST',
@@ -109,111 +335,105 @@ export default function CreatePage() {
           originalContent,
           scheduledTime: isoString,
           userId: user.id,
+          metadata: {
+            timezoneOffsetMinutes: localDateTime.getTimezoneOffset() * -1,
+            requestSource: 'create-page',
+          },
         }),
       })
 
+      const traceId = response.headers.get('x-trace-id')
       const data = await response.json()
 
       if (!response.ok) {
-        console.error('❌ Schedule request failed:', {
-          status: response.status,
-          error: data.error,
-          code: data.code,
-          field: data.field,
-          details: data.details
+        const errorMessage = data.error || 'Failed to schedule post. Please try again.'
+
+        toast.error(errorMessage, {
+          id: loadingToast,
+          duration: 5000,
         })
 
-        // Handle specific error codes with user-friendly messages
-        switch (data.code) {
-          case 'UNAUTHORIZED':
-            toast.error('Session expired. Please log in again.', { id: loadingToast })
-            // Optionally redirect to login after a delay
-            setTimeout(() => router.push('/login'), 2000)
-            break
-
-          case 'RATE_LIMIT_EXCEEDED':
-            const resetTime = data.reset ? new Date(data.reset).toLocaleTimeString() : 'shortly'
-            toast.error(
-              `Rate limit exceeded. You can schedule ${data.limit || 30} posts per minute. Try again after ${resetTime}.`,
-              { id: loadingToast, duration: 5000 }
-            )
-            break
-
-          case 'INVALID_PLATFORM':
-            toast.error(`Invalid platform: ${platform}. Please try again.`, { id: loadingToast })
-            break
-
-          case 'INVALID_TIME':
-            toast.error(data.error || 'Invalid scheduled time. Please select a future date and time.', { id: loadingToast })
-            break
-
-          case 'DATABASE_ERROR':
-            if (data.error.includes('User account not properly linked')) {
-              toast.error('Account error. Please log out and log back in, then try again.', { id: loadingToast, duration: 6000 })
-            } else {
-              toast.error(data.error || 'Database error. Please try again.', { id: loadingToast })
-            }
-            break
-
-          case 'RECORD_NOT_FOUND':
-            toast.error('Your account session is invalid. Please log out and log back in.', { id: loadingToast, duration: 5000 })
-            setTimeout(() => router.push('/login'), 3000)
-            break
-
-          case 'QSTASH_ERROR':
-            toast.error('Failed to schedule post delivery. Please try again or contact support.', { id: loadingToast, duration: 6000 })
-            break
-
-          case 'MISSING_REQUIRED_FIELD':
-            const fieldName = data.field || 'unknown field'
-            toast.error(`Missing required field: ${fieldName}. Please refresh and try again.`, { id: loadingToast })
-            break
-
-          default:
-            // Generic error fallback
-            const errorMessage = data.error || 'Failed to schedule post. Please try again.'
-            toast.error(errorMessage, { id: loadingToast })
-
-            // If it's a 500 error, suggest contacting support
-            if (response.status >= 500) {
-              setTimeout(() => {
-                toast.error('If this persists, please contact support.', { duration: 4000 })
-              }, 2000)
-            }
+        if (response.status >= 500) {
+          setTimeout(() => {
+            toast.error('If this persists, please contact support with the trace ID from the error banner.', {
+              duration: 5000,
+            })
+          }, 1200)
         }
+
+        const errorState: ScheduleErrorState = {
+          platform,
+          message: errorMessage,
+          code: data.code,
+          field: data.field,
+          details: data.details,
+          traceId,
+          status: response.status,
+        }
+        setActiveError(errorState)
+
+        updateScheduleFeedback(platform, () => ({
+          state: 'error',
+          lastRun: {
+            timestamp: new Date().toISOString(),
+            message: errorMessage,
+            code: data.code,
+            traceId,
+          },
+        }))
 
         return
       }
 
-      console.log('✅ Post scheduled successfully:', data)
-
       toast.success(
         data.message || `Post scheduled for ${platform}!`,
-        { id: loadingToast }
+        { id: loadingToast },
       )
 
-      // Optionally clear the scheduled time for this platform after successful scheduling
       setAdaptedContent(prev =>
         prev.map(item =>
           item.platform === platform ? { ...item, scheduledTime: undefined } : item
         )
       )
+
+      const successState: ScheduleSuccessState = {
+        platform,
+        message: data.message || `Post scheduled for ${platform}!`,
+        traceId,
+      }
+
+      setActiveSuccess(successState)
+      updateScheduleFeedback(platform, () => ({
+        state: 'success',
+        lastRun: {
+          timestamp: new Date().toISOString(),
+          message: successState.message,
+          traceId,
+        },
+      }))
     } catch (error: any) {
       console.error('❌ Exception during schedule request:', error)
 
-      // Handle network errors and other exceptions
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        toast.error('Network error. Please check your connection and try again.', { id: loadingToast })
-      } else {
-        toast.error(
-          error.message || 'An unexpected error occurred. Please try again.',
-          { id: loadingToast }
-        )
+      const genericMessage = error.message || 'An unexpected error occurred. Please try again.'
+
+      toast.error(genericMessage, { id: loadingToast })
+
+      const errorState: ScheduleErrorState = {
+        platform,
+        message: genericMessage,
+        status: 0,
       }
-    } finally {
-      setScheduling(false)
+
+      setActiveError(errorState)
+      updateScheduleFeedback(platform, () => ({
+        state: 'error',
+        lastRun: {
+          timestamp: new Date().toISOString(),
+          message: genericMessage,
+        },
+      }))
     }
-  }
+  }, [adaptedContent, originalContent, router, updateScheduleFeedback, user])
 
   const handleAdaptContent = async () => {
     if (!originalContent.trim()) {
@@ -228,11 +448,12 @@ export default function CreatePage() {
 
     setAdapting(true)
     setAdaptProgress(0)
+    setActiveError(null)
+    setActiveSuccess(null)
 
     const loadingToast = toast.loading('Adapting content for platforms...')
 
     try {
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setAdaptProgress(prev => Math.min(prev + 10, 90))
       }, 200)
@@ -253,7 +474,8 @@ export default function CreatePage() {
       setAdaptProgress(100)
 
       if (!response.ok) {
-        throw new Error('Failed to adapt content')
+        const errorMessage = await response.text()
+        throw new Error(errorMessage || 'Failed to adapt content')
       }
 
       const data = await response.json()
@@ -272,6 +494,12 @@ export default function CreatePage() {
   const handleSaveDraft = async () => {
     if (adaptedContent.length === 0) {
       toast.error('No content to save')
+      return
+    }
+
+    if (!user) {
+      toast.error('Session expired. Please log in again.')
+      router.push('/login')
       return
     }
 
@@ -298,7 +526,6 @@ export default function CreatePage() {
 
       toast.success(`Saved ${adaptedContent.length} draft(s)!`, { id: loadingToast })
 
-      // Clear form and redirect to drafts
       setOriginalContent('')
       setAdaptedContent([])
       router.push('/posts?filter=draft')
@@ -307,6 +534,12 @@ export default function CreatePage() {
       toast.error(error.message || 'Failed to save drafts', { id: loadingToast })
     }
   }
+
+  const hasAdaptedContent = adaptedContent.length > 0
+  const anySchedulingLoading = useMemo(
+    () => Object.values(scheduleFeedback).some(item => item.state === 'loading'),
+    [scheduleFeedback],
+  )
 
   if (loading) {
     return (
@@ -318,150 +551,159 @@ export default function CreatePage() {
 
   return (
     <DashboardLayout user={user}>
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Create Content</h2>
-          <p className="mt-2 text-gray-600">
-            Enter your content and we'll adapt it for different platforms
-          </p>
-        </div>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-900">Create Content</h2>
+        <p className="mt-2 text-gray-600">
+          Enter your content and we'll adapt it for different platforms
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Input Section */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-                Original Content
-              </label>
-              <textarea
-                id="content"
-                value={originalContent}
-                onChange={(e) => setOriginalContent(e.target.value)}
-                rows={10}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your content here... Share your thoughts, ideas, or message that you want to repurpose across platforms."
-              />
-              <div className="mt-3">
-                <CharacterCounter content={originalContent} />
-              </div>
+      {activeError && (
+        <DetailedErrorBanner
+          error={activeError}
+          onDismiss={() => setActiveError(null)}
+        />
+      )}
+
+      {activeSuccess && (
+        <SuccessBanner
+          success={activeSuccess}
+          onDismiss={() => setActiveSuccess(null)}
+        />
+      )}
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Input Section */}
+        <div className="space-y-6">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <label htmlFor="content" className="mb-2 block text-sm font-medium text-gray-700">
+              Original Content
+            </label>
+            <textarea
+              id="content"
+              value={originalContent}
+              onChange={(e) => setOriginalContent(e.target.value)}
+              rows={10}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="Enter your content here... Share your thoughts, ideas, or message that you want to repurpose across platforms."
+            />
+            <div className="mt-3">
+              <CharacterCounter content={originalContent} />
             </div>
+          </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Tone
-              </label>
-              <select
-                value={tone}
-                onChange={(e) => setTone(e.target.value as Tone)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="professional">Professional</option>
-                <option value="casual">Casual</option>
-                <option value="friendly">Friendly</option>
-                <option value="authoritative">Authoritative</option>
-                <option value="enthusiastic">Enthusiastic</option>
-              </select>
-            </div>
+          <div className="rounded-lg bg-white p-6 shadow">
+            <label className="mb-3 block text-sm font-medium text-gray-700">
+              Tone
+            </label>
+            <select
+              value={tone}
+              onChange={(e) => setTone(e.target.value as Tone)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="friendly">Friendly</option>
+              <option value="authoritative">Authoritative</option>
+              <option value="enthusiastic">Enthusiastic</option>
+            </select>
+          </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Platforms
-              </label>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedPlatforms.includes('twitter')}
-                    onChange={() => togglePlatform('twitter')}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-3 text-gray-700">Twitter (280 characters)</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedPlatforms.includes('linkedin')}
-                    onChange={() => togglePlatform('linkedin')}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-3 text-gray-700">LinkedIn (Professional)</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedPlatforms.includes('instagram')}
-                    onChange={() => togglePlatform('instagram')}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-3 text-gray-700">Instagram (Casual)</span>
-                </label>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-                {success}
-              </div>
-            )}
-
+          <div className="rounded-lg bg-white p-6 shadow">
+            <label className="mb-3 block text-sm font-medium text-gray-700">
+              Platforms
+            </label>
             <div className="space-y-3">
-              <LoadingButton
-                onClick={handleAdaptContent}
-                disabled={adapting || !originalContent.trim() || selectedPlatforms.length === 0}
-                loading={adapting}
-                loadingText="Adapting content..."
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Adapt Content
-              </LoadingButton>
-
-              {adapting && adaptProgress > 0 && (
-                <ProgressBar
-                  progress={adaptProgress}
-                  message="Generating platform-optimized content..."
-                />
-              )}
+              {(['twitter', 'linkedin', 'instagram'] as Platform[]).map((platform) => (
+                <label key={platform} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedPlatforms.includes(platform)}
+                    onChange={() => togglePlatform(platform)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-gray-700">
+                    {PLATFORM_LIMITS[platform].name} ({PLATFORM_LIMITS[platform].maxLength} characters)
+                  </span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            {/* Save as Draft Button */}
-            {adaptedContent.length > 0 && (
-              <button
-                onClick={handleSaveDraft}
-                className="w-full mt-3 flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Save as Draft
-              </button>
+          <div className="space-y-3">
+            <LoadingButton
+              onClick={handleAdaptContent}
+              disabled={adapting || !originalContent.trim() || selectedPlatforms.length === 0}
+              loading={adapting}
+              loadingText="Adapting content..."
+              className="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Adapt Content
+            </LoadingButton>
+
+            {adapting && adaptProgress > 0 && (
+              <ProgressBar
+                progress={adaptProgress}
+                message="Generating platform-optimized content..."
+              />
             )}
           </div>
 
-          {/* Results Section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Adapted Content
-            </h3>
-            {adaptedContent.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                <p>Your adapted content will appear here</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {adaptedContent.map((item) => (
-                  <div key={item.platform} className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-lg font-semibold capitalize text-gray-900">
-                        {item.platform}
-                      </h4>
-                      <button
-                        onClick={() => navigator.clipboard.writeText(item.content)}
-                        className="text-sm text-blue-600 hover:text-blue-700"
-                      >
-                        Copy
-                      </button>
+          {hasAdaptedContent && (
+            <button
+              onClick={handleSaveDraft}
+              className="mt-3 flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Save as Draft
+            </button>
+          )}
+        </div>
+
+        {/* Results Section */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Adapted Content
+          </h3>
+          {!hasAdaptedContent ? (
+            <div className="rounded-lg bg-white p-8 text-center text-gray-500 shadow">
+              <p>Your adapted content will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {adaptedContent.map((item) => {
+                const feedback = scheduleFeedback[item.platform]
+                const isLoading = feedback.state === 'loading'
+                const minDate = (() => {
+                  const now = new Date()
+                  const year = now.getFullYear()
+                  const month = String(now.getMonth() + 1).padStart(2, '0')
+                  const day = String(now.getDate()).padStart(2, '0')
+                  const hours = String(now.getHours()).padStart(2, '0')
+                  const minutes = String(now.getMinutes()).padStart(2, '0')
+                  return `${year}-${month}-${day}T${hours}:${minutes}`
+                })()
+
+                return (
+                  <div key={item.platform} className="rounded-lg bg-white p-6 shadow">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-lg font-semibold capitalize text-gray-900">
+                          {item.platform}
+                        </h4>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Limit: {PLATFORM_LIMITS[item.platform].maxLength} characters
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {feedback.lastRun && (
+                          <div className="text-right text-xs text-gray-500">
+                            <p className="font-medium text-gray-600">Last attempt</p>
+                            <p>{formatTimestamp(feedback.lastRun.timestamp)}</p>
+                            <p className="truncate">{feedback.lastRun.message}</p>
+                          </div>
+                        )}
+                        <ScheduleStatusPill state={feedback.state} />
+                      </div>
                     </div>
                     <textarea
                       value={item.content}
@@ -472,48 +714,62 @@ export default function CreatePage() {
                         )
                       }}
                       rows={6}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-3"
+                      className="mb-3 w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                     />
-                    <CharacterCounter content={item.content} platform={item.platform as PlatformType} className="mb-4" />
+                    <div className="mb-4">
+                      <CharacterCounter content={item.content} platform={item.platform as PlatformType} />
+                    </div>
 
-                    {/* Scheduling */}
                     <div className="border-t pt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Schedule for later
                       </label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <input
                           type="datetime-local"
                           value={item.scheduledTime || ''}
                           onChange={(e) => updateScheduledTime(item.platform, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          min={(() => {
-                            // Get current time in user's local timezone for datetime-local
-                            const now = new Date()
-                            // Format as YYYY-MM-DDTHH:MM for datetime-local
-                            const year = now.getFullYear()
-                            const month = String(now.getMonth() + 1).padStart(2, '0')
-                            const day = String(now.getDate()).padStart(2, '0')
-                            const hours = String(now.getHours()).padStart(2, '0')
-                            const minutes = String(now.getMinutes()).padStart(2, '0')
-                            return `${year}-${month}-${day}T${hours}:${minutes}`
-                          })()}
+                          className="w-full flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                          min={minDate}
                         />
-                        <button
-                          onClick={() => handleSchedulePost(item.platform)}
-                          disabled={scheduling || !item.scheduledTime}
-                          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {scheduling ? 'Scheduling...' : 'Schedule'}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const now = new Date()
+                              now.setMinutes(now.getMinutes() + 2)
+                              updateScheduledTime(item.platform, now.toISOString().slice(0, 16))
+                            }}
+                            className="rounded border border-gray-300 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                          >
+                            +2 min
+                          </button>
+                          <button
+                            onClick={() => handleSchedulePost(item.platform)}
+                            disabled={isLoading || !item.scheduledTime || anySchedulingLoading}
+                            className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isLoading ? 'Scheduling…' : 'Schedule'}
+                          </button>
+                        </div>
                       </div>
+                      {feedback.lastRun?.traceId && (
+                        <p className="mt-2 text-xs text-gray-500">
+                          Trace ID: <span className="font-mono">{feedback.lastRun.traceId}</span>
+                        </p>
+                      )}
+                      {feedback.lastRun?.code && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Error code: <span className="font-mono">{feedback.lastRun.code}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
+      </div>
     </DashboardLayout>
   )
 }

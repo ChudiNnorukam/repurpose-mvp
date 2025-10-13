@@ -1,6 +1,22 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// Provide minimal Fetch API globals so Next.js route handlers can be imported in Jest.
+if (!globalThis.Request) {
+  globalThis.Request = class Request {}
+}
+if (!globalThis.Response) {
+  globalThis.Response = class Response {}
+}
+if (!globalThis.Headers) {
+  globalThis.Headers = class Headers {}
+}
+if (!globalThis.fetch) {
+  globalThis.fetch = async () => {
+    throw new Error('fetch not implemented in Jest environment')
+  }
+}
+
 // Mock environment variables for tests
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
