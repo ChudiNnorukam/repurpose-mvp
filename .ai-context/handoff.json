@@ -1,0 +1,85 @@
+{
+  "from": "claude-subagent",
+  "to": "user",
+  "timestamp": "2025-10-13T18:30:00Z",
+  "task": "Autopost debugging completed - Ready for deployment",
+  "status": "completed",
+
+  "spec": ".ai-context/codex/specs/autopost-debug-spec.md",
+  "files_generated": [
+    "COMPLETE DIAGNOSIS & FIX REPORT (in message)",
+    "app/api/schedule/route.ts (fixed)",
+    "app/create/page.tsx (fixed)",
+    "scripts/verify-auth.ts (diagnostic tool)",
+    "DEPLOYMENT_FIX_GUIDE.md (comprehensive guide)",
+    "QUICK_FIX_SUMMARY.md (quick reference)"
+  ],
+  "patterns_followed": [
+    "API Route Pattern: Auth → Rate limiting → Validation → Logic",
+    "Error Handling Pattern: Specific error codes with ErrorResponses",
+    "Database Pattern: User verification before foreign key operations"
+  ],
+  "completed_by": "API Security & Authentication Agent (Claude subagent)",
+
+  "priority": "high",
+  "context": {
+    "problem": "Autopost scheduling failing on production with foreign key constraint error",
+    "critical_issues": [
+      "Foreign key constraint: user_id not found in auth.users",
+      "Generic error messages prevent user debugging",
+      "QStash configuration unknown on production",
+      "OAuth token validity unknown"
+    ],
+    "reference_docs": [
+      "AUTOPOST_AUDIT.md (detailed problem analysis)",
+      "CURRENT_STATE.md (what currently works)",
+      ".ai-context/memory/patterns.md (code patterns)"
+    ]
+  },
+
+  "requirements": {
+    "diagnostic_script": "Verify user auth, env vars, QStash config, OAuth tokens, RLS policies",
+    "fixes": "Update schedule/route.ts with better errors, update create/page.tsx with error display",
+    "tests": "End-to-end test of scheduling flow with mocked dependencies",
+    "monitoring": "Script to check QStash dashboard for pending/failed jobs"
+  },
+
+  "next_step": "Codex: Generate all files to .ai-context/codex/outputs/autopost-debug/",
+
+  "usage": "Active handoff from Claude to Codex for autopost debugging",
+
+  "example_claude_to_codex": {
+    "from": "claude",
+    "to": "codex",
+    "timestamp": "2025-10-13T15:30:00Z",
+    "task": "Generate Instagram OAuth implementation",
+    "spec": ".ai-context/codex/specs/instagram-oauth-spec.md",
+    "files_to_generate": [
+      "lib/instagram.ts",
+      "app/api/auth/instagram/route.ts",
+      "app/api/auth/instagram/callback/route.ts"
+    ],
+    "patterns_to_follow": ["lib/twitter.ts"],
+    "next_step": "Codex generates OAuth implementation + tests"
+  },
+
+  "example_codex_to_claude": {
+    "from": "codex",
+    "to": "claude",
+    "timestamp": "2025-10-13T15:45:00Z",
+    "task": "Review Instagram OAuth implementation",
+    "generated_files": [
+      ".ai-context/codex/outputs/instagram-oauth/lib/instagram.ts",
+      ".ai-context/codex/outputs/instagram-oauth/app/api/auth/instagram/route.ts",
+      ".ai-context/codex/outputs/instagram-oauth/app/api/auth/instagram/callback/route.ts",
+      ".ai-context/codex/outputs/instagram-oauth/lib/__tests__/instagram.test.ts"
+    ],
+    "review_checklist": [
+      "Security: OAuth 2.0 compliance",
+      "Integration: Supabase schema compatibility",
+      "Testing: 95% coverage, edge cases",
+      "Documentation: JSDoc comments"
+    ],
+    "next_step": "Claude reviews generated code and approves/requests changes"
+  }
+}

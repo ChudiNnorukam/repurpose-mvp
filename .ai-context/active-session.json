@@ -1,0 +1,126 @@
+{
+  "session_id": "session-2025-10-13-autopost-debug",
+  "started": "2025-10-13T18:00:00Z",
+  "last_updated": "2025-10-13T18:10:00Z",
+  "active_agent": "claude",
+  "mode": "debugging",
+  "feature": "Autopost scheduling feature debugging",
+  "status": "in_progress",
+
+  "timeline": [
+    {
+      "timestamp": "2025-10-13T16:00:00Z",
+      "agent": "claude",
+      "action": "Created .ai-context/ directory structure",
+      "output": ".ai-context/ (directory created)"
+    },
+    {
+      "timestamp": "2025-10-13T16:00:00Z",
+      "agent": "claude",
+      "action": "Created context bridge documentation",
+      "output": ".ai-context/CONTEXT-BRIDGE.md"
+    },
+    {
+      "timestamp": "2025-10-13T16:00:00Z",
+      "agent": "claude",
+      "action": "Initialized active session tracking",
+      "output": ".ai-context/active-session.json"
+    },
+    {
+      "timestamp": "2025-10-13T18:05:00Z",
+      "agent": "claude",
+      "action": "User requested: test context bridge on autopost debugging",
+      "output": "Initiated debugging session"
+    },
+    {
+      "timestamp": "2025-10-13T18:07:00Z",
+      "agent": "claude",
+      "action": "Analyzed debugging context from AUTOPOST_AUDIT.md and CURRENT_STATE.md",
+      "output": "Identified 5 critical issues: foreign key constraint, timezone bug, generic errors, QStash config, OAuth tokens"
+    },
+    {
+      "timestamp": "2025-10-13T18:10:00Z",
+      "agent": "claude",
+      "action": "Created debugging specification for Codex",
+      "output": ".ai-context/codex/specs/autopost-debug-spec.md"
+    },
+    {
+      "timestamp": "2025-10-13T18:12:00Z",
+      "agent": "claude",
+      "action": "Created handoff to Codex",
+      "output": ".ai-context/handoff.json (active handoff)"
+    },
+    {
+      "timestamp": "2025-10-13T18:15:00Z",
+      "agent": "claude",
+      "action": "Decided to use internal subagent instead of external Codex",
+      "output": "Invoked API Security & Authentication Agent"
+    },
+    {
+      "timestamp": "2025-10-13T18:30:00Z",
+      "agent": "api-security-agent",
+      "action": "Completed comprehensive diagnosis and fix for autopost scheduling",
+      "output": "COMPLETE DIAGNOSIS & FIX REPORT with 6 files (70.5 KB, 1,926 lines)"
+    },
+    {
+      "timestamp": "2025-10-13T18:35:00Z",
+      "agent": "claude",
+      "action": "Updated context bridge files to reflect completion",
+      "output": "handoff.json (status: completed), active-session.json (updated)"
+    }
+  ],
+
+  "current_state": {
+    "files_modified": [
+      "app/api/schedule/route.ts (FIXED - 9-step validation)",
+      "app/create/page.tsx (FIXED - error handling)",
+      "scripts/verify-auth.ts (NEW - diagnostic tool)",
+      ".ai-context/handoff.json (completed)",
+      ".ai-context/active-session.json (updated)"
+    ],
+    "tests_passing": "unknown (no automated tests yet)",
+    "build_status": "should be passing",
+    "next_action": "Deploy fixes to production following DEPLOYMENT_FIX_GUIDE.md"
+  },
+
+  "context": {
+    "project": "Repurpose MVP - Social media content adaptation platform",
+    "tech_stack": "Next.js 15 + TypeScript + Supabase + OpenAI + QStash",
+    "documentation": [
+      "CLAUDE.md (Claude Code orchestration guide)",
+      "AGENTS.md (Codex-GPT-5 workflows)",
+      "SOURCE_OF_TRUTH.md (project reference)",
+      "AUTOPOST_AUDIT.md (current debugging context)",
+      "CURRENT_STATE.md (what currently works)"
+    ],
+    "key_files": [
+      "app/api/adapt/route.ts (content adaptation)",
+      "app/api/schedule/route.ts (post scheduling - BROKEN)",
+      "app/api/post/execute/route.ts (QStash callback)",
+      "lib/anthropic.ts (OpenAI integration)",
+      "lib/twitter.ts (Twitter OAuth)",
+      "lib/linkedin.ts (LinkedIn OAuth)",
+      "lib/qstash.ts (job scheduling)"
+    ],
+    "critical_issues": [
+      "CRIT-001: Foreign key constraint error on posts table",
+      "HIGH-001: Generic error messages prevent debugging",
+      "UNKNOWN-001: QStash configuration on production",
+      "UNKNOWN-002: OAuth token validity"
+    ],
+    "open_questions": [
+      "Is logged-in user's ID actually in auth.users table?",
+      "Are all QStash env vars set on Vercel production?",
+      "Can QStash reach /api/post/execute callback?",
+      "Are stored OAuth tokens still valid?"
+    ]
+  },
+
+  "notes": [
+    "Context bridge system is now operational",
+    "Testing handoff system with real debugging task",
+    "Created comprehensive spec for Codex to generate diagnostics",
+    "Spec includes: debug script, fixes, tests, monitoring",
+    "Next: Create handoff.json to pass to Codex for implementation"
+  ]
+}

@@ -92,6 +92,12 @@ export default function CreatePage() {
       const localDateTime = new Date(post.scheduledTime)
       const isoString = localDateTime.toISOString()
 
+      console.log('📤 Sending schedule request:', {
+        platform,
+        scheduledTime: isoString,
+        userId: user.id
+      })
+
       const response = await fetch('/api/schedule', {
         method: 'POST',
         headers: {
@@ -106,14 +112,104 @@ export default function CreatePage() {
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to schedule post')
+        console.error('❌ Schedule request failed:', {
+          status: response.status,
+          error: data.error,
+          code: data.code,
+          field: data.field,
+          details: data.details
+        })
+
+        // Handle specific error codes with user-friendly messages
+        switch (data.code) {
+          case 'UNAUTHORIZED':
+            toast.error('Session expired. Please log in again.', { id: loadingToast })
+            // Optionally redirect to login after a delay
+            setTimeout(() => router.push('/login'), 2000)
+            break
+
+          case 'RATE_LIMIT_EXCEEDED':
+            const resetTime = data.reset ? new Date(data.reset).toLocaleTimeString() : 'shortly'
+            toast.error(
+              `Rate limit exceeded. You can schedule ${data.limit || 30} posts per minute. Try again after ${resetTime}.`,
+              { id: loadingToast, duration: 5000 }
+            )
+            break
+
+          case 'INVALID_PLATFORM':
+            toast.error(`Invalid platform: ${platform}. Please try again.`, { id: loadingToast })
+            break
+
+          case 'INVALID_TIME':
+            toast.error(data.error || 'Invalid scheduled time. Please select a future date and time.', { id: loadingToast })
+            break
+
+          case 'DATABASE_ERROR':
+            if (data.error.includes('User account not properly linked')) {
+              toast.error('Account error. Please log out and log back in, then try again.', { id: loadingToast, duration: 6000 })
+            } else {
+              toast.error(data.error || 'Database error. Please try again.', { id: loadingToast })
+            }
+            break
+
+          case 'RECORD_NOT_FOUND':
+            toast.error('Your account session is invalid. Please log out and log back in.', { id: loadingToast, duration: 5000 })
+            setTimeout(() => router.push('/login'), 3000)
+            break
+
+          case 'QSTASH_ERROR':
+            toast.error('Failed to schedule post delivery. Please try again or contact support.', { id: loadingToast, duration: 6000 })
+            break
+
+          case 'MISSING_REQUIRED_FIELD':
+            const fieldName = data.field || 'unknown field'
+            toast.error(`Missing required field: ${fieldName}. Please refresh and try again.`, { id: loadingToast })
+            break
+
+          default:
+            // Generic error fallback
+            const errorMessage = data.error || 'Failed to schedule post. Please try again.'
+            toast.error(errorMessage, { id: loadingToast })
+
+            // If it's a 500 error, suggest contacting support
+            if (response.status >= 500) {
+              setTimeout(() => {
+                toast.error('If this persists, please contact support.', { duration: 4000 })
+              }, 2000)
+            }
+        }
+
+        return
       }
 
-      toast.success(`Post scheduled for ${platform}!`, { id: loadingToast })
+      console.log('✅ Post scheduled successfully:', data)
+
+      toast.success(
+        data.message || `Post scheduled for ${platform}!`,
+        { id: loadingToast }
+      )
+
+      // Optionally clear the scheduled time for this platform after successful scheduling
+      setAdaptedContent(prev =>
+        prev.map(item =>
+          item.platform === platform ? { ...item, scheduledTime: undefined } : item
+        )
+      )
     } catch (error: any) {
-      toast.error(error.message || 'Failed to schedule post. Please try again.', { id: loadingToast })
+      console.error('❌ Exception during schedule request:', error)
+
+      // Handle network errors and other exceptions
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.', { id: loadingToast })
+      } else {
+        toast.error(
+          error.message || 'An unexpected error occurred. Please try again.',
+          { id: loadingToast }
+        )
+      }
     } finally {
       setScheduling(false)
     }

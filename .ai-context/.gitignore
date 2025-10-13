@@ -1,0 +1,21 @@
+# .ai-context/ Git Rules
+
+# Keep these files (track in git)
+!README.md
+!CONTEXT-BRIDGE.md
+!handoff.json
+!active-session.json
+!memory/
+!memory/*.md
+!codex/specs/
+!codex/specs/*.md
+
+# Ignore temporary outputs (don't track)
+codex/outputs/**/*
+tasks/completed.json
+context/recent-changes.md
+
+# Keep directory structure
+!codex/outputs/.gitkeep
+!tasks/.gitkeep
+!context/.gitkeep
