@@ -53,13 +53,27 @@ export default function GeneratePage() {
   const fetchConnectedAccounts = async (userId: string) => {
     try {
       const response = await fetch('/api/auth/accounts')
-      if (!response.ok) throw new Error('Failed to fetch accounts')
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Failed to fetch accounts:', errorData)
+        throw new Error(errorData.error || 'Failed to fetch accounts')
+      }
 
       const data = await response.json()
-      setConnectedAccounts(data.accounts || [])
-    } catch (error) {
+
+      if (data.success && data.accounts) {
+        setConnectedAccounts(data.accounts)
+      } else {
+        setConnectedAccounts([])
+      }
+    } catch (error: any) {
       console.error('Error fetching accounts:', error)
-      toast.error('Failed to load connected accounts')
+      // Don't show error toast if there are just no accounts - that's a valid state
+      if (error.message !== 'Failed to fetch accounts') {
+        console.error('Accounts API error details:', error.message)
+      }
+      setConnectedAccounts([])
     }
   }
 
