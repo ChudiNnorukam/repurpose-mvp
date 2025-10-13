@@ -84,6 +84,7 @@ export async function middleware(request: NextRequest) {
   const protectedPageRoutes = [
     '/dashboard',
     '/create',
+    '/generate',
     '/posts',
     '/connections',
     '/templates',

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase-client'
+import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -29,7 +29,6 @@ export default function DashboardPage() {
   const [connectedAccounts, setConnectedAccounts] = useState<SocialAccount[]>([])
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     checkUser()
@@ -261,27 +260,19 @@ export default function DashboardPage() {
         </div>
 
         {/* Create New Post CTA */}
-        <div className="bg-white rounded-lg shadow p-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
-            Create Content
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Create Your First Post
           </h3>
-          <p className="text-gray-600 mb-6 text-center">
+          <p className="text-gray-600 mb-6">
             Transform your content for Twitter, LinkedIn, and Instagram
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/create"
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Repurpose Content
-            </Link>
-            <Link
-              href="/generate"
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-            >
-              ✨ Generate from Topic
-            </Link>
-          </div>
+          <Link
+            href="/create"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Create New Post
+          </Link>
         </div>
 
         {/* Recent Activity */}

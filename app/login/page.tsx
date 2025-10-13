@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -16,6 +17,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const supabase = createClient()
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/dashboard')
+      }
+    }
+    checkUser()
+  }, [router, supabase])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,16 +37,29 @@ export default function LoginPage() {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Login error:', error)
+        throw error
+      }
 
-      // Redirect to dashboard on successful login
-      router.push('/dashboard')
+      if (data.session) {
+        toast.success('Welcome back!')
+        // Give a moment for the session to be established
+        await new Promise(resolve => setTimeout(resolve, 500))
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        throw new Error('No session created. Please try again.')
+      }
     } catch (error: any) {
-      setError(error.message || 'Invalid email or password')
+      console.error('Login error:', error)
+      const errorMessage = error.message || 'Invalid email or password'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

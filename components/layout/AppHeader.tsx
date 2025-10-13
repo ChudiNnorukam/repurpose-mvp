@@ -53,6 +53,7 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/create', label: 'Create' },
+    { href: '/generate', label: 'Generate' },
     { href: '/posts', label: 'Posts' },
     { href: '/templates', label: 'Templates' },
     { href: '/connections', label: 'Connections' },

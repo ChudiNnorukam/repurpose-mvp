@@ -56,3 +56,74 @@ export async function GET(request: NextRequest) {
     return ErrorResponses.internalError(error.message)
   }
 }
+
+/**
+ * POST /api/posts
+ *
+ * Creates multiple posts (drafts) for the authenticated user.
+ * Used for bulk draft creation from the generate page.
+ *
+ * @body {posts: Post[]} Array of posts to create
+ * @returns {Post[]} Array of created posts
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Authentication check
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      logger.warn('Unauthorized access attempt to POST /api/posts')
+      return ErrorResponses.unauthorized()
+    }
+
+    const { posts } = await request.json()
+
+    if (!posts || !Array.isArray(posts) || posts.length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid request: posts array required' },
+        { status: 400 }
+      )
+    }
+
+    // Add user_id to each post and ensure they're drafts
+    const postsToCreate = posts.map(post => ({
+      ...post,
+      user_id: user.id,
+      status: 'draft',
+      is_draft: true,
+      created_at: new Date().toISOString()
+    }))
+
+    // Insert posts into database
+    const { data: createdPosts, error: insertError } = await supabase
+      .from('posts')
+      .insert(postsToCreate)
+      .select()
+
+    if (insertError) {
+      logger.error('Failed to create posts', insertError, { userId: user.id })
+      return NextResponse.json(
+        {
+          error: 'Failed to create posts',
+          details: insertError.message,
+        },
+        { status: 500 }
+      )
+    }
+
+    logger.info('Posts created successfully', {
+      userId: user.id,
+      count: createdPosts?.length || 0
+    })
+
+    return NextResponse.json({
+      success: true,
+      posts: createdPosts || [],
+      count: createdPosts?.length || 0,
+    })
+  } catch (error: any) {
+    logger.error('Error in POST /api/posts', error)
+    return ErrorResponses.internalError(error.message)
+  }
+}

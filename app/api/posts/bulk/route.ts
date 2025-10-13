@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 /**
  * Bulk operations on posts
- * Supports: delete, reschedule, duplicate
+ * Supports: delete, reschedule, duplicate, cancel
  */
 export async function POST(req: NextRequest) {
   try {
@@ -42,6 +42,10 @@ export async function POST(req: NextRequest) {
 
       case 'duplicate':
         result = await bulkDuplicate(postIds, userId)
+        break
+
+      case 'cancel':
+        result = await bulkCancel(postIds, userId)
         break
 
       default:
@@ -233,5 +237,63 @@ async function bulkDuplicate(postIds: string[], userId: string) {
     duplicatedCount: newPosts?.length || 0,
     message: `Successfully duplicated ${newPosts?.length || 0} post(s) as drafts`,
     newPosts
+  }
+}
+
+/**
+ * Bulk cancel scheduled posts
+ * Cancels QStash messages and converts posts to drafts
+ */
+async function bulkCancel(postIds: string[], userId: string) {
+  // Get scheduled posts to cancel
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('id, qstash_message_id, status')
+    .in('id', postIds)
+    .eq('user_id', userId)
+    .eq('status', 'scheduled')
+
+  if (!posts || posts.length === 0) {
+    return { success: false, error: 'No scheduled posts found or access denied' }
+  }
+
+  // Cancel QStash messages
+  const qstashToken = process.env.QSTASH_TOKEN
+  if (qstashToken) {
+    const cancelPromises = posts
+      .filter(p => p.qstash_message_id)
+      .map(p =>
+        fetch(`https://qstash.upstash.io/v2/messages/${p.qstash_message_id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${qstashToken}` }
+        }).catch(err => console.error(`Failed to cancel QStash message ${p.qstash_message_id}:`, err))
+      )
+
+    await Promise.allSettled(cancelPromises)
+  }
+
+  // Update posts to draft status
+  const { error, count } = await supabase
+    .from('posts')
+    .update({
+      status: 'draft',
+      is_draft: true,
+      scheduled_time: null,
+      qstash_message_id: null,
+      updated_at: new Date().toISOString()
+    })
+    .in('id', postIds)
+    .eq('user_id', userId)
+    .eq('status', 'scheduled')
+
+  if (error) {
+    console.error('Bulk cancel error:', error)
+    return { success: false, error: error.message }
+  }
+
+  return {
+    success: true,
+    canceledCount: count || 0,
+    message: `Successfully canceled ${count || 0} scheduled post(s) and converted to drafts`
   }
 }

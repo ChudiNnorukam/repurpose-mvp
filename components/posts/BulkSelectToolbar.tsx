@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Trash2, Calendar, Copy, X } from 'lucide-react'
+import { Trash2, Calendar, Copy, X, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface BulkSelectToolbarProps {
@@ -130,6 +130,40 @@ export function BulkSelectToolbar({
     }
   }
 
+  const handleBulkCancelSchedule = async () => {
+    if (!confirm(`Cancel ${selectedCount} scheduled post(s) from queue? Posts will be converted to drafts.`)) {
+      return
+    }
+
+    setProcessing(true)
+    const loadingToast = toast.loading(`Canceling ${selectedCount} scheduled post(s)...`)
+
+    try {
+      const response = await fetch('/api/posts/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'cancel',
+          postIds: selectedPostIds,
+          userId
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to cancel scheduled posts')
+      }
+
+      toast.success(data.message || `Canceled ${data.canceledCount} scheduled post(s)`, { id: loadingToast })
+      onAction()
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to cancel scheduled posts', { id: loadingToast })
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   if (selectedCount === 0) return null
 
   return (
@@ -207,6 +241,17 @@ export function BulkSelectToolbar({
           >
             <Copy className="h-4 w-4 mr-2" />
             Duplicate
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBulkCancelSchedule}
+            disabled={processing}
+            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+          >
+            <XCircle className="h-4 w-4 mr-2" />
+            Cancel Schedule
           </Button>
 
           <Separator orientation="vertical" className="h-6" />

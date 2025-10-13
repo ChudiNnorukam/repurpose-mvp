@@ -1,22 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
+  const supabase = createClient()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,23 +27,51 @@ export default function SignupPage() {
     setError(null)
     setSuccess(null)
 
+    // Validate password match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      setLoading(false)
+      toast.error('Passwords do not match')
+      return
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      setLoading(false)
+      toast.error('Password must be at least 6 characters')
+      return
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Signup error:', error)
+        throw error
+      }
 
       // Check if email confirmation is required
       if (data.user && !data.session) {
-        setSuccess('Account created! Please check your email to confirm your account.')
-      } else {
-        // Redirect to dashboard if no confirmation needed
+        const successMsg = 'Account created! Please check your email to confirm your account.'
+        setSuccess(successMsg)
+        toast.success(successMsg)
+      } else if (data.session) {
+        toast.success('Account created successfully!')
         router.push('/dashboard')
+        router.refresh()
       }
     } catch (error: any) {
-      setError(error.message || 'An error occurred during signup')
+      console.error('Signup error:', error)
+      const errorMessage = error.message || 'An error occurred during signup'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
