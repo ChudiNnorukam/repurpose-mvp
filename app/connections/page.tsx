@@ -86,18 +86,31 @@ function ConnectionsContent() {
         body: JSON.stringify({ userId: user.id })
       })
 
-      const { authUrl, error } = await response.json()
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `Request failed with code ${response.status}` }))
+        toast.error(`Failed to connect: ${errorData.error || 'Unknown error'}`, { id: loadingToast })
+        console.error(`Connection error for ${platform}:`, response.status, errorData)
+        return
+      }
 
-      if (error) {
-        toast.error(`Failed to connect: ${error}`, { id: loadingToast })
+      const data = await response.json()
+
+      if (data.error) {
+        toast.error(`Failed to connect: ${data.error}`, { id: loadingToast })
+        return
+      }
+
+      if (!data.authUrl) {
+        toast.error('Failed to get authorization URL', { id: loadingToast })
         return
       }
 
       toast.dismiss(loadingToast)
       // Redirect to OAuth
-      window.location.href = authUrl
-    } catch (error) {
-      toast.error('Failed to initiate connection')
+      window.location.href = data.authUrl
+    } catch (error: any) {
+      console.error('Connection error:', error)
+      toast.error(`Failed to initiate connection: ${error.message || 'Unknown error'}`)
     }
   }
 

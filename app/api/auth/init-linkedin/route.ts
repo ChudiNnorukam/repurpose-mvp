@@ -4,14 +4,20 @@ import { randomBytes } from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json()
+    console.log('[init-linkedin] Request received')
+    const body = await request.json()
+    console.log('[init-linkedin] Request body:', body)
+    const { userId } = body
 
     if (!userId) {
+      console.log('[init-linkedin] Missing userId')
       return NextResponse.json(
         { error: 'User ID required' },
         { status: 400 }
       )
     }
+
+    console.log('[init-linkedin] Processing for userId:', userId)
 
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex')
@@ -23,9 +29,10 @@ export async function POST(request: NextRequest) {
     // Get LinkedIn authorization URL
     const authUrl = getLinkedInAuthUrl(encodedState)
 
+    console.log('[init-linkedin] Success, returning authUrl')
     return NextResponse.json({ authUrl, state: encodedState })
   } catch (error) {
-    console.error('Error initiating LinkedIn OAuth:', error)
+    console.error('[init-linkedin] Error initiating LinkedIn OAuth:', error)
     return NextResponse.json(
       { error: 'Failed to initiate LinkedIn OAuth' },
       { status: 500 }
