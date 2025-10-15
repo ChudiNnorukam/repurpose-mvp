@@ -641,6 +641,8 @@ Required. Must include valid JWT token in Authorization header.
 ### Related Endpoints
 
 - `POST /api/schedule` - Schedule adapted content
+- `POST /api/post/execute` (`app/api/post/execute/route.ts`) - QStash callback endpoint (jobs publish to `/api/post/execute`)
+- `POST /api/post/retry` (`app/api/post/retry/route.ts`) - Manual retry handler (supersedes the old `app/api/post/route.ts` doc references)
 - `GET /api/posts` - View scheduled posts
 ```
 
