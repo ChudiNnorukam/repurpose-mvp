@@ -146,6 +146,8 @@ An MVP web app that lets users adapt a piece of content (text, perhaps with imag
 | GET | `/api/auth/accounts` | Get connected social accounts | ✅ | Returns user's connected accounts |
 | POST | `/api/templates/generate` | Return templated content | ✅ | AI-generated templates |
 
+> **Implementation Notes:** `app/api/post/execute/route.ts` handles the QStash callback delivery while `app/api/post/retry/route.ts` powers manual retries. These replace the earlier monolithic `app/api/post/route.ts` reference across older docs.
+
 ---
 
 ## 6. Frontend Pages & Behavior
@@ -487,8 +489,8 @@ An MVP web app that lets users adapt a piece of content (text, perhaps with imag
 5. User reviews and edits
 6. User clicks "Schedule"
 7. POST `/api/schedule` → Insert to DB
-8. Schedule QStash job with delay
-9. QStash calls `/api/post/execute` at scheduled time
+8. Schedule QStash job with delay (callback wired to `/api/post/execute` → `app/api/post/execute/route.ts`)
+9. QStash calls `/api/post/execute` at scheduled time (make sure scheduler configs use this exact path)
 10. Publish to platform API
 11. Update post status in DB
 ```
@@ -505,6 +507,8 @@ An MVP web app that lets users adapt a piece of content (text, perhaps with imag
 7. Store tokens in social_accounts table
 8. Redirect user to dashboard
 ```
+
+> **OAuth Refresh Reference:** When documenting post-publication flows, point to the `refreshIfNeeded` logic imported in `app/api/post/execute/route.ts` (`@/lib/social-media/refresh`) as the canonical OAuth token refresh implementation.
 
 ### RLS Policy Example
 
