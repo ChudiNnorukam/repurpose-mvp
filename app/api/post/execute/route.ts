@@ -3,6 +3,13 @@ import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { refreshIfNeeded } from "@/lib/social-media/refresh"
 
+interface SocialAccountRecord {
+  id: string
+  access_token: string
+  refresh_token?: string | null
+  account_id?: string | null
+}
+
 type Platform = "twitter" | "linkedin" | "instagram"
 
 interface PostJobData {
@@ -45,12 +52,14 @@ async function handler(request: NextRequest) {
     // ✅ Get user's social account for this platform
     const { data: socialAccount, error: accountError } = await supabase
       .from("social_accounts")
-      .select("id, access_token, refresh_token")
+      .select("id, access_token, refresh_token, account_id")
       .eq("user_id", userId)
       .eq("platform", platform)
       .single()
 
-    if (accountError || !socialAccount) {
+    const socialAccountRecord = socialAccount as SocialAccountRecord | null
+
+    if (accountError || !socialAccountRecord) {
       console.error(`❌ No connected ${platform} account found for user ${userId}`)
 
       await supabase
@@ -67,10 +76,32 @@ async function handler(request: NextRequest) {
       )
     }
 
+    if (platform === "instagram" && !socialAccountRecord.account_id) {
+      const message =
+        "Instagram account is missing the business account identifier. Please reconnect Instagram in Settings > Connections."
+
+      await supabase
+        .from("posts")
+        .update({
+          status: "failed",
+          error_message: message,
+        })
+        .eq("id", postId)
+
+      return NextResponse.json(
+        {
+          error: message,
+          requiresReauth: true,
+          platform,
+        },
+        { status: 400 }
+      )
+    }
+
     // ✅ Refresh token if needed
     let accessToken: string
     try {
-      accessToken = await refreshIfNeeded(socialAccount, platform)
+      accessToken = await refreshIfNeeded(socialAccountRecord, platform)
       console.log(`✅ Access token refreshed for ${platform}`)
     } catch (refreshError: any) {
       console.error(`❌ Token refresh failed for ${platform}:`, refreshError)
@@ -112,8 +143,15 @@ async function handler(request: NextRequest) {
         postSuccess = true
         console.log(`✅ Successfully posted to LinkedIn`)
       } else if (platform === "instagram") {
-        console.log("⚠️  Instagram posting not yet implemented")
-        errorMessage = "Instagram posting not yet implemented"
+        const { postToInstagram } = await import("@/lib/instagram")
+
+        await postToInstagram(accessToken, {
+          instagramBusinessAccountId: socialAccountRecord.account_id!,
+          caption: content,
+        })
+
+        postSuccess = true
+        console.log(`✅ Successfully posted to Instagram`)
       }
     } catch (postError: any) {
       console.error(`❌ Error posting to ${platform}:`, postError)

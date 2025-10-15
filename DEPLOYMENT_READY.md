@@ -59,10 +59,13 @@ Ensure these are set in Vercel dashboard:
 - `TWITTER_CLIENT_SECRET`
 - `LINKEDIN_CLIENT_ID`
 - `LINKEDIN_CLIENT_SECRET`
+- `META_APP_ID`
+- `META_APP_SECRET`
 - `QSTASH_TOKEN`
 - `QSTASH_CURRENT_SIGNING_KEY`
 - `QSTASH_NEXT_SIGNING_KEY`
 - `NEXT_PUBLIC_APP_URL` (your production URL)
+- `INSTAGRAM_DEFAULT_IMAGE_URL` *(optional fallback image for Instagram posts)*
 
 ### Step 3: Update OAuth Callback URLs
 
@@ -71,6 +74,10 @@ Ensure these are set in Vercel dashboard:
 
 **LinkedIn Developer Console**:
 - Callback URL: `https://your-production-url.vercel.app/api/auth/linkedin/callback`
+
+**Meta (Facebook) Developer Console**:
+- Callback URL: `https://your-production-url.vercel.app/api/auth/instagram/callback`
+- Request permissions: `pages_show_list`, `pages_read_engagement`, `instagram_basic`, `instagram_manage_insights`, `instagram_content_publish`
 
 ### Step 4: Deploy via Vercel
 

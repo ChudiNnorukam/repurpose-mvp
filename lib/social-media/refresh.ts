@@ -31,6 +31,7 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
 
   let tokenEndpoint = ""
   let params: Record<string, string> = {}
+  let method: "POST" | "GET" = "POST"
 
   if (platform === "twitter") {
     tokenEndpoint = "https://api.twitter.com/2/oauth2/token"
@@ -48,16 +49,28 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
       grant_type: "refresh_token",
       refresh_token: account.refresh_token,
     }
+  } else if (platform === "instagram") {
+    tokenEndpoint = "https://graph.facebook.com/v19.0/refresh_access_token"
+    params = {
+      grant_type: "ig_refresh_token",
+      access_token: account.refresh_token as string,
+    }
+    method = "GET"
   } else {
     // Unsupported platform, return existing token
     return account.access_token
   }
 
   try {
-    const res = await fetch(tokenEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(params),
+    const url =
+      method === "GET"
+        ? `${tokenEndpoint}?${new URLSearchParams(params).toString()}`
+        : tokenEndpoint
+
+    const res = await fetch(url, {
+      method,
+      headers: method === "POST" ? { "Content-Type": "application/x-www-form-urlencoded" } : undefined,
+      body: method === "POST" ? new URLSearchParams(params) : undefined,
     })
 
     if (!res.ok) {
@@ -74,7 +87,7 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
         .from("social_accounts")
         .update({
           access_token: json.access_token,
-          refresh_token: json.refresh_token || account.refresh_token,
+          refresh_token: json.refresh_token || (platform === "instagram" ? json.access_token : account.refresh_token),
         })
         .eq("id", account.id)
 
