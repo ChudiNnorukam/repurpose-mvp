@@ -61,9 +61,16 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
     })
 
     if (!res.ok) {
-      const errorText = await res.text()
-      logger.warn('Failed to refresh token', { platform, accountId: account.id, error: errorText })
-      return account.access_token
+      const errorText = await res.text().catch(() => "")
+      const errorMessage = errorText || `HTTP ${res.status}`
+
+      logger.warn("Failed to refresh token", {
+        platform,
+        accountId: account.id,
+        error: errorMessage,
+      })
+
+      throw new Error(`Failed to refresh ${platform} token: ${errorMessage}`)
     }
 
     const json = await res.json()
@@ -78,13 +85,22 @@ export async function refreshIfNeeded(account: SocialAccount, platform: string):
         })
         .eq("id", account.id)
 
-      logger.info('Token refreshed successfully', { platform, accountId: account.id })
+      logger.info("Token refreshed successfully", { platform, accountId: account.id })
       return json.access_token
     }
 
     return account.access_token
   } catch (error) {
-    logger.error('Error refreshing token', error as Error, { platform, accountId: account.id })
-    return account.access_token
+    logger.error("Error refreshing token", error as Error, { platform, accountId: account.id })
+
+    if (error instanceof Error) {
+      if (error.message.startsWith("Failed to refresh")) {
+        throw error
+      }
+
+      throw new Error(`Failed to refresh ${platform} token: ${error.message}`)
+    }
+
+    throw new Error(`Failed to refresh ${platform} token: Unknown error`)
   }
 }

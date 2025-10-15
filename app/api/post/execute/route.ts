@@ -72,8 +72,11 @@ async function handler(request: NextRequest) {
     try {
       accessToken = await refreshIfNeeded(socialAccount, platform)
       console.log(`✅ Access token refreshed for ${platform}`)
-    } catch (refreshError: any) {
-      console.error(`❌ Token refresh failed for ${platform}:`, refreshError)
+    } catch (refreshError: unknown) {
+      const refreshErrorMessage =
+        refreshError instanceof Error ? refreshError.message : "Unknown refresh error"
+
+      console.error(`❌ Token refresh failed for ${platform}:`, refreshErrorMessage, refreshError)
 
       // Mark post as failed instead of proceeding with expired token
       await supabase

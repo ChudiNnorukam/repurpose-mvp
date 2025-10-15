@@ -119,7 +119,7 @@ describe('refreshIfNeeded', () => {
       })
     })
 
-    it('returns old token if Twitter API fails', async () => {
+    it('throws error if Twitter API responds with failure', async () => {
       const account = {
         id: 'twitter-account-1',
         access_token: 'old-twitter-token',
@@ -131,13 +131,13 @@ describe('refreshIfNeeded', () => {
         text: async () => 'Invalid refresh token',
       })
 
-      const result = await refreshIfNeeded(account, 'twitter')
-
-      expect(result).toBe('old-twitter-token')
+      await expect(refreshIfNeeded(account, 'twitter')).rejects.toThrow(
+        'Failed to refresh twitter token: Invalid refresh token'
+      )
       expect(mockFrom).not.toHaveBeenCalled()
     })
 
-    it('returns old token if Twitter API throws exception', async () => {
+    it('throws error if Twitter API request rejects', async () => {
       const account = {
         id: 'twitter-account-1',
         access_token: 'old-twitter-token',
@@ -146,9 +146,9 @@ describe('refreshIfNeeded', () => {
 
       ;(fetch as jest.Mock).mockRejectedValue(new Error('Network error'))
 
-      const result = await refreshIfNeeded(account, 'twitter')
-
-      expect(result).toBe('old-twitter-token')
+      await expect(refreshIfNeeded(account, 'twitter')).rejects.toThrow(
+        'Failed to refresh twitter token: Network error'
+      )
       expect(mockFrom).not.toHaveBeenCalled()
     })
 
@@ -216,7 +216,7 @@ describe('refreshIfNeeded', () => {
       })
     })
 
-    it('returns old token if LinkedIn API fails', async () => {
+    it('throws error if LinkedIn API responds with failure', async () => {
       const account = {
         id: 'linkedin-account-1',
         access_token: 'old-linkedin-token',
@@ -228,9 +228,25 @@ describe('refreshIfNeeded', () => {
         text: async () => 'Invalid grant',
       })
 
-      const result = await refreshIfNeeded(account, 'linkedin')
+      await expect(refreshIfNeeded(account, 'linkedin')).rejects.toThrow(
+        'Failed to refresh linkedin token: Invalid grant'
+      )
+      expect(mockFrom).not.toHaveBeenCalled()
+    })
 
-      expect(result).toBe('old-linkedin-token')
+    it('throws error if LinkedIn API request rejects', async () => {
+      const account = {
+        id: 'linkedin-account-1',
+        access_token: 'old-linkedin-token',
+        refresh_token: 'linkedin-refresh-token',
+      }
+
+      ;(fetch as jest.Mock).mockRejectedValue(new Error('Network error'))
+
+      await expect(refreshIfNeeded(account, 'linkedin')).rejects.toThrow(
+        'Failed to refresh linkedin token: Network error'
+      )
+      expect(mockFrom).not.toHaveBeenCalled()
     })
   })
 
