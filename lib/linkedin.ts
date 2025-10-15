@@ -58,6 +58,24 @@ export async function getLinkedInUser(accessToken: string): Promise<{ id: string
   }
 }
 
+type LinkedInPostError = Error & { status?: number; details?: unknown }
+
+interface LinkedInPostSuccessResponse {
+  id?: string
+  entityUrn?: string
+  resource?: string
+  resourceUrn?: string
+  value?: string
+}
+
+export type LinkedInErrorResponse = {
+  message?: string
+  status?: number
+  serviceErrorCode?: number
+  details?: Array<{ message?: string }>
+  [key: string]: unknown
+}
+
 export async function postToLinkedIn(accessToken: string, content: string): Promise<string> {
   // First, get the user's URN
   const userResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
@@ -73,38 +91,80 @@ export async function postToLinkedIn(accessToken: string, content: string): Prom
   const userData = await userResponse.json()
   const authorUrn = `urn:li:person:${userData.sub}`
 
-  // Create the post
+  // Create the post using LinkedIn's REST API schema
   const postData = {
     author: authorUrn,
+    commentary: content,
+    visibility: 'PUBLIC',
+    distribution: {
+      feedDistribution: 'MAIN_FEED',
+      targetEntities: [],
+      thirdPartyDistributionChannels: [],
+    },
     lifecycleState: 'PUBLISHED',
-    specificContent: {
-      'com.linkedin.ugc.ShareContent': {
-        shareCommentary: {
-          text: content,
-        },
-        shareMediaCategory: 'NONE',
-      },
-    },
-    visibility: {
-      'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
-    },
+    isReshareDisabledByAuthor: false,
   }
 
-  const response = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+  const response = await fetch('https://api.linkedin.com/rest/posts', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
+      'LinkedIn-Version': '202405',
       'X-Restli-Protocol-Version': '2.0.0',
     },
     body: JSON.stringify(postData),
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to post to LinkedIn: ${error}`)
+    const rawErrorBody = await response.text()
+    let parsedError: LinkedInErrorResponse | undefined
+
+    if (rawErrorBody) {
+      try {
+        parsedError = JSON.parse(rawErrorBody)
+      } catch {
+        // noop - use raw body below
+      }
+    }
+
+    const linkedInMessage =
+      parsedError?.message ||
+      parsedError?.details?.find((detail) => detail.message)?.message ||
+      rawErrorBody ||
+      `LinkedIn API responded with status ${response.status}`
+
+    const error: LinkedInPostError = new Error(`Failed to post to LinkedIn: ${linkedInMessage}`)
+    error.status = parsedError?.status ?? response.status
+    if (parsedError) {
+      error.details = parsedError
+    }
+
+    throw error
   }
 
-  const result = await response.json()
-  return result.id
+  let result: LinkedInPostSuccessResponse | undefined
+  try {
+    result = await response.json()
+  } catch {
+    // LinkedIn may not always return a JSON body; fall back to headers
+    result = undefined
+  }
+
+  const possibleUrns = [
+    result?.resourceUrn,
+    result?.entityUrn,
+    result?.resource,
+    result?.id,
+    result?.value,
+    response.headers.get('x-restli-id') ?? undefined,
+  ].filter((value): value is string => Boolean(value && value.length > 0))
+
+  const resourceUrn = possibleUrns[0]
+
+  if (!resourceUrn) {
+    throw new Error('LinkedIn post created but response did not include a resource URN')
+  }
+
+  return resourceUrn
 }

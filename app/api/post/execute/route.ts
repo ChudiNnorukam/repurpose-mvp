@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs"
 import { getSupabaseAdmin } from "@/lib/supabase"
 import { refreshIfNeeded } from "@/lib/social-media/refresh"
+import type { LinkedInErrorResponse } from "@/lib/linkedin"
 
 type Platform = "twitter" | "linkedin" | "instagram"
 
@@ -99,6 +100,7 @@ async function handler(request: NextRequest) {
     // ✅ Post to social media platform
     let postSuccess = false
     let errorMessage = ""
+    let platformPostId: string | null = null
 
     try {
       if (platform === "twitter") {
@@ -108,16 +110,25 @@ async function handler(request: NextRequest) {
         console.log(`✅ Successfully posted to Twitter`)
       } else if (platform === "linkedin") {
         const { postToLinkedIn } = await import("@/lib/linkedin")
-        await postToLinkedIn(accessToken, content)
+        platformPostId = await postToLinkedIn(accessToken, content)
         postSuccess = true
-        console.log(`✅ Successfully posted to LinkedIn`)
+        console.log(`✅ Successfully posted to LinkedIn with URN: ${platformPostId}`)
       } else if (platform === "instagram") {
         console.log("⚠️  Instagram posting not yet implemented")
         errorMessage = "Instagram posting not yet implemented"
       }
     } catch (postError: any) {
       console.error(`❌ Error posting to ${platform}:`, postError)
-      errorMessage = postError.message || "Failed to publish post"
+      const linkedInErrorDetails = postError?.details as LinkedInErrorResponse | undefined
+
+      if (linkedInErrorDetails?.message) {
+        errorMessage = linkedInErrorDetails.message
+      } else if (Array.isArray(linkedInErrorDetails?.details)) {
+        const detailMessage = linkedInErrorDetails.details.find((detail) => detail?.message)?.message
+        errorMessage = detailMessage || postError.message || "Failed to publish post"
+      } else {
+        errorMessage = postError.message || "Failed to publish post"
+      }
       postSuccess = false
     }
 
@@ -137,6 +148,7 @@ async function handler(request: NextRequest) {
         success: true,
         message: `Post published to ${platform}`,
         postId,
+        platformPostId: platformPostId ?? undefined,
       })
     } else {
       // Update post status to failed
@@ -151,7 +163,10 @@ async function handler(request: NextRequest) {
       console.log(`❌ Post ${postId} marked as failed: ${errorMessage}`)
 
       return NextResponse.json(
-        { error: errorMessage || "Failed to publish post" },
+        {
+          error: errorMessage || "Failed to publish post",
+          platformPostId: platformPostId ?? undefined,
+        },
         { status: 500 }
       )
     }
