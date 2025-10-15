@@ -82,9 +82,8 @@ function ConnectionsContent() {
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
       })
+      // codex_agent: The API now derives user context from the Supabase session instead of explicit IDs.
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: `Request failed with code ${response.status}` }))

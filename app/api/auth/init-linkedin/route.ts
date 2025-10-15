@@ -1,28 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getLinkedInAuthUrl } from '@/lib/linkedin'
 import { randomBytes } from 'crypto'
+import { createClient } from '@/lib/supabase/server'
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     console.log('[init-linkedin] Request received')
-    const body = await request.json()
-    console.log('[init-linkedin] Request body:', body)
-    const { userId } = body
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    if (!userId) {
-      console.log('[init-linkedin] Missing userId')
-      return NextResponse.json(
-        { error: 'User ID required' },
-        { status: 400 }
-      )
+    if (authError || !user) {
+      console.log('[init-linkedin] Unauthorized request', authError)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const userId = user.id
     console.log('[init-linkedin] Processing for userId:', userId)
+    // codex_agent: Require an authenticated Supabase session before continuing.
 
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex')
 
     // Store state and userId together
+    // codex_agent: Persist the authenticated user alongside the state payload for later validation.
     const stateData = JSON.stringify({ state, userId })
     const encodedState = Buffer.from(stateData).toString('base64url')
 
