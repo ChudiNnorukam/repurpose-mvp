@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { postId, userId } = await request.json()
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    if (!postId || !userId) {
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { postId } = await request.json()
+
+    if (!postId) {
       return NextResponse.json(
-        { error: 'Post ID and User ID required' },
+        { error: 'Post ID required' },
         { status: 400 }
       )
     }
 
-    // Use service role client for database operations
-    const { getSupabaseAdmin } = await import('@/lib/supabase')
-    const supabase = getSupabaseAdmin()
-
-    // Get the post
+    // Get the post using the authenticated user's session
     const { data: post, error: fetchError } = await supabase
       .from('posts')
-      .select('*')
+      .select(
+        'id, user_id, status, scheduled_time, platform, adapted_content'
+      )
       .eq('id', postId)
-      .eq('user_id', userId)
       .single()
 
     if (fetchError || !post) {
@@ -29,6 +37,17 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       )
     }
+
+    if (post.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'You do not have permission to retry this post' },
+        { status: 403 }
+      )
+    }
+
+    // Use service role client for database operations after verifying ownership
+    const { getSupabaseAdmin } = await import('@/lib/supabase')
+    const supabaseAdmin = getSupabaseAdmin()
 
     // Can only retry failed posts
     if (post.status !== 'failed') {
@@ -39,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Reset status to scheduled
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('posts')
       .update({
         status: 'scheduled',
@@ -69,14 +88,14 @@ export async function POST(request: NextRequest) {
           postId: post.id,
           platform: post.platform,
           content: post.adapted_content,
-          userId: userId,
+          userId: user.id,
         },
         scheduledDate
       )
     } catch (qstashError) {
       console.error('Failed to re-schedule QStash job:', qstashError)
       // Rollback status
-      await supabase
+      await supabaseAdmin
         .from('posts')
         .update({ status: 'failed' })
         .eq('id', postId)
