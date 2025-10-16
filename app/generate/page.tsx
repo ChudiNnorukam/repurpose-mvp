@@ -115,7 +115,7 @@ export default function GeneratePage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               content: topic,
-              targetPlatform: account.platform,
+              platforms: [account.platform],
               tone: 'professional'
             })
           })
@@ -128,7 +128,7 @@ export default function GeneratePage() {
 
           return {
             platform: account.platform,
-            content: data.adaptedContent,
+            content: data.adaptedContent[0]?.content || data.adaptedContent,
             status: 'success' as const
           }
         } catch (error: any) {
