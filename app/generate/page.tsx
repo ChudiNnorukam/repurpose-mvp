@@ -53,17 +53,24 @@ export default function GeneratePage() {
   const fetchConnectedAccounts = async () => {
     try {
       // Use API route for reliable server-side auth
-      const response = await fetch('/api/auth/accounts')
-      
+      // IMPORTANT: credentials: 'include' ensures cookies are sent with the request
+      const response = await fetch('/api/auth/accounts', {
+        credentials: 'include'
+      })
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch accounts: ${response.status}`)
+        const errorData = await response.json().catch(() => null)
+        const errorMsg = errorData?.error || `HTTP ${response.status}`
+        console.error('Failed to fetch accounts:', errorMsg, errorData)
+        throw new Error(`Failed to fetch accounts: ${errorMsg}`)
       }
-      
+
       const data = await response.json()
-      
+
       if (data.success && data.accounts) {
         setConnectedAccounts(data.accounts)
       } else {
+        console.warn('API returned success but no accounts:', data)
         setConnectedAccounts([])
       }
     } catch (error: any) {
