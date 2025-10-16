@@ -44,35 +44,35 @@ export default function GeneratePage() {
         return
       }
       setUser(user)
-      await fetchConnectedAccounts()
+      await fetchConnectedAccounts(user.id)
       setLoading(false)
     }
     checkUser()
   }, [router, supabase])
 
-  const fetchConnectedAccounts = async () => {
+  const fetchConnectedAccounts = async (userId: string) => {
     try {
-      // Use API route for reliable server-side auth
-      // IMPORTANT: credentials: 'include' ensures cookies are sent with the request
-      const response = await fetch('/api/auth/accounts', {
-        credentials: 'include'
-      })
+      // Use direct Supabase query like Connections page (proven to work)
+      const { data: accounts, error } = await supabase
+        .from('social_accounts')
+        .select('id, platform, account_username, connected_at, expires_at')
+        .eq('user_id', userId)
+        .order('connected_at', { ascending: false })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
-        const errorMsg = errorData?.error || `HTTP ${response.status}`
-        console.error('Failed to fetch accounts:', errorMsg, errorData)
-        throw new Error(`Failed to fetch accounts: ${errorMsg}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.accounts) {
-        setConnectedAccounts(data.accounts)
-      } else {
-        console.warn('API returned success but no accounts:', data)
+      if (error) {
+        console.error('Error loading accounts:', error)
+        toast.error('Could not load connected accounts')
         setConnectedAccounts([])
+        return
       }
+
+      // Map to ConnectedAccount interface
+      const mappedAccounts = accounts?.map(account => ({
+        platform: account.platform as Platform,
+        account_username: account.account_username
+      })) || []
+
+      setConnectedAccounts(mappedAccounts)
     } catch (error: any) {
       console.error('Error fetching accounts:', error)
       toast.error('Could not load connected accounts')
