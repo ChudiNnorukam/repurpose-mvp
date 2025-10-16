@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -105,7 +106,7 @@ Context: Repurpose is a new AI-powered content repurposing platform in beta.`,
       platform: platform || 'linkedin',
     })
   } catch (error) {
-    console.error('Error generating template:', error)
+    logger.error('Error generating template:', error)
     return NextResponse.json(
       { error: 'Failed to generate template' },
       { status: 500 }

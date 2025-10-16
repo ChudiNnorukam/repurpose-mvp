@@ -1,10 +1,13 @@
 /**
- * Structured logging utility
+ * Structured logging utility with Sentry integration
  *
  * Provides consistent logging across the application with support for different log levels.
  * In production, logs are output as JSON for easier parsing by log aggregators.
  * In development, logs are pretty-printed for easier reading.
+ * Errors and warnings are automatically sent to Sentry when configured.
  */
+
+import * as Sentry from '@sentry/nextjs'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -35,7 +38,7 @@ function formatLog(entry: LogEntry): string {
 }
 
 /**
- * Logger class for structured logging
+ * Logger class for structured logging with Sentry integration
  */
 class Logger {
   private log(level: LogLevel, message: string, context?: Record<string, any>) {
@@ -78,17 +81,32 @@ class Logger {
    */
   info(message: string, context?: Record<string, any>) {
     this.log('info', message, context)
+    
+    // Send breadcrumb to Sentry
+    Sentry.addBreadcrumb({
+      message,
+      level: 'info',
+      data: context,
+    })
   }
 
   /**
-   * Logs warnings
+   * Logs warnings and sends to Sentry
    */
   warn(message: string, context?: Record<string, any>) {
     this.log('warn', message, context)
+    
+    // Send warning to Sentry
+    Sentry.captureMessage(message, {
+      level: 'warning',
+      contexts: {
+        context: context || {},
+      },
+    })
   }
 
   /**
-   * Logs errors with optional error object
+   * Logs errors and sends to Sentry with optional error object
    */
   error(message: string, error?: Error | any, context?: Record<string, any>) {
     const errorContext = error
@@ -104,6 +122,25 @@ class Logger {
       : context
 
     this.log('error', message, errorContext)
+    
+    // Send error to Sentry
+    if (error instanceof Error) {
+      Sentry.captureException(error, {
+        contexts: {
+          context: context || {},
+        },
+        tags: {
+          logMessage: message,
+        },
+      })
+    } else {
+      Sentry.captureMessage(message, {
+        level: 'error',
+        contexts: {
+          context: errorContext || {},
+        },
+      })
+    }
   }
 }
 

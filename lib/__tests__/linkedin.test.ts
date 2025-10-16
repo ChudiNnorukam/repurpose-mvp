@@ -3,6 +3,7 @@ import {
   getLinkedInAccessToken,
   getLinkedInUser,
   postToLinkedIn,
+  refreshLinkedInToken,
 } from '../linkedin'
 
 // Mock fetch globally
@@ -14,7 +15,7 @@ describe('LinkedIn OAuth and API functions', () => {
   })
 
   describe('getLinkedInAuthUrl', () => {
-    it('creates authorization URL with correct parameters', () => {
+    it('creates authorization URL with correct parameters including offline_access', () => {
       const state = 'test-csrf-state'
 
       const url = getLinkedInAuthUrl(state)
@@ -26,7 +27,8 @@ describe('LinkedIn OAuth and API functions', () => {
       expect(parsedUrl.searchParams.get('client_id')).toBe('test-linkedin-client-id')
       expect(parsedUrl.searchParams.get('redirect_uri')).toBe('http://localhost:3000/api/auth/linkedin/callback')
       expect(parsedUrl.searchParams.get('state')).toBe(state)
-      expect(parsedUrl.searchParams.get('scope')).toBe('openid profile email w_member_social')
+      // Verify offline_access scope is included
+      expect(parsedUrl.searchParams.get('scope')).toBe('openid profile email w_member_social offline_access')
     })
 
     it('includes correct callback URL from environment', () => {
@@ -39,11 +41,12 @@ describe('LinkedIn OAuth and API functions', () => {
   })
 
   describe('getLinkedInAccessToken', () => {
-    it('exchanges authorization code for access token', async () => {
+    it('exchanges authorization code for access token with refresh token', async () => {
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: async () => ({
           access_token: 'linkedin-access-token',
+          refresh_token: 'linkedin-refresh-token',
           expires_in: 5184000,
         }),
       })
@@ -52,6 +55,8 @@ describe('LinkedIn OAuth and API functions', () => {
 
       expect(result).toEqual({
         accessToken: 'linkedin-access-token',
+        refreshToken: 'linkedin-refresh-token',
+        expiresIn: 5184000,
       })
 
       expect(fetch).toHaveBeenCalledWith(
@@ -70,6 +75,35 @@ describe('LinkedIn OAuth and API functions', () => {
       expect(params.get('client_id')).toBe('test-linkedin-client-id')
       expect(params.get('client_secret')).toBe('test-linkedin-client-secret')
       expect(params.get('redirect_uri')).toBe('http://localhost:3000/api/auth/linkedin/callback')
+    })
+
+    it('handles missing refresh token with empty string', async () => {
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: 'linkedin-access-token',
+          expires_in: 5184000,
+        }),
+      })
+
+      const result = await getLinkedInAccessToken('auth-code')
+
+      expect(result.refreshToken).toBe('')
+      expect(result.expiresIn).toBe(5184000)
+    })
+
+    it('uses default expiresIn if not provided', async () => {
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: 'linkedin-access-token',
+          refresh_token: 'linkedin-refresh-token',
+        }),
+      })
+
+      const result = await getLinkedInAccessToken('auth-code')
+
+      expect(result.expiresIn).toBe(5184000) // Default 60 days
     })
 
     it('throws error if token exchange fails', async () => {
@@ -91,6 +125,68 @@ describe('LinkedIn OAuth and API functions', () => {
 
       await expect(getLinkedInAccessToken('code')).rejects.toThrow(
         'LinkedIn token exchange failed: Bad request'
+      )
+    })
+  })
+
+  describe('refreshLinkedInToken', () => {
+    it('refreshes access token using refresh token', async () => {
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: 'new-access-token',
+          refresh_token: 'new-refresh-token',
+        }),
+      })
+
+      const result = await refreshLinkedInToken('old-refresh-token')
+
+      expect(result).toEqual({
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+      })
+
+      expect(fetch).toHaveBeenCalledWith(
+        'https://www.linkedin.com/oauth/v2/accessToken',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: expect.any(URLSearchParams),
+        }
+      )
+
+      const callArgs = (fetch as jest.Mock).mock.calls[0]
+      const params = callArgs[1].body as URLSearchParams
+      expect(params.get('grant_type')).toBe('refresh_token')
+      expect(params.get('refresh_token')).toBe('old-refresh-token')
+      expect(params.get('client_id')).toBe('test-linkedin-client-id')
+      expect(params.get('client_secret')).toBe('test-linkedin-client-secret')
+    })
+
+    it('keeps old refresh token if new one not provided', async () => {
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: 'new-access-token',
+        }),
+      })
+
+      const result = await refreshLinkedInToken('old-refresh-token')
+
+      expect(result).toEqual({
+        accessToken: 'new-access-token',
+        refreshToken: 'old-refresh-token',
+      })
+    })
+
+    it('throws error if refresh fails', async () => {
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        text: async () => 'Invalid refresh token',
+      })
+
+      await expect(refreshLinkedInToken('invalid-token')).rejects.toThrow(
+        'LinkedIn token refresh failed: Invalid refresh token'
       )
     })
   })
@@ -150,7 +246,7 @@ describe('LinkedIn OAuth and API functions', () => {
   })
 
   describe('postToLinkedIn', () => {
-    it('posts content to LinkedIn successfully', async () => {
+    it('posts content to LinkedIn successfully and returns ID and URL', async () => {
       // Mock user info fetch
       (fetch as jest.Mock)
         .mockResolvedValueOnce({
@@ -164,13 +260,16 @@ describe('LinkedIn OAuth and API functions', () => {
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({
-            id: 'post-id-456',
+            id: 'urn:li:ugcPost:post-id-456',
           }),
         })
 
-      const postId = await postToLinkedIn('access-token', 'Hello LinkedIn!')
+      const result = await postToLinkedIn('access-token', 'Hello LinkedIn!')
 
-      expect(postId).toBe('post-id-456')
+      expect(result).toEqual({
+        id: 'urn:li:ugcPost:post-id-456',
+        url: 'https://www.linkedin.com/feed/update/urn:li:ugcPost:post-id-456'
+      })
 
       // Verify user info call
       expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.linkedin.com/v2/userinfo', {
@@ -249,12 +348,13 @@ describe('LinkedIn OAuth and API functions', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: 'post-789' }),
+          json: async () => ({ id: 'urn:li:ugcPost:post-789' }),
         })
 
-      const postId = await postToLinkedIn('access-token', longContent)
+      const result = await postToLinkedIn('access-token', longContent)
 
-      expect(postId).toBe('post-789')
+      expect(result.id).toBe('urn:li:ugcPost:post-789')
+      expect(result.url).toBe('https://www.linkedin.com/feed/update/urn:li:ugcPost:post-789')
 
       const postCallArgs = (fetch as jest.Mock).mock.calls[1]
       const postBody = JSON.parse(postCallArgs[1].body)
@@ -271,7 +371,7 @@ describe('LinkedIn OAuth and API functions', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: 'post-xyz' }),
+          json: async () => ({ id: 'urn:li:ugcPost:post-xyz' }),
         })
 
       await postToLinkedIn('token', 'Test post')

@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getLinkedInAuthUrl } from '@/lib/linkedin'
 import { randomBytes } from 'crypto'
+import { logger } from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[init-linkedin] Request received')
+    logger.info('[init-linkedin] Request received')
     const body = await request.json()
-    console.log('[init-linkedin] Request body:', body)
+    logger.info('[init-linkedin] Request body:', body)
     const { userId } = body
 
     if (!userId) {
-      console.log('[init-linkedin] Missing userId')
+      logger.info('[init-linkedin] Missing userId')
       return NextResponse.json(
         { error: 'User ID required' },
         { status: 400 }
       )
     }
 
-    console.log('[init-linkedin] Processing for userId:', userId)
+    logger.info('[init-linkedin] Processing for userId:', userId)
 
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex')
@@ -29,10 +30,10 @@ export async function POST(request: NextRequest) {
     // Get LinkedIn authorization URL
     const authUrl = getLinkedInAuthUrl(encodedState)
 
-    console.log('[init-linkedin] Success, returning authUrl')
+    logger.info('[init-linkedin] Success, returning authUrl')
     return NextResponse.json({ authUrl, state: encodedState })
   } catch (error) {
-    console.error('[init-linkedin] Error initiating LinkedIn OAuth:', error)
+    logger.error('[init-linkedin] Error initiating LinkedIn OAuth:', error)
     return NextResponse.json(
       { error: 'Failed to initiate LinkedIn OAuth' },
       { status: 500 }

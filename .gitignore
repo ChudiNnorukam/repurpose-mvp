@@ -47,3 +47,13 @@ scripts/*-test.sh
 scripts/*.png
 scripts/*.jpg
 scripts/*.jpeg
+
+# Backup directories
+*-backup-*/
+*/v0.*/
+repurpose-project/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

@@ -1,0 +1,22 @@
+--- app/api/post/retry/route.ts
++++ app/api/post/retry/route.ts
+@@ -83,12 +83,18 @@ export async function POST(request: NextRequest) {
+         scheduledDate.setTime(Date.now() + 10000) // 10 seconds from now
+       }
+ 
+-      await schedulePostJob(
++      const messageId = await schedulePostJob(
+         {
+           postId: post.id,
+           platform: post.platform,
+           content: post.adapted_content,
+           userId: user.id,
+         },
+         scheduledDate
+       )
++
++      // Update post with new QStash message ID
++      await supabaseAdmin
++        .from('posts')
++        .update({ qstash_message_id: messageId })
++        .eq('id', postId)

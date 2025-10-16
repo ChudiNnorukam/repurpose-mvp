@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getTwitterAuthUrl, generateCodeVerifier } from '@/lib/twitter'
 import { randomBytes } from 'crypto'
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,14 +30,14 @@ export async function GET(request: NextRequest) {
     // Refresh session to ensure we have the latest auth state
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    console.log('Twitter auth - Session check:', {
+    logger.info('Twitter auth - Session check:', {
       hasSession: !!session,
       sessionError: sessionError?.message,
       cookies: cookieStore.getAll().map(c => c.name)
     })
 
     if (sessionError || !session) {
-      console.log('No session found, redirecting to login')
+      logger.info('No session found, redirecting to login')
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
       return NextResponse.redirect(new URL('/login', baseUrl))
     }
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(authUrl)
   } catch (error) {
-    console.error('Error initiating Twitter OAuth:', error)
+    logger.error('Error initiating Twitter OAuth:', error)
     return NextResponse.json(
       { error: 'Failed to initiate Twitter OAuth' },
       { status: 500 }

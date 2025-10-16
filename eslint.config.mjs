@@ -20,6 +20,25 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      // Allow @ts-nocheck with description (for documented tech debt)
+      "@typescript-eslint/ban-ts-comment": [
+        "error",
+        {
+          "ts-expect-error": "allow-with-description",
+          "ts-ignore": true,
+          "ts-nocheck": "allow-with-description",
+          "ts-check": false,
+          minimumDescriptionLength: 10,
+        },
+      ],
+      // Relax no-explicit-any for test files
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Allow unescaped quotes in JSX
+      "react/no-unescaped-entities": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

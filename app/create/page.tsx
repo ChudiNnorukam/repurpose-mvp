@@ -235,7 +235,7 @@ export default function CreatePage() {
   const [loading, setLoading] = useState(true)
   const [adapting, setAdapting] = useState(false)
   const [adaptProgress, setAdaptProgress] = useState(0)
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['twitter', 'linkedin', 'instagram'])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['twitter', 'linkedin'])
   const [adaptedContent, setAdaptedContent] = useState<AdaptedContent[]>([])
   const [scheduleFeedback, setScheduleFeedback] = useState<ScheduleFeedbackMap>(INITIAL_FEEDBACK)
   const [activeError, setActiveError] = useState<ScheduleErrorState | null>(null)
@@ -614,7 +614,7 @@ export default function CreatePage() {
               Platforms
             </label>
             <div className="space-y-3">
-              {(['twitter', 'linkedin', 'instagram'] as Platform[]).map((platform) => (
+              {(['twitter', 'linkedin'] as Platform[]).map((platform) => (
                 <label key={platform} className="flex items-center">
                   <input
                     type="checkbox"
@@ -627,6 +627,16 @@ export default function CreatePage() {
                   </span>
                 </label>
               ))}
+              <label className="flex items-center opacity-50 cursor-not-allowed">
+                <input
+                  type="checkbox"
+                  disabled
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <span className="ml-3 text-gray-500">
+                  Instagram (Coming soon)
+                </span>
+              </label>
             </div>
           </div>
 

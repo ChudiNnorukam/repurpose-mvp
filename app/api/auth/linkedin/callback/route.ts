@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getLinkedInAccessToken, getLinkedInUser } from '@/lib/linkedin'
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,20 +39,24 @@ export async function GET(request: NextRequest) {
     const { getSupabaseAdmin } = await import('@/lib/supabase')
     const supabase = getSupabaseAdmin()
 
-    // Exchange code for access token
-    const { accessToken } = await getLinkedInAccessToken(code)
+    // Exchange code for access token (now includes refresh token)
+    const { accessToken, refreshToken, expiresIn } = await getLinkedInAccessToken(code)
 
     // Get LinkedIn user info
     const linkedInUser = await getLinkedInUser(accessToken)
 
-    // Save to database
+    // Calculate expiration time
+    const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+
+    // Save to database with refresh token and expiration
     const { error: dbError } = await supabase
       .from('social_accounts')
       .upsert({
         user_id: userId,
         platform: 'linkedin',
         access_token: accessToken,
-        refresh_token: null, // LinkedIn doesn't provide refresh tokens by default
+        refresh_token: refreshToken || null,
+        expires_at: expiresAt,
         account_username: linkedInUser.name,
         account_id: linkedInUser.id,
         connected_at: new Date().toISOString(),
@@ -60,7 +65,7 @@ export async function GET(request: NextRequest) {
       })
 
     if (dbError) {
-      console.error('Error saving LinkedIn account:', dbError)
+      logger.error('Error saving LinkedIn account:', dbError)
       return NextResponse.redirect(
         new URL('/connections?error=save_failed', baseUrl)
       )
@@ -71,7 +76,7 @@ export async function GET(request: NextRequest) {
       new URL('/connections?connected=linkedin', baseUrl)
     )
   } catch (error: any) {
-    console.error('LinkedIn OAuth callback error:', error)
+    logger.error('LinkedIn OAuth callback error:', error)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
     return NextResponse.redirect(
       new URL(`/connections?error=${encodeURIComponent(error.message)}`, baseUrl)

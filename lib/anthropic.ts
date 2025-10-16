@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { logger } from "./logger"
 
 const apiKey = process.env.OPENAI_API_KEY
 
@@ -164,7 +165,7 @@ ADAPTED CONTENT:`
 
     return cleanedText
   } catch (error) {
-    console.error(`Error adapting content for ${platform}:`, error)
+    logger.error(`Error adapting content for ${platform}:`, error)
     throw error
   }
 }

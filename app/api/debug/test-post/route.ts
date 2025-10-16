@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { logger } from "@/lib/logger"
 
 /**
  * DEBUG ENDPOINT - Manual Post Testing
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
         : 'Post execution failed. See execution details.',
     })
   } catch (error: any) {
-    console.error('Debug test-post error:', error)
+    logger.error('Debug test-post error:', error)
     return NextResponse.json(
       { error: error.message, stack: error.stack },
       { status: 500 }

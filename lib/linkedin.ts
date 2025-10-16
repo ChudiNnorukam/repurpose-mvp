@@ -7,12 +7,22 @@ export function getLinkedInAuthUrl(state: string): string {
   authUrl.searchParams.append('client_id', clientId)
   authUrl.searchParams.append('redirect_uri', callbackUrl)
   authUrl.searchParams.append('state', state)
-  authUrl.searchParams.append('scope', 'openid profile email w_member_social')
+  // Added offline_access scope to enable refresh tokens
+  authUrl.searchParams.append('scope', 'openid profile email w_member_social offline_access')
 
   return authUrl.toString()
 }
 
-export async function getLinkedInAccessToken(code: string): Promise<{ accessToken: string }> {
+/**
+ * Exchange authorization code for LinkedIn access token with refresh token
+ * @param code - Authorization code from OAuth callback
+ * @returns Object with accessToken, refreshToken, and expiresIn
+ */
+export async function getLinkedInAccessToken(code: string): Promise<{ 
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+}> {
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
 
   const response = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
@@ -37,6 +47,8 @@ export async function getLinkedInAccessToken(code: string): Promise<{ accessToke
   const data = await response.json()
   return {
     accessToken: data.access_token,
+    refreshToken: data.refresh_token || '',
+    expiresIn: data.expires_in || 5184000, // Default to 60 days if not provided
   }
 }
 
@@ -58,7 +70,50 @@ export async function getLinkedInUser(accessToken: string): Promise<{ id: string
   }
 }
 
-export async function postToLinkedIn(accessToken: string, content: string): Promise<string> {
+/**
+ * Refresh LinkedIn access token using refresh token
+ * @param refreshToken - The refresh token from previous OAuth flow
+ * @returns Object with new accessToken and refreshToken
+ */
+export async function refreshLinkedInToken(refreshToken: string): Promise<{
+  accessToken: string
+  refreshToken: string
+}> {
+  const response = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: process.env.LINKEDIN_CLIENT_ID!,
+      client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`LinkedIn token refresh failed: ${error}`)
+  }
+
+  const data = await response.json()
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token || refreshToken,
+  }
+}
+
+/**
+ * Post to LinkedIn and return the post ID and URL
+ * @param accessToken - LinkedIn OAuth access token
+ * @param content - Post content
+ * @returns Object with post ID and url
+ */
+export async function postToLinkedIn(
+  accessToken: string,
+  content: string
+): Promise<{ id: string; url: string }> {
   // First, get the user's URN
   const userResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
     headers: {
@@ -106,5 +161,12 @@ export async function postToLinkedIn(accessToken: string, content: string): Prom
   }
 
   const result = await response.json()
-  return result.id
+  const postId = result.id
+
+  // Construct LinkedIn post URL
+  // LinkedIn URLs follow format: https://www.linkedin.com/feed/update/{urn}
+  return {
+    id: postId,
+    url: `https://www.linkedin.com/feed/update/${postId}`
+  }
 }

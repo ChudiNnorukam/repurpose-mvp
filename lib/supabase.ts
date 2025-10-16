@@ -24,7 +24,7 @@ export const getSupabaseAdmin = () => {
     throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable. This function should only be called on the server.')
   }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
@@ -100,7 +100,13 @@ export type Database = {
           posted_at: string | null
           error_message: string | null
           qstash_message_id: string | null
+          platform_post_id: string | null
+          post_url: string | null
+          tone: string | null
+          is_draft: boolean
+          parent_post_id: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -113,7 +119,13 @@ export type Database = {
           posted_at?: string | null
           error_message?: string | null
           qstash_message_id?: string | null
+          platform_post_id?: string | null
+          post_url?: string | null
+          tone?: string | null
+          is_draft?: boolean
+          parent_post_id?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -126,7 +138,13 @@ export type Database = {
           posted_at?: string | null
           error_message?: string | null
           qstash_message_id?: string | null
+          platform_post_id?: string | null
+          post_url?: string | null
+          tone?: string | null
+          is_draft?: boolean
+          parent_post_id?: string | null
           created_at?: string
+          updated_at?: string
         }
       }
     }

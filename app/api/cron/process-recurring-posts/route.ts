@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { schedulePostJob } from '@/lib/qstash'
+import { logger } from "@/lib/logger"
 
 // This endpoint should be called by a cron job (Vercel Cron or external service)
 // Run daily at 8:00 AM to check and schedule recurring posts
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (postError) {
-          console.error('Error creating post:', postError)
+          logger.error('Error creating post:', postError)
           continue
         }
 
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
       timestamp: now.toISOString()
     })
   } catch (error) {
-    console.error('Error processing recurring posts:', error)
+    logger.error('Error processing recurring posts:', error)
     return NextResponse.json(
       { error: 'Failed to process recurring posts' },
       { status: 500 }

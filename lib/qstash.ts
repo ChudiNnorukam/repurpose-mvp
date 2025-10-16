@@ -13,7 +13,28 @@ export const qstash = new Client({
 })
 
 /**
- * Schedules a post to be published at a future time using QStash
+ * Retry configuration for QStash jobs
+ * - Max retries: 5 (up to 6 total attempts including initial)
+ * - Backoff: Exponential with base 2 (2s, 4s, 8s, 16s, 32s)
+ * - Max delay: 60s (prevents excessive wait times)
+ * 
+ * Formula: min(60000, 2000 * pow(2, retried))
+ * Retry schedule:
+ * - Attempt 1: Immediate
+ * - Attempt 2: 2s later
+ * - Attempt 3: 4s later
+ * - Attempt 4: 8s later
+ * - Attempt 5: 16s later
+ * - Attempt 6: 32s later
+ */
+const RETRY_CONFIG = {
+  maxRetries: 5,
+  // Exponential backoff: 2s * 2^retried, capped at 60s
+  retryDelay: 'min(60000, 2000 * pow(2, retried))' as const,
+}
+
+/**
+ * Schedules a post to be published at a future time using QStash with automatic retry
  *
  * @param jobData - Post metadata including platform, content, user ID, and post ID
  * @param scheduledTime - When to publish the post (must be in the future)
@@ -46,9 +67,14 @@ export async function schedulePostJob(
     }
 
     const callbackUrl = `${baseUrl}/api/post/execute`
-    logger.info('Scheduling QStash job', { callbackUrl, delay, postId: jobData.postId })
+    logger.info('Scheduling QStash job with retry', {
+      callbackUrl,
+      delay,
+      postId: jobData.postId,
+      retries: RETRY_CONFIG.maxRetries,
+    })
 
-    // Schedule a delayed message to our post execution endpoint
+    // Schedule a delayed message to our post execution endpoint with retry configuration
     const response = await qstash.publishJSON({
       url: callbackUrl,
       body: jobData,
@@ -56,9 +82,15 @@ export async function schedulePostJob(
       headers: {
         'Content-Type': 'application/json',
       },
+      retries: RETRY_CONFIG.maxRetries,
+      retryDelay: RETRY_CONFIG.retryDelay,
     })
 
-    logger.info('QStash job scheduled successfully', { messageId: response.messageId, postId: jobData.postId })
+    logger.info('QStash job scheduled successfully', {
+      messageId: response.messageId,
+      postId: jobData.postId,
+      retryConfig: RETRY_CONFIG,
+    })
     return response.messageId
   } catch (error: any) {
     logger.error('Failed to schedule QStash job', error, {

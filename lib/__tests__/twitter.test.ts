@@ -184,7 +184,8 @@ describe('Twitter OAuth and API functions', () => {
 
   describe('postTweet', () => {
     const mockTweet = jest.fn()
-    const mockV2 = { tweet: mockTweet }
+    const mockMe = jest.fn()
+    const mockV2 = { tweet: mockTweet, me: mockMe }
 
     beforeEach(() => {
       jest.clearAllMocks()
@@ -193,16 +194,27 @@ describe('Twitter OAuth and API functions', () => {
       } as any))
     })
 
-    it('posts a tweet and returns tweet ID', async () => {
+    it('posts a tweet and returns tweet ID and URL', async () => {
       mockTweet.mockResolvedValue({
         data: { id: 'tweet-123456' },
       })
+      mockMe.mockResolvedValue({
+        data: {
+          id: 'twitter-user-id',
+          username: 'testuser',
+          name: 'Test User',
+        },
+      })
 
-      const tweetId = await postTweet('access-token', 'Hello world!')
+      const result = await postTweet('access-token', 'Hello world!')
 
-      expect(tweetId).toBe('tweet-123456')
+      expect(result).toEqual({
+        id: 'tweet-123456',
+        url: 'https://twitter.com/testuser/status/tweet-123456'
+      })
       expect(TwitterApi).toHaveBeenCalledWith('access-token')
       expect(mockTweet).toHaveBeenCalledWith('Hello world!')
+      expect(mockMe).toHaveBeenCalled()
     })
 
     it('handles long tweet content', async () => {
@@ -210,10 +222,18 @@ describe('Twitter OAuth and API functions', () => {
       mockTweet.mockResolvedValue({
         data: { id: 'tweet-789' },
       })
+      mockMe.mockResolvedValue({
+        data: {
+          id: 'user-id',
+          username: 'longuser',
+          name: 'Long User',
+        },
+      })
 
-      const tweetId = await postTweet('access-token', longContent)
+      const result = await postTweet('access-token', longContent)
 
-      expect(tweetId).toBe('tweet-789')
+      expect(result.id).toBe('tweet-789')
+      expect(result.url).toBe('https://twitter.com/longuser/status/tweet-789')
       expect(mockTweet).toHaveBeenCalledWith(longContent)
     })
   })

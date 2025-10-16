@@ -1,11 +1,12 @@
 import { TwitterApi } from 'twitter-api-v2'
 import { randomBytes, createHash } from 'crypto'
+import { logger } from "./logger"
 
 const clientId = process.env.TWITTER_CLIENT_ID
 const clientSecret = process.env.TWITTER_CLIENT_SECRET
 
 if (!clientId || !clientSecret) {
-  console.warn('Twitter OAuth credentials not configured')
+  logger.warn('Twitter OAuth credentials not configured')
 }
 
 /**
@@ -88,11 +89,26 @@ export async function getTwitterUser(accessToken: string) {
   return user
 }
 
-// Post a tweet
-export async function postTweet(accessToken: string, content: string): Promise<string> {
+/**
+ * Post a tweet and return the tweet ID and URL
+ * @param accessToken - Twitter OAuth access token
+ * @param content - Tweet content
+ * @returns Object with tweetId and url
+ */
+export async function postTweet(
+  accessToken: string,
+  content: string
+): Promise<{ id: string; url: string }> {
   const client = new TwitterApi(accessToken)
   const { data } = await client.v2.tweet(content)
-  return data.id
+
+  // Get the authenticated user's username for the URL
+  const user = await client.v2.me()
+
+  return {
+    id: data.id,
+    url: `https://twitter.com/${user.data.username}/status/${data.id}`
+  }
 }
 
 // Refresh access token

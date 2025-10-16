@@ -1,7 +1,19 @@
-jest.mock('@upstash/qstash')
+// Mock @upstash/qstash Client constructor
+jest.mock('@upstash/qstash', () => {
+  const mockPublishJSON = jest.fn()
+  
+  return {
+    Client: jest.fn().mockImplementation(() => ({
+      publishJSON: mockPublishJSON,
+    })),
+    // Export the mock so we can access it in tests
+    __mockPublishJSON: mockPublishJSON,
+  }
+})
 
 import { schedulePostJob } from '../qstash'
-import { mockPublishJSON } from '@upstash/qstash'
+// Access the exported mock
+const { __mockPublishJSON: mockPublishJSON } = jest.requireMock('@upstash/qstash')
 
 describe('schedulePostJob', () => {
   const mockJobData = {

@@ -1,7 +1,7 @@
 import React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-const buttonVariants = cva(
+export const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-xl text-base font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
@@ -11,6 +11,9 @@ const buttonVariants = cva(
         secondary:
           "border border-white/15 bg-white/5 text-white/90 shadow-sm backdrop-blur hover:bg-white/10 focus:ring-white/30",
         ghost: "hover:bg-white/10 text-white/90",
+        outline:
+          "border-2 border-current bg-transparent hover:bg-white/5 focus:ring-current",
+        link: "underline-offset-4 hover:underline text-current",
       },
       size: {
         default: "px-5 py-3",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getTwitterAccessToken, getTwitterUser } from '@/lib/twitter'
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
       })
 
     if (dbError) {
-      console.error('Error saving Twitter account:', dbError)
+      logger.error('Error saving Twitter account:', dbError)
       return NextResponse.redirect(
         new URL('/connections?error=save_failed', baseUrl)
       )
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
       new URL('/connections?connected=twitter', baseUrl)
     )
   } catch (error: any) {
-    console.error('Twitter OAuth callback error:', error)
+    logger.error('Twitter OAuth callback error:', error)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
     return NextResponse.redirect(
       new URL(`/connections?error=${encodeURIComponent(error.message)}`, baseUrl)
