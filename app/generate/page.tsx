@@ -44,41 +44,31 @@ export default function GeneratePage() {
         return
       }
       setUser(user)
-      await fetchConnectedAccounts(user.id)
+      await fetchConnectedAccounts()
       setLoading(false)
     }
     checkUser()
   }, [router, supabase])
 
-  const fetchConnectedAccounts = async (userId: string) => {
+  const fetchConnectedAccounts = async () => {
     try {
-      // Fetch directly from Supabase instead of using API route
-      // This avoids cookie authentication issues
-      const { data: accounts, error: fetchError } = await supabase
-        .from('social_accounts')
-        .select('id, platform, account_username, connected_at, expires_at')
-        .eq('user_id', userId)
-        .order('connected_at', { ascending: false })
-
-      if (fetchError) {
-        console.error('Error fetching accounts:', fetchError)
-        setConnectedAccounts([])
-        return
+      // Use API route for reliable server-side auth
+      const response = await fetch('/api/auth/accounts')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch accounts: ${response.status}`)
       }
-
-      // Check for expired tokens and flag them
-      const accountsWithStatus = accounts?.map(account => {
-        const isExpired = account.expires_at && new Date(account.expires_at) < new Date()
-        return {
-          ...account,
-          isExpired,
-          needsReconnection: isExpired,
-        }
-      }) || []
-
-      setConnectedAccounts(accountsWithStatus as ConnectedAccount[])
+      
+      const data = await response.json()
+      
+      if (data.success && data.accounts) {
+        setConnectedAccounts(data.accounts)
+      } else {
+        setConnectedAccounts([])
+      }
     } catch (error: any) {
       console.error('Error fetching accounts:', error)
+      toast.error('Could not load connected accounts')
       setConnectedAccounts([])
     }
   }
