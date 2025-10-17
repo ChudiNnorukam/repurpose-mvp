@@ -9,6 +9,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { PostEditorModal } from '@/components/posts/PostEditorModal'
 import { BulkSelectToolbar } from '@/components/posts/BulkSelectToolbar'
 import { Checkbox } from '@/components/ui/checkbox'
+import { COLOR_PRIMARY, COLOR_SUCCESS, BUTTON_VARIANTS } from '@/lib/design-tokens'
+
 
 interface Post {
   id: string
@@ -201,7 +203,7 @@ export default function PostsPage() {
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               filter === 'all'
-                ? 'bg-blue-600 text-white'
+                ? `${COLOR_PRIMARY.bg} text-white`
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -211,7 +213,7 @@ export default function PostsPage() {
             onClick={() => setFilter('draft')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               filter === 'draft'
-                ? 'bg-blue-600 text-white'
+                ? `${COLOR_PRIMARY.bg} text-white`
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -221,7 +223,7 @@ export default function PostsPage() {
             onClick={() => setFilter('scheduled')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               filter === 'scheduled'
-                ? 'bg-blue-600 text-white'
+                ? `${COLOR_PRIMARY.bg} text-white`
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -231,7 +233,7 @@ export default function PostsPage() {
             onClick={() => setFilter('posted')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               filter === 'posted'
-                ? 'bg-blue-600 text-white'
+                ? `${COLOR_PRIMARY.bg} text-white`
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -241,7 +243,7 @@ export default function PostsPage() {
             onClick={() => setFilter('failed')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               filter === 'failed'
-                ? 'bg-blue-600 text-white'
+                ? `${COLOR_PRIMARY.bg} text-white`
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -385,7 +387,7 @@ export default function PostsPage() {
                     {(selectedPost.status === 'scheduled' || selectedPost.is_draft) && (
                       <button
                         onClick={() => setEditingPost(selectedPost)}
-                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                        className={BUTTON_VARIANTS.primary}
                       >
                         Edit Post
                       </button>
@@ -394,7 +396,7 @@ export default function PostsPage() {
                     {selectedPost.status === 'failed' && (
                       <button
                         onClick={() => handleRetry(selectedPost.id)}
-                        className="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                        className={BUTTON_VARIANTS.success}
                       >
                         Retry Post
                       </button>

@@ -9,8 +9,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { CharacterCounter } from '@/components/ui/character-counter'
 import { PLATFORM_LIMITS, Platform as PlatformType } from '@/lib/constants'
 import { LoadingState, LoadingButton, ProgressBar } from '@/components/ui/loading'
-import { COLOR_PRIMARY, COLOR_SUCCESS, BUTTON_VARIANTS } from '@/lib/design-tokens'
-
 
 type Platform = 'twitter' | 'linkedin' | 'instagram'
 type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusiastic'
@@ -648,7 +646,7 @@ export default function CreatePage() {
               disabled={adapting || !originalContent.trim() || selectedPlatforms.length === 0}
               loading={adapting}
               loadingText="Adapting content..."
-              className={BUTTON_VARIANTS.primary}
+              className="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Adapt Content
             </LoadingButton>
@@ -758,7 +756,7 @@ export default function CreatePage() {
                           <button
                             onClick={() => handleSchedulePost(item.platform)}
                             disabled={isLoading || !item.scheduledTime || anySchedulingLoading}
-                            className={BUTTON_VARIANTS.success}
+                            className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {isLoading ? 'Scheduling…' : 'Schedule'}
                           </button>

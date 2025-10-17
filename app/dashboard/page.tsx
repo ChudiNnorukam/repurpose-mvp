@@ -8,6 +8,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { COLOR_PRIMARY, COLOR_AI, BUTTON_VARIANTS } from '@/lib/design-tokens'
+
 
 interface Post {
   id: string
@@ -271,13 +273,13 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/create"
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${COLOR_PRIMARY.bg} ${COLOR_PRIMARY.bgHover}`}
             >
               Repurpose Content
             </Link>
             <Link
               href="/generate"
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+              className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${COLOR_AI.bg} ${COLOR_AI.bgHover}`}
             >
               ✨ Generate from Topic
             </Link>
