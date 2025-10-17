@@ -1,31 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-export default function SignupPage() {
-  const [email, setEmail] = useState('')
+export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [isValidToken, setIsValidToken] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
-  const handleSignup = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Check if we have a valid recovery token
+    const checkToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      // If there's a session from the recovery link, we're good
+      if (session) {
+        setIsValidToken(true)
+      } else {
+        // Check for access_token in URL (Supabase sends this)
+        const accessToken = searchParams.get('access_token')
+        if (accessToken) {
+          setIsValidToken(true)
+        } else {
+          setError('Invalid or expired password reset link. Please request a new one.')
+        }
+      }
+    }
+    
+    checkToken()
+  }, [searchParams, supabase])
+
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setSuccess(null)
 
     // Validate password match
     if (password !== confirmPassword) {
@@ -44,32 +66,25 @@ export default function SignupPage() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
+      const { error } = await supabase.auth.updateUser({
+        password: password
       })
 
       if (error) {
-        console.error('Signup error:', error)
+        console.error('Password reset error:', error)
         throw error
       }
 
-      // Check if email confirmation is required
-      if (data.user && !data.session) {
-        const successMsg = 'Account created! Please check your email to confirm your account.'
-        setSuccess(successMsg)
-        toast.success(successMsg)
-      } else if (data.session) {
-        toast.success('Account created successfully!')
-        router.push('/dashboard')
-        router.refresh()
-      }
+      setSuccess(true)
+      toast.success('Password reset successful!')
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
     } catch (error: any) {
-      console.error('Signup error:', error)
-      const errorMessage = error.message || 'An error occurred during signup'
+      console.error('Password reset error:', error)
+      const errorMessage = error.message || 'Failed to reset password. Please try again.'
       setError(errorMessage)
       toast.error(errorMessage)
     } finally {
@@ -77,43 +92,76 @@ export default function SignupPage() {
     }
   }
 
-  return (
-    <AuthLayout
-      title="Create your account"
-      subtitle="Start repurposing your content across platforms"
-      footerText="Already have an account?"
-      footerLink={{ text: 'Log in', href: '/login' }}
-    >
-      <form className="space-y-6" onSubmit={handleSignup}>
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+  if (!isValidToken && error) {
+    return (
+      <AuthLayout
+        title="Invalid reset link"
+        subtitle="This password reset link is invalid or has expired"
+        footerText="Need a new link?"
+        footerLink={{ text: 'Request password reset', href: '/forgot-password' }}
+      >
+        <div className="space-y-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="assertive" aria-atomic="true">
             {error}
           </div>
-        )}
+          <Button
+            onClick={() => router.push('/forgot-password')}
+            className="w-full"
+          >
+            Request new reset link
+          </Button>
+        </div>
+      </AuthLayout>
+    )
+  }
 
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
-            {success}
+  if (success) {
+    return (
+      <AuthLayout
+        title="Password reset successful"
+        subtitle="Your password has been updated"
+        footerText=""
+        footerLink={{ text: '', href: '' }}
+      >
+        <div className="space-y-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="polite" aria-atomic="true">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium mb-1">Password successfully reset!</p>
+                <p>You can now log in with your new password. Redirecting you to the login page...</p>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => router.push('/login')}
+            className="w-full"
+          >
+            Go to login
+          </Button>
+        </div>
+      </AuthLayout>
+    )
+  }
+
+  return (
+    <AuthLayout
+      title="Set new password"
+      subtitle="Choose a strong password for your account"
+      footerText="Remember your password?"
+      footerLink={{ text: 'Log in', href: '/login' }}
+    >
+      <form className="space-y-6" onSubmit={handleResetPassword}>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="assertive" aria-atomic="true">
+            {error}
           </div>
         )}
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">New Password</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -144,7 +192,7 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
@@ -184,9 +232,9 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button type="submit" disabled={loading || !isValidToken} className="w-full">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? 'Creating account...' : 'Sign up'}
+          {loading ? 'Resetting password...' : 'Reset password'}
         </Button>
       </form>
     </AuthLayout>

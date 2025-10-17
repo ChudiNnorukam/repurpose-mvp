@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -122,6 +123,14 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+        <div className="text-center">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition"
+          >
+            Forgot your password?
+          </Link>
+        </div>
         </div>
 
         <Button type="submit" disabled={loading} className="w-full">

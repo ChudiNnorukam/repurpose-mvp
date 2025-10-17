@@ -72,7 +72,7 @@ function DetailedErrorBanner({
   onDismiss: () => void
 }) {
   return (
-    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
+    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm" role="alert" aria-live="assertive" aria-atomic="true">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-semibold">
@@ -171,7 +171,7 @@ function SuccessBanner({
   onDismiss: () => void
 }) {
   return (
-    <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 shadow-sm">
+    <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 shadow-sm" role="alert" aria-live="polite" aria-atomic="true">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-semibold">

@@ -153,6 +153,44 @@ export default function DashboardPage() {
     })
   }
 
+  const handleDayKeyDown = (e: React.KeyboardEvent, index: number) => {
+    const days = getDaysInMonth(currentMonth)
+    let nextIndex = index
+
+    switch (e.key) {
+      case "ArrowRight":
+        nextIndex = Math.min(index + 1, days.length - 1)
+        e.preventDefault()
+        break
+      case "ArrowLeft":
+        nextIndex = Math.max(index - 1, 0)
+        e.preventDefault()
+        break
+      case "ArrowDown":
+        nextIndex = Math.min(index + 7, days.length - 1)
+        e.preventDefault()
+        break
+      case "ArrowUp":
+        nextIndex = Math.max(index - 7, 0)
+        e.preventDefault()
+        break
+      case "Home":
+        nextIndex = 0
+        e.preventDefault()
+        break
+      case "End":
+        nextIndex = days.length - 1
+        e.preventDefault()
+        break
+      default:
+        return
+    }
+
+    const calendarCells = document.querySelectorAll("[data-calendar-day]")
+    const nextCell = calendarCells[nextIndex] as HTMLButtonElement
+    nextCell?.focus()
+  }
+
   if (loading) {
     return (
       <DashboardLayout user={user}>
@@ -224,25 +262,37 @@ export default function DashboardPage() {
               const hasPosted = dayPosts.some(p => p.status === 'posted')
 
               return (
-                <div
+                <button
                   key={index}
-                  className={`min-h-[80px] p-2 border rounded-lg ${
-                    day ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
-                  } ${isToday(day) ? 'ring-2 ring-blue-500' : ''}`}
+                  onClick={() => day && console.log("Day clicked:", day)}
+                  onKeyDown={(e) => handleDayKeyDown(e, index)}
+                  data-calendar-day
+                  tabIndex={day ? 0 : -1}
+                  aria-label={
+                    day
+                      ? `${day.toLocaleDateString()}, ${dayPosts.length} post(s) ${isToday(day) ? "(today)" : ""}`
+                      : "Empty day"
+                  }
+                  aria-current={isToday(day) ? "date" : undefined}
+                  disabled={!day}
+                  className={`min-h-[80px] p-2 border rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${
+                    day ? "bg-white hover:bg-gray-50 cursor-pointer" : "bg-gray-50 cursor-default"
+                  } ${isToday(day) ? "ring-2 ring-blue-500" : ""}`}
                 >
                   {day && (
                     <>
                       <div className="text-sm font-medium text-gray-900 mb-1">
                         {day.getDate()}
+                        {isToday(day) && <span className="sr-only"> (Today)</span>}
                       </div>
                       <div className="space-y-1">
                         {dayPosts.slice(0, 2).map(post => (
                           <div
                             key={post.id}
                             className={`text-xs px-1 py-0.5 rounded truncate ${
-                              post.status === 'scheduled'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-green-100 text-green-700'
+                              post.status === "scheduled"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-green-100 text-green-700"
                             }`}
                           >
                             {post.platform}
@@ -256,7 +306,7 @@ export default function DashboardPage() {
                       </div>
                     </>
                   )}
-                </div>
+                </button>
               )
             })}
           </div>

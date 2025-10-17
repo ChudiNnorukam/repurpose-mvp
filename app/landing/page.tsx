@@ -238,6 +238,7 @@ export function Hero() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="demo-title"
+            aria-describedby="demo-description"
           >
             <div
               ref={overlayRef}
@@ -246,13 +247,14 @@ export function Hero() {
             >
               <button
                 onClick={() => setShowDemo(false)}
-                className="absolute right-4 top-4 text-sm text-white/70 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 rounded px-2 py-1"
+                className="absolute right-4 top-4 text-sm text-white/90 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 rounded px-2 py-1"
                 aria-label="Close demo"
                 data-testid="close-demo"
               >
                 Close ✕
               </button>
               <h2 id="demo-title" className="mb-6 text-2xl font-semibold">Example Transformation</h2>
+              <p id="demo-description" className="text-gray-400 text-sm mb-4">See how Repurpose transforms content for different platforms</p>
 
               {/* Mock content preview */}
               <div className="space-y-4">
@@ -503,6 +505,8 @@ function FAQ() {
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
                 className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
               >
                 <span className="text-lg font-semibold text-gray-900 pr-8">
@@ -521,6 +525,7 @@ function FAQ() {
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
+                  id={`faq-answer-${index}`}
                   className="border-t border-gray-200"
                 >
                   <p className="p-6 text-gray-600 leading-relaxed">
