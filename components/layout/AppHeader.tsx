@@ -61,6 +61,7 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/create', label: 'Create', badge: 'AI' },
+    { href: '/batch-create', label: 'Batch Create', badge: 'NEW' },
     { href: '/posts', label: 'Posts' },
     { href: '/templates', label: 'Templates' },
     { href: '/connections', label: 'Connections' },
@@ -89,7 +90,7 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
               >
                 {link.label}
                 {link.badge && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${link.badge === "AI" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>
                     {link.badge}
                   </span>
                 )}
@@ -134,7 +135,7 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
               >
                 {link.label}
                 {link.badge && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${link.badge === "AI" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>
                     {link.badge}
                   </span>
                 )}
