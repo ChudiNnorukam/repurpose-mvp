@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { COLOR_PRIMARY } from '@/lib/design-tokens'
 
 export default function AboutPage() {
   return (
@@ -55,7 +56,7 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">How It Works</h2>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
               <div className="flex items-start mb-4">
-                <div className="flex-shrink-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4">
+                <div className={`flex-shrink-0 ${COLOR_PRIMARY.bg} text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4`}>
                   1
                 </div>
                 <div>
@@ -69,7 +70,7 @@ export default function AboutPage() {
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
               <div className="flex items-start mb-4">
-                <div className="flex-shrink-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4">
+                <div className={`flex-shrink-0 ${COLOR_PRIMARY.bg} text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4`}>
                   2
                 </div>
                 <div>
@@ -83,7 +84,7 @@ export default function AboutPage() {
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
               <div className="flex items-start mb-4">
-                <div className="flex-shrink-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4">
+                <div className={`flex-shrink-0 ${COLOR_PRIMARY.bg} text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4`}>
                   3
                 </div>
                 <div>
@@ -97,7 +98,7 @@ export default function AboutPage() {
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-start mb-4">
-                <div className="flex-shrink-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4">
+                <div className={`flex-shrink-0 ${COLOR_PRIMARY.bg} text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4`}>
                   4
                 </div>
                 <div>
@@ -225,14 +226,14 @@ export default function AboutPage() {
             </p>
           </section>
 
-          <section className="bg-blue-50 rounded-lg p-8 text-center">
+          <section className={`${COLOR_PRIMARY.bgLight} rounded-lg p-8 text-center`}>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Ready to Get Started?</h2>
             <p className="text-gray-700 mb-6">
               Join our beta program and start reaching your entire audience with every piece of content you create.
             </p>
             <Link
               href="/landing"
-              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className={`inline-block ${COLOR_PRIMARY.bg} text-white px-8 py-3 rounded-lg font-semibold ${COLOR_PRIMARY.bgHover} transition-colors`}
             >
               Join the Waitlist
             </Link>

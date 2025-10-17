@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Sparkles, Zap, Clock, Target, ChevronDown, ArrowDown } from "lucide-react"
+import { COLOR_PRIMARY } from '@/lib/design-tokens'
 
 /** Lightweight animated aurora background */
 function AuroraBackground({ className = "" }: { className?: string }) {
@@ -150,7 +151,7 @@ export function Hero() {
       <nav className="absolute top-0 left-0 right-0 z-20 border-b border-white/10 bg-black/20 backdrop-blur-sm">
         <div className="container mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-8">
           <Link href="/landing" className="text-xl font-bold">
-            Repurpose<span className="text-blue-500">AI</span>
+            Repurpose<span className={COLOR_PRIMARY.text}>AI</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -159,7 +160,7 @@ export function Hero() {
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+              <Button size="sm" className={`${COLOR_PRIMARY.bg} text-white ${COLOR_PRIMARY.bgHover}`}>
                 Sign Up
               </Button>
             </Link>
@@ -196,7 +197,7 @@ export function Hero() {
         >
           <Button
             size="lg"
-            className="bg-blue-600 text-white hover:bg-blue-700"
+            className={`${COLOR_PRIMARY.bg} text-white ${COLOR_PRIMARY.bgHover}`}
             aria-label="Get started with AI repurposing"
             data-testid="cta-primary"
             onClick={() => router.push('/signup')}
@@ -263,8 +264,8 @@ export function Hero() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
-                    <div className="text-xs text-blue-400 mb-2 flex items-center gap-1">
+                  <div className={`rounded-lg border ${COLOR_PRIMARY.border} ${COLOR_PRIMARY.bgLight}/50 p-4`}>
+                    <div className={`text-xs ${COLOR_PRIMARY.text} mb-2 flex items-center gap-1`}>
                       <span>🐦</span> Twitter
                     </div>
                     <p className="text-sm text-white/90">
@@ -341,10 +342,10 @@ function HowItWorks() {
                 className="relative"
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg">
+                  <div className={`mb-6 flex h-20 w-20 items-center justify-center rounded-full ${COLOR_PRIMARY.bg} text-white shadow-lg`}>
                     <Icon className="h-10 w-10" />
                   </div>
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold text-lg">
+                  <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-full ${COLOR_PRIMARY.bgLight} ${COLOR_PRIMARY.text} font-bold text-lg`}>
                     {step.number}
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -572,7 +573,7 @@ function FinalCTA() {
         >
           <Button
             size="lg"
-            className="bg-blue-600 text-white hover:bg-blue-700 text-lg px-8 py-6"
+            className={`${COLOR_PRIMARY.bg} text-white ${COLOR_PRIMARY.bgHover} text-lg px-8 py-6`}
             onClick={() => router.push('/signup')}
           >
             Start Free Trial
@@ -604,7 +605,7 @@ function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <Link href="/landing" className="text-2xl font-bold text-white inline-block mb-4">
-              Repurpose<span className="text-blue-500">AI</span>
+              Repurpose<span className={COLOR_PRIMARY.text}>AI</span>
             </Link>
             <p className="text-gray-400 max-w-sm">
               AI-powered content repurposing for social media. Write once, publish everywhere.

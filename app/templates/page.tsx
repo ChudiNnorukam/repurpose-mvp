@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { COLOR_PRIMARY, COLOR_AI, COLOR_SUCCESS, BUTTON_VARIANTS } from '@/lib/design-tokens'
 
 interface Template {
   id: string
@@ -206,9 +207,9 @@ export default function TemplatesPage() {
   }
 
   const categoryColors = {
-    educational: 'bg-blue-100 text-blue-800',
-    product: 'bg-purple-100 text-purple-800',
-    engagement: 'bg-green-100 text-green-800',
+    educational: `${COLOR_PRIMARY.bgLight} ${COLOR_PRIMARY.textDark}`,
+    product: `${COLOR_AI.bgLight} ${COLOR_AI.textDark}`,
+    engagement: `${COLOR_SUCCESS.bgLight} ${COLOR_SUCCESS.textDark}`,
     social_proof: 'bg-yellow-100 text-yellow-800',
     behind_the_scenes: 'bg-pink-100 text-pink-800',
   }
@@ -235,7 +236,7 @@ export default function TemplatesPage() {
               resetForm()
               setShowCreateModal(true)
             }}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className={BUTTON_VARIANTS.primary}
           >
             + New Template
           </button>
@@ -246,7 +247,7 @@ export default function TemplatesPage() {
             <p className="text-gray-600 mb-4">No templates yet. Create your first template!</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              className={BUTTON_VARIANTS.primary}
             >
               Create Template
             </button>
@@ -282,7 +283,7 @@ export default function TemplatesPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleUseTemplate(template)}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+                    className={`flex-1 ${BUTTON_VARIANTS.primary} text-sm`}
                   >
                     Use Template
                   </button>
@@ -346,7 +347,7 @@ export default function TemplatesPage() {
                     type="button"
                     onClick={handleGenerateWithAI}
                     disabled={generating}
-                    className="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 disabled:bg-gray-400"
+                    className={`text-sm ${COLOR_AI.bg} text-white px-3 py-1 rounded ${COLOR_AI.bgHover} disabled:bg-gray-400`}
                   >
                     {generating ? '✨ Generating...' : '✨ Generate with AI'}
                   </button>
@@ -428,7 +429,7 @@ export default function TemplatesPage() {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                  className={`flex-1 ${BUTTON_VARIANTS.primary}`}
                 >
                   {editingTemplate ? 'Update Template' : 'Create Template'}
                 </button>
