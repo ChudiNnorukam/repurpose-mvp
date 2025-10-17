@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthLayout } from '@/components/layout/AuthLayout'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -26,7 +26,7 @@ export default function ResetPasswordPage() {
     // Check if we have a valid recovery token
     const checkToken = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       // If there's a session from the recovery link, we're good
       if (session) {
         setIsValidToken(true)
@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
         }
       }
     }
-    
+
     checkToken()
   }, [searchParams, supabase])
 
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
 
       setSuccess(true)
       toast.success('Password reset successful!')
-      
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push('/login')
@@ -238,5 +238,24 @@ export default function ResetPasswordPage() {
         </Button>
       </form>
     </AuthLayout>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <AuthLayout
+        title="Loading..."
+        subtitle="Please wait"
+        footerText=""
+        footerLink={{ text: '', href: '' }}
+      >
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      </AuthLayout>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
