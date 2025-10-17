@@ -74,9 +74,14 @@ export default function GeneratePage() {
         .order('connected_at', { ascending: false })
 
       console.log('[DEBUG] Query result - accounts:', accounts?.length || 0, 'error:', error)
+      console.log('[DEBUG] Full error object:', JSON.stringify(error, null, 2))
 
       if (error) {
         console.error('[ERROR] Error loading accounts:', error)
+        console.error('[ERROR] Error code:', error.code)
+        console.error('[ERROR] Error message:', error.message)
+        console.error('[ERROR] Error details:', error.details)
+        console.error('[ERROR] Error hint:', error.hint)
         toast.error('Could not load connected accounts')
         setConnectedAccounts([])
         return
