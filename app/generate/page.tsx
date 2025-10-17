@@ -38,29 +38,45 @@ export default function GeneratePage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      console.log('[DEBUG] checkUser called')
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      console.log('[DEBUG] user:', user?.id, 'error:', authError)
+      
       if (!user) {
+        console.log('[DEBUG] No user, redirecting to login')
         router.push('/login')
         return
       }
+      
+      console.log('[DEBUG] User found, ID:', user.id)
       setUser(user)
+      
+      // Call fetchConnectedAccounts immediately with user.id
+      console.log('[DEBUG] Calling fetchConnectedAccounts with userId:', user.id)
       await fetchConnectedAccounts(user.id)
+      
       setLoading(false)
+      console.log('[DEBUG] Loading complete')
     }
     checkUser()
-  }, [router, supabase])
+  }, []) // Empty dependency array - run only once on mount
 
   const fetchConnectedAccounts = async (userId: string) => {
+    console.log('[DEBUG] fetchConnectedAccounts called with userId:', userId)
+    
     try {
       // Use direct Supabase query like Connections page (proven to work)
+      console.log('[DEBUG] Querying social_accounts table...')
       const { data: accounts, error } = await supabase
         .from('social_accounts')
         .select('id, platform, account_username, connected_at, expires_at')
         .eq('user_id', userId)
         .order('connected_at', { ascending: false })
 
+      console.log('[DEBUG] Query result - accounts:', accounts?.length || 0, 'error:', error)
+
       if (error) {
-        console.error('Error loading accounts:', error)
+        console.error('[ERROR] Error loading accounts:', error)
         toast.error('Could not load connected accounts')
         setConnectedAccounts([])
         return
@@ -72,9 +88,11 @@ export default function GeneratePage() {
         account_username: account.account_username
       })) || []
 
+      console.log('[DEBUG] Mapped accounts:', mappedAccounts)
       setConnectedAccounts(mappedAccounts)
+      console.log('[DEBUG] setConnectedAccounts called with', mappedAccounts.length, 'accounts')
     } catch (error: any) {
-      console.error('Error fetching accounts:', error)
+      console.error('[ERROR] Exception in fetchConnectedAccounts:', error)
       toast.error('Could not load connected accounts')
       setConnectedAccounts([])
     }
