@@ -63,6 +63,257 @@ feature-implementer → test-validator → code-reviewer (automatic)
 
 ---
 
+## 🔧 SKILLS INTEGRATION: Hybrid System
+
+### What Are Skills?
+
+**Skills** are specialized YAML-fronted SKILL.md files in `.claude/skills/` that enhance the 12 built-in subagents with **Repurpose MVP-specific context**. They act as an intelligent routing layer that provides:
+
+- **Project Context**: Next.js 15, Supabase, QStash, OAuth patterns
+- **Code Templates**: API routes, OAuth flows, Supabase queries, QStash jobs
+- **Real Examples**: Batch-create, calendar, scheduling implementations
+- **Conventions**: Design tokens, error handling, rate limiting patterns
+- **Delegation Logic**: When to invoke built-in subagents for complex work
+
+### Architecture: Hybrid Skills + Subagents
+
+```
+User Request
+    ↓
+┌─────────────────────────────────────────┐
+│ Skill Discovers (keyword-based)         │
+│ "implement", "test", "review", etc.     │
+└─────────────────┬───────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│ Skill Provides Repurpose Context        │
+│ • Tech stack (Next.js 15, Supabase)     │
+│ • Design patterns (tokens, RLS)         │
+│ • Code templates (OAuth, API routes)    │
+│ • Real examples (batch-create)          │
+└─────────────────┬───────────────────────┘
+                  ↓
+        ┌─────────────────┐
+        │  Simple task?   │
+        │  (< 10 lines)   │
+        └────┬────────┬───┘
+             │        │
+            YES      NO
+             ↓        ↓
+    ┌───────────┐  ┌──────────────────────────┐
+    │  Handle   │  │ Delegate to Built-in     │
+    │  Directly │  │ Subagent (Task tool)     │
+    └───────────┘  └─────────┬────────────────┘
+                             ↓
+               ┌──────────────────────────────┐
+               │ Subagent Executes with       │
+               │ Enhanced Repurpose Context   │
+               └──────────────────────────────┘
+```
+
+### The 12 Skills (Match the 12 Subagents)
+
+| Skill | Purpose | Delegates To | Templates/Examples |
+|-------|---------|--------------|-------------------|
+| **feature-implementer** | Implements features with Repurpose patterns | feature-implementer subagent | API routes, OAuth, Supabase, QStash |
+| **explore** | Researches codebase with search strategies | Explore subagent | OAuth flow tracing, architecture |
+| **test-validator** | Creates tests with Repurpose fixtures | test-validator subagent | Jest unit, Playwright E2E |
+| **code-reviewer** | Reviews with Next.js 15 + Supabase checklist | code-reviewer subagent | Security audit, performance |
+| **solodev-claude-reviewer** | Pragmatic review for solo devs | solodev-claude-reviewer subagent | Quick wins, critical only |
+| **guardrails-expert** | Ensures policy compliance | — (advisory only) | GDPR, content policies |
+| **batch-workbench-expert** | Handles bulk operations | batch-workbench-expert subagent | 30-day content generation |
+| **shadcn-expert** | Builds UI with shadcn/ui | — (direct handling) | Forms, dialogs, tables |
+| **ui-ux-expert** | Designs with design tokens | — (direct handling) | COLOR_PRIMARY, WCAG |
+| **statusline-setup** | Configures status display | statusline-setup subagent | — |
+| **output-style-setup** | Customizes output formatting | output-style-setup subagent | — |
+| **general-purpose** | Fallback for complex tasks | general-purpose subagent | — |
+
+### How Skills Enhance Subagents
+
+**Example: Implementing Instagram OAuth**
+
+**Without Skills** (Generic Subagent):
+```
+User: "Implement Instagram OAuth"
+    ↓
+feature-implementer subagent:
+- Generates generic OAuth flow
+- May not use PKCE pattern
+- Doesn't follow Repurpose patterns
+- Misses rate limiting integration
+- No Supabase RLS consideration
+```
+
+**With Skills** (Hybrid System):
+```
+User: "Implement Instagram OAuth"
+    ↓
+feature-implementer SKILL:
+- Detects "implement" + "OAuth"
+- Provides OAuth template (.claude/skills/feature-implementer/templates/oauth-flow.ts)
+- References Twitter OAuth example (lib/twitter.ts)
+- Includes Repurpose conventions:
+  * PKCE flow with crypto.randomBytes
+  * State parameter for CSRF
+  * Token storage in social_accounts table
+  * Rate limiting integration
+  * Supabase RLS patterns
+    ↓
+Delegates to feature-implementer SUBAGENT with enhanced context:
+"Implement Instagram OAuth following template at
+.claude/skills/feature-implementer/templates/oauth-flow.ts
+and pattern in lib/twitter.ts. Use PKCE, store tokens
+in social_accounts table with RLS, integrate rate limiting."
+    ↓
+feature-implementer subagent:
+- Builds Instagram OAuth matching Repurpose patterns
+- lib/instagram.ts (PKCE + token refresh)
+- app/api/auth/instagram/route.ts
+- app/api/auth/instagram/callback/route.ts
+- All following Repurpose conventions ✅
+```
+
+**Result**: Consistent, production-ready code that matches existing patterns.
+
+### Skill Locations
+
+**Project Skills** (`.claude/skills/`):
+- **Location**: `/Users/chudinnorukam/Downloads/Repurpose MVP /.claude/skills/`
+- **Committed to git**: ✅ Yes
+- **Shared with team**: ✅ Yes
+- **Contains**: Repurpose-specific templates, examples, conventions
+- **Use for**: Common workflows, team standards
+
+**Personal Skills** (`~/.claude/skills/`):
+- **Location**: `~/.claude/skills/`
+- **Committed to git**: ❌ No
+- **Shared with team**: ❌ No
+- **Contains**: Personal workflow preferences, custom shortcuts
+- **Use for**: Individual customizations, override project skills
+
+**Priority**: Personal skills override project skills if both exist.
+
+### Discovery Mechanism
+
+Skills auto-activate based on **trigger keywords** in user messages:
+
+```yaml
+# Example: feature-implementer skill
+Trigger Keywords:
+  - "implement"
+  - "add"
+  - "build"
+  - "create"
+  - "add endpoint"
+  - "create feature"
+
+User says: "Add Instagram OAuth"
+    ↓
+Keywords detected: "Add" (matches "add")
+    ↓
+feature-implementer skill activates
+```
+
+### When Skills Delegate vs Handle Directly
+
+**Delegate to Subagent** (complex work):
+- New features (> 10 lines)
+- API endpoints with auth + rate limiting
+- OAuth implementations
+- Database migrations
+- Multi-file changes
+- Test suite creation
+
+**Handle Directly** (simple work):
+- Documentation updates
+- Config changes (< 5 lines)
+- Quick bug fixes (< 10 lines)
+- Providing templates/examples
+- Answering questions about patterns
+
+### Skills Directory Structure
+
+```
+.claude/skills/
+├── feature-implementer/
+│   ├── SKILL.md                    # Main skill instructions
+│   ├── templates/
+│   │   ├── api-route.ts            # Next.js 15 API pattern
+│   │   ├── oauth-flow.ts           # OAuth 2.0 PKCE template
+│   │   ├── supabase-query.ts       # Supabase + RLS patterns
+│   │   └── qstash-job.ts           # QStash delayed jobs
+│   ├── examples/
+│   │   ├── calendar.md             # Calendar implementation
+│   │   ├── batch-create.md         # Batch generation
+│   │   └── scheduling.md           # Post scheduling
+│   └── conventions.md              # Repurpose conventions
+├── test-validator/
+│   ├── SKILL.md
+│   └── templates/
+│       ├── jest-unit.ts
+│       ├── playwright-e2e.ts
+│       └── api-integration.ts
+├── code-reviewer/
+│   ├── SKILL.md
+│   └── checklists/
+│       ├── security.md
+│       ├── performance.md
+│       └── next-15-patterns.md
+├── ui-ux-expert/
+│   ├── SKILL.md
+│   └── design-tokens.md
+├── shadcn-expert/
+│   ├── SKILL.md
+│   └── templates/
+│       ├── form-dialog.tsx
+│       ├── data-table.tsx
+│       └── calendar-component.tsx
+├── batch-workbench-expert/
+│   ├── SKILL.md
+│   └── templates/
+│       └── batch-processing.ts
+├── explore/SKILL.md
+├── guardrails-expert/
+│   ├── SKILL.md
+│   └── compliance/
+│       ├── gdpr.md
+│       └── platform-policies.md
+├── solodev-claude-reviewer/SKILL.md
+├── statusline-setup/SKILL.md
+├── output-style-setup/SKILL.md
+├── general-purpose/SKILL.md
+└── README.md                       # Skills system documentation
+```
+
+### Testing the Skills System
+
+```bash
+# Test feature-implementer skill
+User: "Implement webhook endpoint for QStash"
+Expected: Skill provides template, delegates to subagent
+
+# Test explore skill
+User: "Where do we handle OAuth token refresh?"
+Expected: Skill provides search strategy, delegates to Explore
+
+# Test test-validator skill
+User: "Add tests for the scheduling flow"
+Expected: Skill provides test templates, delegates to test-validator
+
+# Test ui-ux-expert skill
+User: "Design a settings page with design tokens"
+Expected: Skill provides COLOR_PRIMARY tokens, handles directly
+```
+
+### Further Documentation
+
+- **Skills README**: `.claude/skills/README.md` - Complete skills system guide
+- **Individual Skills**: `.claude/skills/*/SKILL.md` - Each skill's documentation
+- **Templates**: `.claude/skills/*/templates/` - Copy-paste code templates
+- **Examples**: `.claude/skills/*/examples/` - Real implementation walkthroughs
+
+---
+
 ## 📖 THE 12 REAL SUBAGENTS
 
 ### 1. general-purpose
