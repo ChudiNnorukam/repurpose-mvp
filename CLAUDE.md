@@ -1,112 +1,1617 @@
-# Repurpose - AI Agent Orchestration & Development Guide
+# Repurpose - Elite Subagent Orchestration System
 
-**Version**: 2.1.0
-**Last Updated**: October 13, 2025
-**Purpose**: Comprehensive guide for Claude Code AI with integrated subagent workflows
+**Version**: 3.0.0  
+**Last Updated**: October 17, 2025  
+**Purpose**: Precision agent orchestration engine for Claude Code AI with Repurpose MVP
 
 ---
 
-## 🤖 Agent Orchestration Rules (NEW)
-
-### Active Agents
-- **feature-implementer**: Implements new features, endpoints, and functionality
-- **test-validator**: Writes and validates tests (unit, integration, E2E)
-- **code-reviewer**: Reviews code for quality, security, and best practices
-
-### Agent Invocation Rules
-
-**Rule 1: Keyword-Based Agent Matching**
-
-Main Claude agent analyzes user prompt and matches keywords:
-
-| Keywords | Agent to Invoke | Example Prompts |
-|----------|----------------|-----------------|
-| "implement", "feature", "add endpoint", "create", "build" | **feature-implementer** | "Implement Instagram OAuth", "Add /api/posts/bulk endpoint" |
-| "test", "verify", "edge cases", "failure", "coverage" | **test-validator** | "Test the scheduling flow", "Verify error handling" |
-| "review", "audit", "refactor", "optimize", "clean up" | **code-reviewer** | "Review the auth code", "Audit security issues" |
-
-**Rule 2: Automatic Agent Chaining**
-
-After `feature-implementer` completes, **automatically** invoke in sequence:
-1. ✅ **test-validator** → Writes tests for the new feature
-2. ✅ **code-reviewer** → Reviews code quality and security
+## ⚡ QUICK REFERENCE CARD (30-Second Decision)
 
 ```
-User: "Implement Instagram OAuth"
-  ↓
-feature-implementer generates code
-  ↓ (automatic)
-test-validator writes tests
-  ↓ (automatic)
-code-reviewer audits implementation
-  ↓
-Claude presents final package to user
+USER REQUEST ARRIVES
+        ↓
+┌───────────────────────────────────────────┐
+│ STEP 1: SIZE & COMPLEXITY CHECK           │
+├───────────────────────────────────────────┤
+│ • < 10 lines?          → Handle directly  │
+│ • Config/docs only?    → Handle directly  │
+│ • Trivial bugfix?      → Handle directly  │
+└───────────────────────┬───────────────────┘
+                        ↓ (if no)
+┌───────────────────────────────────────────┐
+│ STEP 2: KEYWORD MATCH                     │
+├───────────────────────────────────────────┤
+│ • "implement", "add", "build"             │
+│   → feature-implementer                   │
+│ • "test", "verify", "coverage"            │
+│   → test-validator                        │
+│ • "review", "audit", "refactor"           │
+│   → code-reviewer                         │
+│ • "design", "UI", "layout", "responsive"  │
+│   → ui-ux-expert                          │
+│ • "find", "where", "explore", "search"    │
+│   → Explore                               │
+│ • "batch", "CSV", "50+", "bulk"          │
+│   → batch-workbench-expert                │
+│ • "policy", "compliance", "guidelines"    │
+│   → guardrails-expert                     │
+│ • "shadcn", "form", "dialog", "sheet"    │
+│   → shadcn-expert                         │
+└───────────────────────┬───────────────────┘
+                        ↓ (if no match)
+┌───────────────────────────────────────────┐
+│ STEP 3: MULTI-DOMAIN CHECK                │
+├───────────────────────────────────────────┤
+│ • Sequential (A→B→C)?  → Chain agents     │
+│ • Parallel (A || B)?   → Run simultaneous │
+│ • Iterative?           → Loop pattern     │
+└───────────────────────┬───────────────────┘
+                        ↓ (if unclear)
+┌───────────────────────────────────────────┐
+│ STEP 4: DEFAULT TO ANALYSIS               │
+├───────────────────────────────────────────┤
+│ • Complex/unclear?     → general-purpose  │
+│ • Need exploration?    → Explore          │
+└───────────────────────────────────────────┘
 ```
 
-**Rule 3: Skip Agents for Small Changes**
-
-For trivial changes, skip agents:
-- **Small bugfixes** (< 10 lines): Skip all agents, fix directly
-- **Documentation updates**: Skip all agents
-- **Config changes**: Skip test-validator and code-reviewer
-- **Quick refactors**: Skip test-validator if tests already exist
-
-**Rule 4: Context Minimization**
-
-Keep context minimal between agent handoffs:
-- Pass only: file paths, function names, requirements
-- Don't pass: entire file contents, full codebase context
-- Use references: "Review app/api/schedule/route.ts lines 50-100"
-
-**Rule 5: Parallel Execution**
-
-When tasks are independent, run agents in parallel:
+**Auto-Chain Rule**: When `feature-implementer` completes:
 ```
-User: "Implement Twitter OAuth and LinkedIn OAuth"
-  ↓
-feature-implementer (Twitter) || feature-implementer (LinkedIn)
-  ↓ (both complete)
-test-validator (both)
-  ↓
-code-reviewer (both)
+feature-implementer → test-validator → code-reviewer (automatic)
 ```
 
 ---
 
-## Table of Contents
+## 📖 THE 12 REAL SUBAGENTS
 
-1. [Project Overview](#1-project-overview)
-2. [Tech Stack & Architecture](#2-tech-stack--architecture)
-3. [Subagent Orchestration System](#3-subagent-orchestration-system)
-4. [Core Workflows](#4-core-workflows)
-5. [Development Patterns](#5-development-patterns)
-6. [Testing & Quality Assurance](#6-testing--quality-assurance)
-7. [Deployment & Operations](#7-deployment--operations)
-8. [Security & Compliance](#8-security--compliance)
-9. [Performance & Optimization](#9-performance--optimization)
-10. [Troubleshooting & Debugging](#10-troubleshooting--debugging)
+### 1. general-purpose
+
+**Purpose**: Complex multi-step research, code search, and analysis  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "research", "analyze", "investigate", "complex", "multi-step"
+
+**Use Cases**:
+1. Researching how error handling works across the codebase
+2. Analyzing performance bottlenecks in multiple files
+3. Multi-step investigations requiring context from many sources
+4. Complex refactoring that spans multiple domains
+5. Architecture analysis and recommendations
+
+**Anti-patterns**:
+- ❌ Simple file searches (use Explore instead)
+- ❌ Single-domain tasks (use specialized agents)
+- ❌ Implementation work (use feature-implementer)
+
+**Invocation Template**:
+```
+Task: [Comprehensive research/analysis task]
+
+Requirements:
+- [What needs to be investigated]
+- [Scope and boundaries]
+- [Expected output format]
+
+Context:
+- [Relevant background]
+```
 
 ---
 
-## 1. Project Overview
+### 2. Explore  
 
-### 1.1 What is Repurpose?
+**Purpose**: Fast codebase exploration using Glob/Grep/Read  
+**Type**: Built-in  
+**Tools**: Glob, Grep, Read, Bash
 
-An MVP SaaS platform that enables content creators to:
+**Trigger Keywords**: "find", "where is", "search for", "locate", "explore"
+
+**Use Cases**:
+1. **Finding files**: "Where are the OAuth implementations?"
+2. **Searching code**: "Find all usages of createClient"  
+3. **Locating patterns**: "Where do we handle rate limiting?"
+4. **Quick exploration**: "What files implement batch processing?"
+5. **Context gathering**: "Show me the auth middleware"
+
+**Anti-patterns**:
+- ❌ Don't use for implementation
+- ❌ Don't use for complex analysis (use general-purpose)
+- ❌ Don't use for making changes
+
+**Invocation Template**:
+```
+Task: Find [what you're looking for]
+
+Search strategy:
+- Pattern: [file pattern or code pattern]
+- Scope: [which directories]
+- Thoroughness: quick|medium|very thorough
+
+Expected output:
+- List of relevant files with line numbers
+```
+
+**Real Example from Repurpose**:
+```
+Task: Where are errors from the client handled in batch-create?
+
+Agents used: Explore  
+Time: 2 minutes
+Found: app/batch-create/page.tsx lines 233-250, 343-360
+```
+
+---
+
+### 3. feature-implementer
+
+**Purpose**: Implements new features, endpoints, and functionality  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "implement", "add endpoint", "create feature", "build", "add functionality"
+
+**Use Cases**:
+1. **OAuth implementation**: Add Instagram OAuth flow
+2. **API endpoints**: Create /api/batch/schedule
+3. **New features**: Implement recurring posts
+4. **Database operations**: Add analytics tracking
+5. **Integration work**: Connect new external API
+
+**Auto-Chain Behavior**:
+After completion, automatically invokes:
+1. test-validator → Write tests
+2. code-reviewer → Security audit
+
+**Anti-patterns**:
+- ❌ Bugs < 10 lines (fix directly)
+- ❌ Documentation (handle directly)
+- ❌ Code reviews (use code-reviewer)
+
+**Invocation Template**:
+```
+Task: Implement [feature name]
+
+Requirements:
+- [Functional requirement 1]
+- [Functional requirement 2]
+- [Technical constraints]
+
+Files to create/modify:
+- [file path 1]
+- [file path 2]
+
+Success criteria:
+- [How to verify it works]
+```
+
+**Real Example from Repurpose**:
+```
+Task: Fix batch-create Supabase client import issue
+
+Problem: Wrong import causing redirect loop
+Solution: Changed from '@/lib/supabase/client' to '@/lib/supabase-client'
+Result: Page loads correctly
+Time: 8 minutes
+Commit: bf06137
+```
+
+---
+
+### 4. test-validator
+
+**Purpose**: Write and validate tests (unit, integration, E2E)  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "test", "verify", "edge cases", "coverage", "validate"
+
+**Use Cases**:
+1. **Unit tests**: Test OAuth helper functions
+2. **Integration tests**: API endpoint testing
+3. **E2E tests**: Full user flow testing
+4. **Edge cases**: Boundary conditions, error paths
+5. **Test diagnosis**: Fix failing tests
+
+**Anti-patterns**:
+- ❌ Don't use for production code
+- ❌ Don't use for design review  
+- ❌ Don't modify logic (unless trivial test-only fix)
+
+**Invocation Template**:
+```
+Task: Write tests for [component/feature]
+
+Scope:
+- Unit tests: [functions to test]
+- Integration tests: [API endpoints]
+- E2E tests: [user flows]
+
+Coverage goals:
+- Critical paths: 100%
+- Edge cases: [list specific cases]
+
+Files:
+- [test file paths]
+```
+
+**Real Example from Repurpose**:
+```
+Task: Test scheduling flow for edge cases
+
+Tests written:
+- Timezone handling
+- Past dates validation
+- Concurrent scheduling
+- Rate limit errors
+Result: 95% coverage
+Time: 25 minutes
+```
+
+---
+
+### 5. code-reviewer
+
+**Purpose**: Review code for quality, security, and best practices  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "review", "audit", "refactor", "optimize", "clean up"
+
+**Use Cases**:
+1. **Security audit**: Review auth implementation
+2. **Code quality**: Check for anti-patterns
+3. **Performance**: Identify optimization opportunities
+4. **Best practices**: Ensure consistency with standards
+5. **Bug diagnosis**: Analyze root causes
+
+**Severity Levels**:
+- 🔴 **Critical**: Security issues, data corruption risks
+- 🟡 **Warning**: Performance issues, maintainability concerns
+- 🟢 **Suggestion**: Style improvements, optional optimizations
+
+**Anti-patterns**:
+- ❌ Don't use for implementation
+- ❌ Don't use for running tests
+- ❌ Don't introduce new features during review
+
+**Invocation Template**:
+```
+Task: Review [component/feature]
+
+Focus areas:
+- Security: [specific concerns]
+- Performance: [bottlenecks]
+- Code quality: [patterns to check]
+
+Files to review:
+- [file paths with line numbers]
+
+Output format:
+- Critical issues first
+- Actionable feedback
+- Code examples for fixes
+```
+
+**Real Example from Repurpose**:
+```
+Task: Diagnose batch-create redirect issue
+
+Diagnosis:
+1. /batch-create missing from middleware protected routes
+2. Wrong Supabase client import (non-SSR)
+
+Severity: Critical
+Time: 5 minutes
+Fixes applied: Added route to middleware, fixed import
+```
+
+---
+
+### 6. solodev-claude-reviewer
+
+**Purpose**: Pre-commit reviews, security deep-pass, CI integration  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "pre-commit", "security scan", "CI review", "deployment check"
+
+**Use Cases**:
+1. **Pre-commit review**: Staged diffs analysis before commit
+2. **Security deep pass**: Auth, secrets, unsafe migrations
+3. **Soft-gated CI**: Block only on Critical/High severity
+4. **Test authoring**: Generate missing test cases
+5. **Performance check**: N+1 queries, large payloads
+
+**Review Modes**:
+- `/security` - Security-focused deep pass
+- `/tests` - Missing test case enumeration  
+- `/perf` - Performance sanity check
+- `/docs` - Documentation and migration notes
+
+**Anti-patterns**:
+- ❌ Don't use for regular code reviews (use code-reviewer)
+- ❌ Don't use for feature implementation
+
+**Invocation Template**:
+```
+Task: Pre-commit review of staged changes
+
+Mode: [security|tests|perf|docs]
+
+Severity threshold:
+- Block on: Critical, High
+- Warn on: Medium, Low
+
+Files changed:
+- [git diff output or file list]
+```
+
+---
+
+### 7. guardrails-expert
+
+**Purpose**: Content policy compliance, review platform guidelines  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "policy", "compliance", "guidelines", "content review", "violations"
+
+**Use Cases**:
+1. **Review policy check**: Ensure generated content complies
+2. **Platform guidelines**: Twitter/LinkedIn/Instagram rules
+3. **Content moderation**: Flag inappropriate content
+4. **Automated detection**: Build violation detection systems
+5. **Content rewriting**: Strategies for policy compliance
+
+**Specializations**:
+- Google/Yelp/Airbnb review policies
+- Social media content guidelines
+- Violation detection patterns
+- Content rewriting strategies
+
+**Anti-patterns**:
+- ❌ Don't use for technical code review
+- ❌ Don't use for feature implementation
+
+**Invocation Template**:
+```
+Task: Review content for policy compliance
+
+Platform: [Twitter|LinkedIn|Instagram|Google|Yelp]
+
+Content to review:
+- [content text]
+
+Check for:
+- Spam/manipulation
+- Hate speech/harassment
+- Misinformation
+- Copyright violations
+- Platform-specific rules
+```
+
+**Real Example from Repurpose**:
+```
+Task: Ensure AI-generated posts comply with LinkedIn policies
+
+Checked: 30 posts
+Violations found: 0
+Recommendations: Add disclaimers for promotional content
+Time: 5 minutes
+```
+
+---
+
+### 8. batch-workbench-expert
+
+**Purpose**: CSV/PDF batch processing, data workflows, table operations  
+**Type**: Built-in  
+**Tools**: * (all tools)
+
+**Trigger Keywords**: "batch", "CSV", "50+ rows", "bulk", "table", "export"
+
+**Use Cases**:
+1. **CSV operations**: Process 50+ row datasets
+2. **Batch workflows**: Multi-step data processing
+3. **Table UIs**: Selection, progress tracking
+4. **PDF exports**: Document generation
+5. **Bulk operations**: Mass updates/deletes
+
+**Specializations**:
+- CSV/PDF data operations
+- Table interactions (selection, filtering)
+- Batch processing workflows (50+ rows)
+- Progress tracking systems
+- Export infrastructure
+
+**Anti-patterns**:
+- ❌ Don't use for < 10 rows (handle directly)
+- ❌ Don't use for single-record operations
+
+**Invocation Template**:
+```
+Task: Process batch operation
+
+Data format: [CSV|PDF|JSON]
+Row count: [number]
+
+Operations:
+- [transform/validate/export]
+
+UI requirements:
+- Selection capability
+- Progress tracking
+- Error handling
+
+Files:
+- [data file paths]
+```
+
+**Real Example from Repurpose**:
+```
+Task: Design batch content generation for 30 days
+
+Features implemented:
+- Generate 30 posts per platform
+- Progress tracking UI
+- Error recovery for partial failures
+- Draft auto-save
+Time: 90 minutes
+Files: app/batch-create/*, app/api/batch/*
+```
+
+---
+
+### 9. shadcn-expert
+
+**Purpose**: shadcn/ui component design, Next.js patterns, responsive UIs  
+**Type**: Built-in  
+**Tools**: Read, Write, Edit, Glob, Grep
+
+**Trigger Keywords**: "shadcn", "form", "dialog", "sheet", "dropdown", "select"
+
+**Use Cases**:
+1. **Form components**: Complex forms with validation
+2. **Dialogs/Sheets**: Modal patterns
+3. **Data display**: Tables, lists, cards
+4. **Navigation**: Menus, breadcrumbs, tabs
+5. **Feedback**: Toasts, alerts, progress
+
+**Component Categories**:
+- Forms: Input, Select, Checkbox, Radio, Switch
+- Overlays: Dialog, Sheet, Popover, Tooltip
+- Navigation: Dropdown Menu, Tabs, Breadcrumb
+- Data: Table, Card, Avatar, Badge
+- Feedback: Toast, Alert, Progress, Skeleton
+
+**Anti-patterns**:
+- ❌ Don't reinvent components shadcn already has
+- ❌ Don't mix shadcn with other UI libraries
+
+**Invocation Template**:
+```
+Task: Implement [component type] using shadcn/ui
+
+Component: [Dialog|Form|Table|etc]
+
+Requirements:
+- [Feature 1]
+- [Feature 2]
+
+Accessibility:
+- Keyboard navigation
+- Screen reader support
+- ARIA labels
+
+Files:
+- [component file paths]
+```
+
+**Real Example from Repurpose**:
+```
+Task: Add form validation to create page
+
+Components used:
+- Form wrapper with react-hook-form
+- Input with error states
+- Select for platform/tone
+- Button with loading state
+Time: 30 minutes
+Files: app/create/page.tsx
+```
+
+---
+
+### 10. statusline-setup
+
+**Purpose**: Configure Claude Code status line  
+**Type**: Built-in  
+**Tools**: Read, Edit
+
+**Trigger Keywords**: "status line", "configure status", "bottom bar"
+
+**Use Cases**:
+1. Configure status line display
+2. Customize information shown
+3. Toggle visibility
+
+**Anti-patterns**:
+- ❌ Rarely needed in normal development
+
+**Invocation Template**:
+```
+Task: Configure Claude Code status line
+
+Settings:
+- [visibility options]
+- [information to display]
+```
+
+---
+
+### 11. output-style-setup
+
+**Purpose**: Create Claude Code output styles  
+**Type**: Built-in  
+**Tools**: Read, Write, Edit, Glob, Grep
+
+**Trigger Keywords**: "output style", "format output", "customize display"
+
+**Use Cases**:
+1. Create custom output formats
+2. Style code responses
+3. Configure display preferences
+
+**Anti-patterns**:
+- ❌ Rarely needed in normal development
+
+**Invocation Template**:
+```
+Task: Create output style
+
+Style name: [name]
+Format: [markdown|plain|custom]
+```
+
+---
+
+### 12. ui-ux-expert (Custom Agent)
+
+**Purpose**: Magic UI components, design systems, responsive layouts, accessibility  
+**Type**: Custom (.claude/agents/ui-ux-expert.md)  
+**Tools**: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Magic UI MCP
+
+**Trigger Keywords**: "design", "UI", "UX", "layout", "responsive", "Magic UI", "component"
+
+**Use Cases**:
+1. **Design system work**: Tokens, variants, theming
+2. **Magic UI integration**: Animated components, effects
+3. **Responsive design**: Mobile-first layouts
+4. **Accessibility**: WCAG 2.1 AA compliance
+5. **Component architecture**: Atomic design, composition
+
+**Magic UI Component Categories**:
+- **Layouts**: bento-grid, dock, sidebar, file-tree
+- **Motion**: blur-fade, text-reveal, scroll-progress
+- **Interactive**: animated-beam, orbiting-circles, ripple
+- **Buttons**: shimmer-button, shine-border, rainbow-button
+- **Backgrounds**: grid-pattern, dot-pattern, meteors
+
+**Anti-patterns**:
+- ❌ Don't build custom when Magic UI has it
+- ❌ Don't skip accessibility features
+- ❌ Don't ignore mobile experience
+
+**Invocation Template**:
+```
+Task: Design [component/page]
+
+Requirements:
+- User experience goal: [goal]
+- Design constraints: [constraints]
+- Accessibility: WCAG 2.1 AA
+
+Magic UI components to consider:
+- [component 1]
+- [component 2]
+
+Responsive breakpoints:
+- Mobile: sm (640px)
+- Tablet: md (768px)  
+- Desktop: lg (1024px)
+```
+
+**Real Example from Repurpose**:
+```
+Task: Design dashboard with content calendar
+
+Magic UI used:
+- bento-grid for layout
+- blur-fade for smooth entrances
+- shimmer-button for CTAs
+
+Time: 45 minutes
+Files: app/dashboard/page.tsx
+```
+
+---
+
+## 🎯 ORCHESTRATION DECISION ENGINE
+
+### Domain → Agent Mapping Matrix
+
+| Task Domain | Primary Agent | Support Agents | Pattern | Example |
+|-------------|---------------|----------------|---------|---------|
+| **OAuth implementation** | feature-implementer | test-validator → code-reviewer | Sequential auto-chain | "Add Twitter OAuth" |
+| **UI/UX design** | ui-ux-expert | shadcn-expert (if shadcn) | Parallel | "Design dashboard calendar" |
+| **Bug diagnosis** | Explore | code-reviewer (root cause) | Sequential | "Fix redirect loop" |
+| **Test coverage** | test-validator | code-reviewer (test quality) | Sequential | "Test scheduling flow" |
+| **Security audit** | code-reviewer | solodev-claude-reviewer | Parallel | "Audit auth system" |
+| **Batch operations** | batch-workbench-expert | feature-implementer (if new) | Sequential | "Process 50 posts" |
+| **Content policy** | guardrails-expert | — | Single | "Check review compliance" |
+| **Codebase exploration** | Explore | general-purpose (if complex) | Sequential | "Where are errors handled?" |
+| **Performance tuning** | code-reviewer | Explore (bottlenecks) | Iterative | "Optimize API speed" |
+| **Component library** | shadcn-expert | ui-ux-expert | Parallel | "Add form components" |
+| **Feature implementation** | feature-implementer | test-validator → code-reviewer | Auto-chain | "Add recurring posts" |
+| **API endpoint** | feature-implementer | test-validator → code-reviewer | Auto-chain | "Create /api/batch" |
+| **Pre-commit review** | solodev-claude-reviewer | — | Single | "Review staged changes" |
+| **Complex research** | general-purpose | Explore (context) | Sequential | "Analyze architecture" |
+| **Magic UI design** | ui-ux-expert | shadcn-expert | Parallel | "Hero section with animations" |
+
+### Quick Decision Rules
+
+**Size-based**:
+- < 10 lines → Handle directly
+- 10-50 lines → Single agent
+- 50-200 lines → Sequential chain
+- 200+ lines → Parallel swarm
+
+**Complexity-based**:
+- Simple → Handle directly
+- Medium → Single specialized agent
+- Complex → Sequential chain  
+- Very complex → general-purpose analysis first
+
+**Domain-based**:
+- Single domain → One agent
+- Two domains → Sequential chain
+- Three+ domains → Parallel + sync
+
+---
+
+## 🔄 EXECUTION PATTERNS
+
+### Pattern 1: Auto-Chaining (Default for Features)
+
+**When**: feature-implementer completes  
+**Then**: Auto-invoke test-validator → code-reviewer  
+**Time**: Adds 15-30 minutes to implementation
+
+**Example: Implement Instagram OAuth**
+```
+USER: "Implement Instagram OAuth"
+    ↓
+feature-implementer creates:
+├── lib/instagram.ts
+├── app/api/auth/instagram/route.ts
+└── app/api/auth/instagram/callback/route.ts
+    ↓ (automatic)
+test-validator writes:
+└── lib/__tests__/instagram.test.ts (95% coverage)
+    ↓ (automatic)
+code-reviewer audits:
+├── Security: PKCE, state, token storage
+├── Code quality: Error handling, types
+└── Best practices: Rate limiting, retries
+    ↓
+Present complete package to user
+```
+
+**Benefits**:
+- Complete feature with tests and review
+- Catches issues before user sees code
+- Consistent quality across all features
+
+---
+
+### Pattern 2: Parallel Swarm
+
+**When**: Multiple independent tasks  
+**Then**: Invoke all in parallel, sync at end  
+**Time**: Same as slowest agent (vs sum of sequential)
+
+**Example: Add Three OAuth Providers**
+```
+USER: "Add Twitter, LinkedIn, Instagram OAuth"
+    ↓
+feature-implementer(Twitter) || feature-implementer(LinkedIn) || feature-implementer(Instagram)
+├── Twitter: 30 min       ├── LinkedIn: 25 min      ├── Instagram: 35 min
+└── lib/twitter.ts        └── lib/linkedin.ts       └── lib/instagram.ts
+    ↓ (all complete, 35 min total)
+test-validator writes tests for all 3
+    ↓ (20 min)
+code-reviewer audits all 3
+    ↓ (15 min)
+Total time: 70 min (vs 210 min sequential)
+```
+
+**Benefits**:
+- 3x faster for independent tasks
+- No blocking between agents
+- Efficient resource utilization
+
+---
+
+### Pattern 3: Explore → Implement
+
+**When**: Location/understanding needed first  
+**Then**: Explore finds context, then implement  
+**Time**: 5-10 min exploration + implementation time
+
+**Example: Improve Error Handling**
+```
+USER: "Improve error handling"
+    ↓
+Explore agent:
+├── Searches for error patterns
+├── Finds lib/api/errors.ts
+├── Finds error usage in 15 files
+└── Analyzes current patterns
+    ↓ (5 minutes)
+Present findings to user:
+"Error handling found in lib/api/errors.ts.
+Currently using ErrorResponses pattern.
+Gaps: Missing validation errors, no retry logic."
+    ↓
+USER: "Fix the gaps"
+    ↓
+feature-implementer:
+├── Add validation error types
+├── Implement retry logic  
+└── Update error handling in 15 files
+    ↓ (30 minutes)
+Result: Comprehensive error handling
+```
+
+**Benefits**:
+- User sees what exists before changes
+- Informed decisions on approach
+- No wasted implementation work
+
+---
+
+### Pattern 4: Iterative Refinement
+
+**When**: Optimization/improvement needed  
+**Then**: Review → Fix → Validate → Repeat  
+**Time**: 30-60 min per iteration
+
+**Example: Optimize Performance**
+```
+USER: "Optimize performance"
+    ↓
+ITERATION 1:
+Explore identifies bottlenecks:
+├── /api/adapt: 8s (OpenAI latency)
+├── /api/posts: 2s (N+1 queries)
+└── Dashboard: 3s (unoptimized images)
+    ↓ (10 min)
+code-reviewer analyzes:
+├── OpenAI: Add caching layer
+├── Posts: Optimize Supabase query with join
+└── Dashboard: Implement next/image
+    ↓ (10 min)
+feature-implementer fixes:
+├── Add Redis caching for OpenAI
+├── Single query instead of N+1
+└── Convert to next/image
+    ↓ (40 min)
+test-validator benchmarks:
+├── /api/adapt: 8s → 0.5s (cached)
+├── /api/posts: 2s → 0.3s
+└── Dashboard: 3s → 1.2s
+    ↓ (10 min)
+    
+ITERATION 2 (if needed):
+Identify new bottlenecks...
+```
+
+**Benefits**:
+- Measurable improvements each cycle
+- Focus on biggest wins first
+- Know when to stop optimizing
+
+---
+
+### Pattern 5: Research → Design → Implement
+
+**When**: New complex feature with unclear approach  
+**Then**: Research → UI design → Implementation  
+**Time**: 60-120 min total
+
+**Example: Add Content Calendar**
+```
+USER: "Add content calendar with drag-and-drop"
+    ↓
+general-purpose research:
+├── Survey existing calendar libraries
+├── Analyze drag-and-drop patterns
+├── Review Next.js best practices
+└── Recommend: react-big-calendar + dnd-kit
+    ↓ (20 min)
+ui-ux-expert designs:
+├── Monthly grid layout
+├── Post cards with status indicators
+├── Drag-and-drop UX patterns
+├── Mobile responsive design
+└── Accessibility requirements
+    ↓ (30 min)
+feature-implementer builds:
+├── CalendarGrid component
+├── Post card component
+├── Drag-drop logic
+└── API integration
+    ↓ (50 min)
+test-validator:
+└── E2E drag-drop tests
+    ↓ (15 min)
+Total: 115 min for complete feature
+```
+
+---
+
+## 📚 REPURPOSE-SPECIFIC PLAYBOOKS
+
+### Playbook 1: Add New OAuth Provider
+
+**Agents**: feature-implementer → test-validator → code-reviewer  
+**Time**: 30-45 minutes  
+**Complexity**: Medium
+
+**Steps**:
+1. **feature-implementer** (20-30 min):
+   - Create `lib/{provider}.ts` with OAuth functions:
+     - `generateAuthUrl()` - PKCE challenge generation
+     - `exchangeCodeForTokens()` - Token exchange
+     - `refreshAccessToken()` - Token refresh
+     - `postContent()` - Platform-specific posting
+   - Create `app/api/auth/{provider}/route.ts` - Initialize OAuth
+   - Create `app/api/auth/{provider}/callback/route.ts` - Handle callback
+   - Update `lib/types.ts` - Add provider type
+
+2. **test-validator** (10-15 min):
+   - OAuth flow tests (PKCE, state validation)
+   - Token refresh tests
+   - Error handling tests
+   - Integration tests for posting
+
+3. **code-reviewer** (5-10 min):
+   - Security audit: Secrets, encryption, state parameter
+   - Code quality: Error handling, types, docs
+   - Best practices: Rate limiting, token expiration
+
+**Files Created/Modified**:
+```
+lib/{provider}.ts                          (new)
+app/api/auth/{provider}/route.ts           (new)
+app/api/auth/{provider}/callback/route.ts  (new)
+lib/__tests__/{provider}.test.ts           (new)
+lib/types.ts                               (modified - add Platform type)
+```
+
+**Success Criteria**:
+- [ ] OAuth flow completes successfully
+- [ ] Tokens stored securely in social_accounts table
+- [ ] Token refresh works before expiration
+- [ ] Posting to platform succeeds
+- [ ] All tests pass (> 90% coverage)
+
+---
+
+### Playbook 2: Add New UI Page/Feature
+
+**Agents**: ui-ux-expert → feature-implementer → test-validator  
+**Time**: 45-60 minutes  
+**Complexity**: Medium
+
+**Steps**:
+1. **ui-ux-expert** (15-20 min):
+   - Design layout with Magic UI components
+   - Define responsive breakpoints
+   - Plan accessibility features
+   - Select design tokens
+
+2. **feature-implementer** (25-30 min):
+   - Build page component with layout
+   - Implement client-side logic
+   - Add form handling/validation
+   - Integrate with API endpoints
+   - Add loading/error states
+
+3. **test-validator** (10-15 min):
+   - E2E test for happy path
+   - Error state tests
+   - Responsive behavior tests
+   - Accessibility checks
+
+**Files Created/Modified**:
+```
+app/{page}/page.tsx                (new)
+components/{feature}/*             (new)
+app/api/{endpoint}/route.ts        (new if needed)
+tests/{feature}.spec.ts            (new)
+```
+
+**Success Criteria**:
+- [ ] Page loads without errors
+- [ ] Responsive on mobile/tablet/desktop
+- [ ] Accessibility: WCAG 2.1 AA compliance
+- [ ] All user interactions work
+- [ ] E2E tests pass
+
+---
+
+### Playbook 3: Fix Production Bug
+
+**Agents**: Explore → code-reviewer → feature-implementer  
+**Time**: 15-30 minutes  
+**Complexity**: Low-Medium
+
+**Steps**:
+1. **Explore** (5 min):
+   - Find bug location in codebase
+   - Identify related files
+   - Gather context
+
+2. **code-reviewer** (5-10 min):
+   - Analyze root cause
+   - Identify edge cases
+   - Recommend fix approach
+
+3. **feature-implementer** (10-15 min):
+   - Implement fix
+   - Add regression test
+   - Update error handling
+
+**Real Example: Batch-Create Redirect Bug**
+```
+Problem: Page redirects to dashboard after 1 second
+
+Explore found: app/batch-create/page.tsx
+code-reviewer diagnosed:
+├── /batch-create missing from middleware
+└── Wrong Supabase client import (non-SSR)
+
+feature-implementer fixed:
+├── Added route to middleware.ts:91
+└── Changed import to @/lib/supabase-client
+
+Time: 15 minutes
+Commits: 2d381ee, bf06137
+```
+
+**Success Criteria**:
+- [ ] Bug no longer reproduces
+- [ ] Regression test added
+- [ ] No new bugs introduced
+- [ ] Tests pass
+
+---
+
+### Playbook 4: Batch Data Processing
+
+**Agents**: batch-workbench-expert → feature-implementer → test-validator  
+**Time**: 60-90 minutes  
+**Complexity**: High
+
+**Steps**:
+1. **batch-workbench-expert** (20-30 min):
+   - Design CSV/table workflow
+   - Plan progress tracking UI
+   - Define error recovery strategy
+   - Design selection interface
+
+2. **feature-implementer** (30-45 min):
+   - Build batch processing logic
+   - Implement progress tracking
+   - Add error handling with retry
+   - Create UI with table/selection
+
+3. **test-validator** (15-20 min):
+   - Test with 50+ rows
+   - Edge cases: partial failures
+   - Progress tracking accuracy
+   - Error recovery flow
+
+**Real Example: Batch Content Generation**
+```
+Feature: Generate 30 days of content
+
+batch-workbench-expert designed:
+├── Input: theme + topics list
+├── Generate 30 posts per platform
+├── Progress bar with percentage
+└── Draft auto-save
+
+feature-implementer built:
+├── app/batch-create/page.tsx (UI)
+├── app/api/batch/generate/route.ts
+├── app/api/batch/schedule/route.ts
+└── Retry logic with exponential backoff
+
+Time: 90 minutes
+Files: 3 new files, 710 lines
+```
+
+**Success Criteria**:
+- [ ] Processes 50+ rows successfully
+- [ ] Progress tracking accurate
+- [ ] Error recovery works
+- [ ] Performance acceptable
+- [ ] Tests cover edge cases
+
+---
+
+### Playbook 5: Content Policy Compliance
+
+**Agents**: guardrails-expert  
+**Time**: 5-10 minutes  
+**Complexity**: Low
+
+**Steps**:
+1. **guardrails-expert** (5-10 min):
+   - Review content against platform policies
+   - Flag policy violations
+   - Recommend rewrites if needed
+   - Document compliance status
+
+**Use Cases**:
+- Review AI-generated content before posting
+- Ensure LinkedIn posts follow promotional guidelines
+- Check Twitter posts for manipulation/spam
+- Validate Instagram captions for hashtag limits
+
+**Real Example: LinkedIn Post Compliance**
+```
+Task: Review 30 AI-generated LinkedIn posts
+
+guardrails-expert checked:
+├── Spam/manipulation: ✅ None found
+├── Promotional content: ⚠️ 5 posts need disclaimer
+├── Hashtag limits: ✅ All within limits
+└── Authenticity: ✅ Properly humanized
+
+Recommendations:
+- Add "Sponsored" disclaimer to 5 posts
+- Reduce hashtags from 8 to 5 (best practice)
+
+Time: 8 minutes
+```
+
+**Success Criteria**:
+- [ ] All content reviewed
+- [ ] Violations flagged
+- [ ] Rewrites provided if needed
+- [ ] Compliance documented
+
+---
+
+### Playbook 6: Accessibility Audit & Fixes
+
+**Agents**: ui-ux-expert → code-reviewer → feature-implementer  
+**Time**: 30-60 minutes  
+**Complexity**: Medium
+
+**Steps**:
+1. **ui-ux-expert** (15-20 min):
+   - Run accessibility audit
+   - Check WCAG 2.1 AA compliance
+   - Identify violations
+   - Recommend fixes
+
+2. **code-reviewer** (5-10 min):
+   - Review semantic HTML
+   - Check ARIA labels
+   - Validate keyboard navigation
+
+3. **feature-implementer** (15-30 min):
+   - Add missing ARIA labels
+   - Fix color contrast issues
+   - Implement keyboard navigation
+   - Add screen reader support
+
+**Common Issues**:
+- Missing alt text on images
+- Insufficient color contrast (< 4.5:1)
+- Missing form labels
+- No keyboard navigation
+- Broken focus indicators
+
+**Success Criteria**:
+- [ ] WCAG 2.1 AA compliance
+- [ ] Keyboard navigation works
+- [ ] Screen reader compatible
+- [ ] Focus indicators visible
+- [ ] All forms have labels
+
+---
+
+### Playbook 7: Performance Optimization
+
+**Agents**: Explore → code-reviewer → feature-implementer → test-validator  
+**Time**: 60-120 minutes  
+**Complexity**: High
+
+**Steps**:
+1. **Explore** (15-20 min):
+   - Identify performance bottlenecks
+   - Measure current metrics
+   - Find slow queries/endpoints
+
+2. **code-reviewer** (20-30 min):
+   - Analyze optimization opportunities
+   - N+1 query detection
+   - Large payload identification
+   - Caching opportunities
+
+3. **feature-implementer** (30-50 min):
+   - Implement optimizations
+   - Add caching layer
+   - Optimize database queries
+   - Lazy load components
+
+4. **test-validator** (10-20 min):
+   - Performance benchmarks
+   - Load testing
+   - Validate improvements
+
+**Real Example: API Response Time Optimization**
+```
+Problem: /api/adapt taking 8s, /api/posts taking 2s
+
+Explore found:
+├── /api/adapt: OpenAI latency
+└── /api/posts: N+1 queries
+
+code-reviewer analyzed:
+├── Add Redis caching for OpenAI
+└── Single Supabase query with join
+
+feature-implementer optimized:
+├── Implemented Redis cache
+└── Fixed N+1 with proper join
+
+test-validator measured:
+├── /api/adapt: 8s → 0.5s (94% improvement)
+└── /api/posts: 2s → 0.3s (85% improvement)
+
+Time: 75 minutes
+```
+
+**Success Criteria**:
+- [ ] Performance targets met
+- [ ] No regressions introduced
+- [ ] Benchmarks documented
+- [ ] Monitoring in place
+
+---
+
+## 🎯 10 REAL-WORLD EXAMPLES FROM REPURPOSE
+
+### Example 1: Batch-Create Redirect Bug (October 17, 2025)
+
+**Problem**: Clicking "Batch Create" loads page for 1 second then redirects to dashboard
+
+**Symptoms**:
+```
+Server logs:
+GET /batch-create 200 in 70ms
+GET /dashboard 200 in 60ms  ← Unwanted redirect!
+```
+
+**Diagnosis**:
+```
+Agents: Explore → code-reviewer → feature-implementer
+Time: 15 minutes
+
+Explore: Found page at app/batch-create/page.tsx
+code-reviewer diagnosed TWO issues:
+1. /batch-create missing from middleware.ts protectedPageRoutes
+2. Wrong import: using '@/lib/supabase/client' (non-SSR) instead of '@/lib/supabase-client'
+```
+
+**Solution**:
+```
+feature-implementer fixed:
+1. Added '/batch-create' to middleware.ts:91
+2. Changed import in app/batch-create/page.tsx:4
+
+Result:
+GET /batch-create 200 in 4448ms
+GET /favicon.ico 200 in 791ms  ← No redirect!
+```
+
+**Commits**: `2d381ee` (middleware), `bf06137` (import fix)  
+**Files Modified**: 2  
+**Learning**: Always check middleware protection AND client SSR compatibility
+
+---
+
+### Example 2: Reset-Password Suspense Error (October 17, 2025)
+
+**Problem**: Vercel build failing with Suspense boundary error
+
+**Error**:
+```
+useSearchParams() should be wrapped in a suspense boundary
+at page "/reset-password"
+```
+
+**Diagnosis**:
+```
+Agents: code-reviewer
+Time: 5 minutes
+
+code-reviewer identified:
+- useSearchParams() requires Suspense for static generation
+- Next.js 15 enforces this for App Router
+```
+
+**Solution**:
+```
+code-reviewer implemented:
+1. Imported Suspense from React
+2. Extracted ResetPasswordForm component
+3. Wrapped in Suspense with loading fallback
+
+Before:
+export default function ResetPasswordPage() {
+  const searchParams = useSearchParams()  // ❌ Error
+  ...
+}
+
+After:
+function ResetPasswordForm() {
+  const searchParams = useSearchParams()  // ✅ Inside Suspense
+  ...
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ResetPasswordForm />
+    </Suspense>
+  )
+}
+```
+
+**Commit**: `92220dc`  
+**Files Modified**: 1  
+**Build Status**: ✅ Succeeded (38/38 pages generated)  
+**Learning**: All useSearchParams() usage needs Suspense in Next.js 15
+
+---
+
+### Example 3: Batch Create Feature (October 16, 2025)
+
+**Feature**: Generate 30 days of content at once
+
+**Agents Used**: batch-workbench-expert → feature-implementer → test-validator  
+**Time**: 90 minutes
+
+**Implementation**:
+```
+batch-workbench-expert designed:
+├── Input form: theme, topics, platforms
+├── Generate 30 posts per platform
+├── Progress tracking UI
+├── Draft auto-save (24hr validity)
+└── Bulk scheduling with optimal times
+
+feature-implementer built:
+├── app/batch-create/page.tsx (710 lines)
+├── app/api/batch/generate/route.ts
+├── app/api/batch/schedule/route.ts
+├── Retry logic (exponential backoff)
+└── Error recovery (partial failures)
+
+test-validator verified:
+├── Generation of 60 posts (2 platforms × 30)
+├── Partial failure handling
+├── Progress tracking accuracy
+└── Draft persistence
+```
+
+**Features Delivered**:
+- Generate 30 posts per platform
+- AI-powered theme & topic expansion
+- Automatic scheduling at optimal times
+- Real-time progress tracking
+- Error recovery with retry
+- Draft auto-save for 24 hours
+
+**Commit**: `3045c00`  
+**Files**: 3 new files, 710 lines  
+**Learning**: Batch operations need robust error recovery
+
+---
+
+### Example 4: Complete P0 UI/UX Fixes (October 16, 2025)
+
+**Project**: Fix 9 critical UI/UX issues
+
+**Agents Used**: ui-ux-expert (primary)  
+**Time**: 21 hours  
+**Issues Fixed**: 9
+
+**Issues & Solutions**:
+```
+1. Batch Create navigation
+   └─ Added to AppHeader with "NEW" badge
+
+2. Character counters
+   └─ Implemented real-time validation with visual feedback
+
+3. Timezone handling
+   └─ Fixed datetime-local min attribute
+
+4. Success feedback
+   └─ Added toast notifications with proper timing
+
+5. Error states
+   └─ Comprehensive error handling with recovery options
+
+6. Loading states
+   └─ Skeleton screens + shimmer effects
+
+7. Mobile responsive
+   └─ Tested on 3 breakpoints (sm/md/lg)
+
+8. Empty states
+   └─ Added illustrations + helpful copy
+
+9. Accessibility
+   └─ ARIA labels, keyboard navigation, focus indicators
+```
+
+**Commit**: `4ec47d7`  
+**Files Modified**: 15  
+**Learning**: UI/UX requires holistic approach across all pages
+
+---
+
+### Example 5: Design Token System (October 15, 2025)
+
+**Feature**: Centralized design tokens for consistency
+
+**Agents Used**: ui-ux-expert  
+**Time**: 90 minutes
+
+**Implementation**:
+```
+ui-ux-expert created lib/design-tokens.ts:
+
+// Color tokens
+COLOR_PRIMARY = {
+  bg: 'bg-blue-600',
+  bgHover: 'hover:bg-blue-700',
+  text: 'text-blue-600',
+  border: 'border-blue-600',
+  bgLight: 'bg-blue-50'
+}
+
+COLOR_SUCCESS = {
+  bg: 'bg-green-600',
+  ...
+}
+
+COLOR_AI = {
+  bg: 'bg-purple-600',
+  ...
+}
+
+// Component variants
+BUTTON_VARIANTS = {
+  primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+  success: 'bg-green-600 hover:bg-green-700 text-white',
+  ...
+}
+```
+
+**Benefits**:
+- Consistent colors across 15 pages
+- Easy theme updates (change once, apply everywhere)
+- Clear semantic naming
+- Reduced hardcoded values
+
+**Files**: 1 new file (lib/design-tokens.ts)  
+**Usage**: Imported in 15 components  
+**Learning**: Design tokens crucial for maintainability
+
+---
+
+### Example 6: Instagram OAuth Implementation (Hypothetical)
+
+**Feature**: Add Instagram OAuth integration
+
+**Agents Used**: feature-implementer → test-validator → code-reviewer  
+**Time**: 45 minutes (estimated)
+
+**Implementation Plan**:
+```
+feature-implementer would create:
+├── lib/instagram.ts (OAuth + posting functions)
+│   ├── generateAuthUrl() - OAuth 2.0 flow
+│   ├── exchangeCodeForTokens() - Token exchange
+│   ├── refreshAccessToken() - 60-day expiration
+│   └── postContent() - Instagram Graph API
+├── app/api/auth/instagram/route.ts (init)
+└── app/api/auth/instagram/callback/route.ts (callback)
+
+test-validator would write:
+└── lib/__tests__/instagram.test.ts
+    ├── OAuth flow tests
+    ├── Token refresh tests
+    └── Posting tests
+
+code-reviewer would audit:
+├── Security: Token encryption, expiration
+├── Error handling: Rate limits, API errors
+└── Best practices: Retry logic, logging
+```
+
+**Learning**: OAuth patterns reusable across providers
+
+---
+
+### Example 7: Content Calendar UI (Hypothetical)
+
+**Feature**: Monthly calendar with drag-and-drop scheduling
+
+**Agents Used**: ui-ux-expert → feature-implementer → test-validator  
+**Time**: 120 minutes (estimated)
+
+**Implementation Plan**:
+```
+ui-ux-expert would design:
+├── Monthly grid layout (7×5 grid)
+├── Post cards with platform indicators
+├── Drag-and-drop UX patterns
+├── Mobile: Collapse to list view
+└── Accessibility: Keyboard navigation
+
+feature-implementer would build:
+├── components/calendar/CalendarGrid.tsx
+├── components/calendar/CalendarDay.tsx
+├── components/calendar/PostCard.tsx
+├── hooks/useCalendarDragDrop.ts
+└── API integration with /api/posts
+
+test-validator would test:
+├── Drag-drop functionality
+├── Date validation
+├── Responsive behavior
+└── Keyboard navigation
+```
+
+**Learning**: Complex interactions need extensive E2E testing
+
+---
+
+### Example 8: API Rate Limiting Enhancement (Hypothetical)
+
+**Feature**: Tiered rate limits with user feedback
+
+**Agents Used**: feature-implementer → test-validator  
+**Time**: 60 minutes (estimated)
+
+**Implementation Plan**:
+```
+feature-implementer would add:
+├── lib/rate-limit.ts enhancements
+│   ├── Tiered limits (free/pro/enterprise)
+│   ├── Per-endpoint quotas
+│   └── User feedback (remaining, reset time)
+├── Middleware updates
+└── UI quota indicators
+
+test-validator would test:
+├── Rate limit enforcement
+├── Tier transitions
+├── Reset timing
+└── User feedback accuracy
+```
+
+**Learning**: Rate limiting needs clear user communication
+
+---
+
+### Example 9: Content Compliance System (Hypothetical)
+
+**Feature**: Automated policy checking for generated content
+
+**Agents Used**: guardrails-expert → feature-implementer  
+**Time**: 45 minutes (estimated)
+
+**Implementation Plan**:
+```
+guardrails-expert would design:
+├── Policy rule engine
+│   ├── Twitter: No manipulation, authentic engagement
+│   ├── LinkedIn: Professional tone, no excessive promotion
+│   └── Instagram: Hashtag limits, authenticity
+├── Violation detection patterns
+└── Content rewriting strategies
+
+feature-implementer would build:
+├── lib/content-policy.ts
+│   ├── checkCompliance()
+│   ├── detectViolations()
+│   └── suggestRewrites()
+└── Integration in /api/adapt route
+```
+
+**Learning**: Proactive policy checking prevents platform issues
+
+---
+
+### Example 10: Dashboard Performance Optimization (Hypothetical)
+
+**Feature**: Reduce dashboard load time from 3s to < 1s
+
+**Agents Used**: Explore → code-reviewer → feature-implementer → test-validator  
+**Time**: 90 minutes (estimated)
+
+**Implementation Plan**:
+```
+Explore would identify:
+├── Slow queries: posts, social_accounts
+├── Unoptimized images
+└── Unnecessary re-renders
+
+code-reviewer would analyze:
+├── N+1 queries: 10 separate queries
+├── Missing indexes: user_id, status
+├── Large bundle: Framer Motion loaded eagerly
+└── Re-render: Every state change
+
+feature-implementer would optimize:
+├── Single query with join
+├── Database indexes: idx_posts_user_status
+├── Dynamic import for Framer Motion
+└── React.memo for components
+
+test-validator would benchmark:
+├── Initial load: 3s → 0.8s (73% improvement)
+├── Calendar render: 500ms → 100ms
+└── Lighthouse score: 65 → 92
+```
+
+**Learning**: Systematic performance optimization needs measurement
+
+---
+
+## 🏗️ PROJECT CONTEXT
+
+### Project Overview
+
+**What is Repurpose?**
+
+An MVP SaaS platform enabling content creators to:
 - Adapt content for multiple social media platforms (Twitter, LinkedIn, Instagram)
 - Apply AI-powered humanization and viral content frameworks
 - Schedule posts with intelligent timing
 - Manage OAuth connections to social platforms
 - Track post status and execution
 
-### 1.2 Target Users
-
+**Target Users**:
 - Individual creators and solopreneurs
 - Small marketing teams (1-5 accounts)
 - Content strategists managing multi-platform presence
 
-### 1.3 Key Differentiators
-
+**Key Differentiators**:
 - **Humanization Protocol**: De-polished, authentic content generation
 - **Viral Framework**: 5-axis optimization (Hook, Body, CTA, Intention, Style)
 - **Platform-Native Adaptation**: Each platform gets custom guidelines
@@ -114,10 +1619,9 @@ An MVP SaaS platform that enables content creators to:
 
 ---
 
-## 2. Tech Stack & Architecture
+### Tech Stack & Architecture
 
-### 2.1 Frontend Stack
-
+**Frontend Stack**:
 ```yaml
 Framework: Next.js 15.5.4 (App Router)
 Language: TypeScript 5.x (strict mode)
@@ -128,8 +1632,7 @@ Components: shadcn/ui + custom components
 Build: Turbopack (Next.js native)
 ```
 
-### 2.2 Backend Stack
-
+**Backend Stack**:
 ```yaml
 Runtime: Node.js (Vercel serverless)
 API: Next.js API Routes (app/api/*/route.ts)
@@ -140,8 +1643,7 @@ AI: OpenAI GPT-4o (gpt-4o model)
 Rate Limiting: Upstash Redis (sliding window)
 ```
 
-### 2.3 External Integrations
-
+**External Integrations**:
 - **OpenAI API**: Content adaptation and humanization
 - **Twitter API v2**: OAuth 2.0 PKCE + tweet posting
 - **LinkedIn API**: OAuth 2.0 + UGC post publishing
@@ -149,648 +1651,161 @@ Rate Limiting: Upstash Redis (sliding window)
 - **Upstash Redis**: Rate limiting and caching
 - **Vercel**: Hosting, edge functions, analytics
 
-### 2.4 Architecture Diagram
-
+**Architecture**:
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    User Browser (React)                      │
-│              Next.js 15 App Router + Turbopack               │
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────────┐
-│                Next.js API Routes (Serverless)               │
-│  ┌──────────┬──────────┬──────────┬──────────┬───────────┐ │
-│  │  /adapt  │/schedule │  /posts  │  /auth   │/templates │ │
-│  └──────────┴──────────┴──────────┴──────────┴───────────┘ │
-└───┬──────────┬──────────┬──────────┬──────────┬────────────┘
-    │          │          │          │          │
-    ▼          ▼          ▼          ▼          ▼
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│ OpenAI │ │ QStash │ │Supabase│ │Twitter │ │LinkedIn│
-│  GPT-4 │ │        │ │   DB   │ │  API   │ │  API   │
-└────────┘ └───┬────┘ └────────┘ └────────┘ └────────┘
-               │
-               │ (delayed callback)
-               ▼
-        /api/post/execute
+┌─────────────────────────────────────────┐
+│     User Browser (React/Next.js)        │
+└─────────────────┬───────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│    Next.js API Routes (Serverless)      │
+│  /adapt  /schedule  /posts  /auth       │
+└────┬──────┬──────┬──────┬───────────────┘
+     ↓      ↓      ↓      ↓
+┌────────┬──────┬────────┬────────┐
+│ OpenAI │QStash│Supabase│Social  │
+│ GPT-4  │      │   DB   │Platforms
+└────────┴──────┴────────┴────────┘
 ```
 
 ---
 
-## 🎯 Practical Agent Examples
+### Core Workflows
 
-### Example 1: New Feature Request
-
-**User**: "Implement Instagram OAuth"
-
-**Claude's Analysis**:
-- Keywords detected: "implement", "OAuth"
-- Match: **feature-implementer**
-- Auto-chain: test-validator → code-reviewer
-
-**Execution**:
-```bash
-1. Invoke feature-implementer
-   Input: "Implement Instagram OAuth following lib/twitter.ts pattern"
-   Output: lib/instagram.ts, app/api/auth/instagram/*.ts
-
-2. Auto-invoke test-validator
-   Input: "Write tests for lib/instagram.ts"
-   Output: lib/__tests__/instagram.test.ts (95% coverage)
-
-3. Auto-invoke code-reviewer
-   Input: "Review Instagram OAuth implementation"
-   Output: Security audit + suggestions
-
-4. Claude presents complete package to user
+**1. Content Adaptation Workflow**:
+```
+User enters content + selects platforms/tone
+    ↓
+POST /api/adapt (with auth + rate limit)
+    ↓
+OpenAI GPT-4o adapts for each platform (parallel)
+    ↓
+Return adapted content with character counts
 ```
 
-### Example 2: Bug Fix
+**Key files**: `app/api/adapt/route.ts:12-139`, `lib/anthropic.ts:57-170`
 
-**User**: "Fix the timezone bug in scheduling"
-
-**Claude's Analysis**:
-- Small bugfix (< 10 lines expected)
-- Skip agents, fix directly
-
-**Execution**:
-```bash
-Claude fixes directly:
-- Read app/create/page.tsx
-- Fix datetime-local min attribute
-- Commit with clear message
-```
-
-### Example 3: Test Request
-
-**User**: "Test the scheduling flow for edge cases"
-
-**Claude's Analysis**:
-- Keywords: "test", "edge cases"
-- Match: **test-validator**
-- Skip auto-chain (no new code)
-
-**Execution**:
-```bash
-1. Invoke test-validator
-   Input: "Write comprehensive tests for app/api/schedule/route.ts"
-   Output: lib/__tests__/schedule.test.ts with edge cases
-```
-
-### Example 4: Parallel Features
-
-**User**: "Add Twitter and LinkedIn posting"
-
-**Claude's Analysis**:
-- Independent tasks
-- Use parallel execution
-
-**Execution**:
-```bash
-1. Invoke feature-implementer (Twitter) || feature-implementer (LinkedIn)
-   Both run simultaneously
-
-2. Wait for both to complete
-
-3. Invoke test-validator (both)
-   Input: "Test both implementations"
-
-4. Invoke code-reviewer (both)
-   Input: "Review both implementations"
-```
+**Subagent recommendation**: For AI prompt changes → guardrails-expert or general-purpose
 
 ---
 
-## 3. Subagent Orchestration System
+**2. Post Scheduling Workflow**:
+```
+User selects datetime + confirms schedule
+    ↓
+POST /api/schedule (validate auth + input)
+    ↓
+Insert post to database (status: scheduled)
+    ↓
+Schedule QStash delayed job
+    ↓
+Return success to user
 
-### 3.1 Orchestration Philosophy
-
-**Primary Agents (Use These First)**:
-- **feature-implementer**: For new features and endpoints
-- **test-validator**: For writing and validating tests
-- **code-reviewer**: For code quality and security reviews
-
-**Legacy Specialized Agents (Use When Needed)**:
-- API Security & Authentication Agent (OAuth, auth flows)
-- Content Adaptation & AI Agent (OpenAI prompts)
-- Database & Schema Architect Agent (Supabase, migrations)
-- Job Scheduling & Queue Agent (QStash, cron)
-- Frontend UX Engineering Agent (React components, UI)
-- Deployment & DevOps Agent (Vercel, env vars)
-
-**When to invoke subagents:**
-- Complex, multi-step tasks requiring specialized expertise
-- Domain-specific implementations (OAuth, security, etc.)
-- Tasks that benefit from focused context and expertise
-- Parallel execution opportunities (multiple independent tasks)
-
-**When to handle directly:**
-- Simple, single-file edits (< 10 lines)
-- Quick bug fixes with clear context
-- Documentation updates
-- Configuration changes
-
-### 3.2 Available Specialized Subagents
-
-#### 3.2.1 API Security & Authentication Agent
-**Specialty**: Authentication, authorization, rate limiting, input validation
-
-**Invoke for:**
-- Implementing or fixing auth middleware
-- Setting up OAuth flows
-- Configuring rate limiting strategies
-- Input sanitization and validation
-- JWT/session management
-- CSRF/XSS protection
-
-**Example invocation:**
-```markdown
-Task: Implement secure OAuth 2.0 PKCE flow for Twitter authentication with proper state management and token storage.
-
-Requirements:
-- Generate cryptographically secure code_verifier and code_challenge
-- Store verifier server-side (encrypted session or DB)
-- Validate state parameter in callback
-- Exchange code for access/refresh tokens
-- Store tokens securely in social_accounts table
-- Handle token expiration and refresh
-
-Files to review:
-- lib/twitter.ts
-- app/api/auth/twitter/route.ts
-- app/api/auth/twitter/callback/route.ts
+[Later, at scheduled time]
+QStash → POST /api/post/execute
+    ↓
+Verify QStash signature
+    ↓
+Get post + social account from DB
+    ↓
+Refresh OAuth tokens if needed
+    ↓
+Post to platform (Twitter/LinkedIn)
+    ↓
+Update post status (posted/failed)
 ```
 
-#### 3.2.2 Content Adaptation & AI Agent
-**Specialty**: OpenAI integration, prompt engineering, content optimization
+**Key files**: `app/api/schedule/route.ts`, `app/api/post/execute/route.ts`, `lib/qstash.ts`
 
-**Invoke for:**
-- Modifying content adaptation prompts
-- Implementing new AI features
-- Optimizing token usage and costs
-- Adding tone variations or platform guidelines
-- Implementing content caching strategies
-- Handling OpenAI API errors and retries
-
-**Example invocation:**
-```markdown
-Task: Add Instagram Reels support to content adaptation with short-form video script generation.
-
-Requirements:
-- Add 'reels' as new platform type
-- Create guidelines for 15-60 second video scripts
-- Include visual direction, transitions, music suggestions
-- Maintain humanization protocol
-- Stay within 800 character limit
-- Add hook/climax/CTA structure
-
-Files to modify:
-- lib/anthropic.ts (add reels guidelines)
-- lib/types.ts (extend Platform type)
-- app/api/adapt/route.ts (validate reels platform)
-```
-
-#### 3.2.3 Database & Schema Architect Agent
-**Specialty**: Supabase, RLS policies, migrations, type generation
-
-**Invoke for:**
-- Creating or modifying database tables
-- Implementing RLS (Row Level Security) policies
-- Writing SQL migrations
-- Generating TypeScript types from schema
-- Optimizing database queries
-- Setting up database indexes
-- Implementing cascade deletions
-
-**Example invocation:**
-```markdown
-Task: Add analytics tracking table for post performance metrics with RLS policies.
-
-Requirements:
-- Create 'post_analytics' table:
-  - id (uuid, primary key)
-  - post_id (uuid, foreign key to posts)
-  - platform (text)
-  - impressions (integer)
-  - engagements (integer)
-  - clicks (integer)
-  - shares (integer)
-  - recorded_at (timestamptz)
-- RLS policy: users can only view analytics for their own posts
-- Index on (user_id, recorded_at) for efficient queries
-- Generate TypeScript types
-
-Files to create/modify:
-- supabase/migrations/add_post_analytics.sql
-- lib/database.types.ts (regenerate)
-```
-
-#### 3.2.4 Job Scheduling & Queue Agent
-**Specialty**: QStash integration, cron jobs, delayed execution
-
-**Invoke for:**
-- Implementing new scheduled job types
-- Optimizing job execution strategies
-- Handling job failures and retries
-- Implementing job cancellation
-- Adding recurring job patterns
-- QStash signature verification
-
-**Example invocation:**
-```markdown
-Task: Implement recurring post functionality with weekly/monthly scheduling.
-
-Requirements:
-- Add 'recurring_posts' table:
-  - frequency (enum: daily, weekly, monthly)
-  - next_scheduled_time (timestamptz)
-  - is_active (boolean)
-- Create cron job to process recurring posts
-- Implement copy logic for regenerating posts
-- Update QStash scheduling to handle recurring jobs
-- Add UI for managing recurring schedules
-
-Files to create/modify:
-- app/api/cron/process-recurring-posts/route.ts
-- lib/qstash.ts (add recurring job functions)
-- lib/types.ts (add RecurringPost type)
-```
-
-#### 3.2.5 OAuth Integration Expert Agent
-**Specialty**: Twitter/LinkedIn OAuth, token management, PKCE flows
-
-**Invoke for:**
-- Adding new OAuth providers
-- Fixing OAuth callback issues
-- Implementing token refresh logic
-- Handling OAuth errors and edge cases
-- Managing OAuth scopes and permissions
-- Implementing OAuth token encryption
-
-**Example invocation:**
-```markdown
-Task: Add Instagram OAuth integration with token refresh and post publishing.
-
-Requirements:
-- Implement Instagram OAuth 2.0 flow
-- Store access/refresh tokens in social_accounts
-- Implement token refresh logic (60-day expiration)
-- Add post publishing function for Instagram Graph API
-- Handle media uploads (photos)
-- Implement error handling for rate limits
-
-Files to create:
-- lib/instagram.ts (OAuth + posting functions)
-- app/api/auth/instagram/route.ts
-- app/api/auth/instagram/callback/route.ts
-- app/api/post/instagram/route.ts
-```
-
-#### 3.2.6 Frontend UX Engineering Agent
-**Specialty**: React components, Framer Motion, responsive design
-
-**Invoke for:**
-- Building new UI components
-- Implementing complex interactions
-- Adding animations and transitions
-- Responsive design implementation
-- Accessibility improvements
-- Form validation and error states
-
-**Example invocation:**
-```markdown
-Task: Create content calendar view with drag-and-drop scheduling.
-
-Requirements:
-- Monthly calendar grid component
-- Drag-and-drop posts to reschedule
-- Visual indicators for scheduled/posted/failed states
-- Mobile-responsive (collapse to list view)
-- Smooth animations with Framer Motion
-- Keyboard navigation support
-
-Files to create:
-- components/calendar/CalendarGrid.tsx
-- components/calendar/CalendarPost.tsx
-- components/calendar/CalendarDay.tsx
-- hooks/useCalendarDragDrop.ts
-```
-
-#### 3.2.7 Testing & QA Automation Agent
-**Specialty**: Playwright E2E, Jest unit tests, integration tests
-
-**Invoke for:**
-- Writing comprehensive E2E tests
-- Creating unit tests for utilities
-- Integration testing API routes
-- Setting up test fixtures and mocks
-- Implementing test coverage reporting
-- CI/CD test automation
-
-**Example invocation:**
-```markdown
-Task: Create comprehensive E2E test suite for post scheduling flow.
-
-Requirements:
-- Test happy path: login → create content → adapt → schedule → verify
-- Test error cases: expired token, rate limit, invalid input
-- Test edge cases: timezone handling, past dates, concurrent schedules
-- Mock external APIs (OpenAI, QStash, Twitter, LinkedIn)
-- Set up test database with seed data
-- Generate coverage report
-
-Files to create:
-- tests/scheduling-flow.spec.ts
-- tests/fixtures/users.ts
-- tests/fixtures/posts.ts
-- tests/mocks/openai.ts
-- tests/mocks/qstash.ts
-```
-
-#### 3.2.8 Deployment & DevOps Agent
-**Specialty**: Vercel config, environment management, CI/CD
-
-**Invoke for:**
-- Configuring Vercel deployment settings
-- Managing environment variables
-- Setting up preview deployments
-- Implementing CI/CD pipelines
-- Configuring custom domains
-- Setting up monitoring and alerts
-
-**Example invocation:**
-```markdown
-Task: Set up staging environment with separate database and QStash instance.
-
-Requirements:
-- Create staging Vercel project
-- Set up staging Supabase project
-- Configure staging environment variables
-- Set up separate QStash queue for staging
-- Implement branch-based deployments (develop → staging, main → production)
-- Add environment indicator to UI
-
-Files to modify:
-- vercel.json (add staging config)
-- .github/workflows/deploy-staging.yml
-- app/layout.tsx (add environment indicator)
-```
-
-### 3.3 Subagent Invocation Patterns
-
-#### Pattern 1: Sequential Dependency
-When tasks depend on each other's outputs.
-
-```
-Example: Adding a new feature
-1. Database Agent: Create schema and migrations
-2. API Security Agent: Add auth middleware for new endpoint
-3. Content Adaptation Agent: Implement core business logic
-4. Frontend UX Agent: Build UI components
-5. Testing Agent: Write E2E tests
-```
-
-#### Pattern 2: Parallel Execution
-When tasks are independent and can run simultaneously.
-
-```
-Example: Implementing multiple OAuth providers
-- OAuth Expert Agent (Twitter) │ OAuth Expert Agent (LinkedIn) │ OAuth Expert Agent (Instagram)
-  ↓ parallel execution          ↓ parallel execution           ↓ parallel execution
-  Twitter OAuth complete        LinkedIn OAuth complete         Instagram OAuth complete
-```
-
-#### Pattern 3: Iterative Refinement
-When a task requires multiple passes for optimization.
-
-```
-Example: Performance optimization
-1. Deployment Agent: Identify performance bottlenecks
-2. Database Agent: Optimize queries and indexes
-3. Content Adaptation Agent: Implement caching
-4. Testing Agent: Measure improvements
-5. (Repeat if needed)
-```
-
-### 3.4 Orchestration Decision Matrix
-
-| Task Type | Complexity | Domain Expertise | Recommended Approach |
-|-----------|------------|------------------|---------------------|
-| Simple bug fix | Low | General | Direct handling |
-| OAuth implementation | High | OAuth | Invoke OAuth Expert Agent |
-| UI component | Medium | Frontend | Invoke Frontend UX Agent |
-| Database migration | High | Database | Invoke Database Architect Agent |
-| Multiple OAuth providers | High | OAuth | Invoke multiple OAuth Expert Agents (parallel) |
-| New feature (full stack) | High | Multiple | Sequential subagent chain |
-| Performance optimization | Medium | Multiple | Iterative refinement pattern |
-| Security audit | High | Security | Invoke API Security Agent |
+**Subagent recommendation**: For scheduling issues → Explore + code-reviewer
 
 ---
 
-## 4. Core Workflows
-
-### 4.1 Content Adaptation Workflow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant API
-    participant OpenAI
-    participant Database
-
-    User->>Frontend: Enter content + select platforms + tone
-    Frontend->>API: POST /api/adapt
-    API->>API: Validate auth + rate limit
-    API->>API: Sanitize input
-    API->>OpenAI: Adapt for each platform (parallel)
-    OpenAI-->>API: Adapted content
-    API-->>Frontend: Return adapted content
-    Frontend->>User: Display previews
+**3. OAuth Connection Workflow**:
+```
+User clicks "Connect Twitter"
+    ↓
+Generate PKCE verifier + challenge + state
+    ↓
+Store verifier + state in DB (encrypted)
+    ↓
+Redirect to Twitter OAuth
+    ↓
+User approves
+    ↓
+Twitter redirects to callback with code + state
+    ↓
+Validate state, retrieve verifier
+    ↓
+Exchange code + verifier for tokens
+    ↓
+Store tokens in social_accounts table
+    ↓
+Redirect to connections page
 ```
 
-**Key files:**
-- `app/api/adapt/route.ts:12-139` - Main adaptation endpoint
-- `lib/anthropic.ts:57-170` - OpenAI integration with viral framework
-- `lib/rate-limit.ts` - Rate limiting configuration
+**Key files**: `app/api/auth/init-twitter/route.ts`, `app/api/auth/twitter/callback/route.ts`, `lib/twitter.ts`
 
-**Subagent recommendation:**
-- For prompt modifications: Invoke Content Adaptation Agent
-- For rate limiting issues: Invoke API Security Agent
-
-### 4.2 Post Scheduling Workflow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant API
-    participant Database
-    participant QStash
-
-    User->>Frontend: Select datetime + confirm schedule
-    Frontend->>API: POST /api/schedule
-    API->>API: Validate auth + input
-    API->>Database: Insert post (status: scheduled)
-    Database-->>API: Return post ID
-    API->>QStash: Schedule delayed job
-    QStash-->>API: Return message ID
-    API->>Database: Update post with message ID
-    API-->>Frontend: Success response
-
-    Note over QStash: Wait until scheduled time
-
-    QStash->>API: POST /api/post/execute (callback)
-    API->>API: Verify QStash signature
-    API->>Database: Get post + social account
-    API->>API: Refresh OAuth tokens if needed
-    API->>External: Post to platform (Twitter/LinkedIn)
-    External-->>API: Success/failure
-    API->>Database: Update post status
-```
-
-**Key files:**
-- `app/api/schedule/route.ts:9-198` - Scheduling endpoint
-- `app/api/post/execute/route.ts` - QStash callback handler
-- `lib/qstash.ts:31-70` - QStash job scheduling
-- `lib/social-media/refresh.ts` - Token refresh logic
-
-**Subagent recommendation:**
-- For QStash issues: Invoke Job Scheduling Agent
-- For OAuth token problems: Invoke OAuth Expert Agent
-
-### 4.3 OAuth Connection Workflow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant API
-    participant Twitter
-    participant Database
-
-    User->>Frontend: Click "Connect Twitter"
-    Frontend->>API: GET /api/auth/init-twitter
-    API->>API: Generate PKCE verifier + challenge
-    API->>API: Generate state token
-    API->>Database: Store verifier + state (encrypted)
-    API-->>Frontend: Return auth URL
-    Frontend->>Twitter: Redirect to Twitter OAuth
-    Twitter->>User: Show authorization screen
-    User->>Twitter: Approve access
-    Twitter->>Frontend: Redirect to callback (code + state)
-    Frontend->>API: GET /api/auth/twitter/callback
-    API->>Database: Retrieve verifier using state
-    API->>API: Validate state matches
-    API->>Twitter: Exchange code + verifier for tokens
-    Twitter-->>API: Return access/refresh tokens
-    API->>Database: Store tokens in social_accounts
-    API-->>Frontend: Success redirect
-    Frontend->>User: Show connected account
-```
-
-**Key files:**
-- `app/api/auth/init-twitter/route.ts` - OAuth initialization
-- `app/api/auth/twitter/callback/route.ts` - OAuth callback handler
-- `lib/twitter.ts` - Twitter API helpers
-- `lib/linkedin.ts` - LinkedIn API helpers
-
-**Subagent recommendation:**
-- For OAuth implementation: Invoke OAuth Expert Agent
-- For security concerns: Invoke API Security Agent
+**Subagent recommendation**: For OAuth implementation → feature-implementer
 
 ---
 
-## 5. Development Patterns
+### Development Patterns
 
-### 5.1 API Route Pattern
-
+**API Route Pattern**:
 ```typescript
-// Standard API route structure
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ErrorResponses } from '@/lib/api/errors'
-import { checkRateLimit, apiRateLimiter, getRateLimitIdentifier } from '@/lib/rate-limit'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
     // 1. Authentication
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return ErrorResponses.unauthorized()
-    }
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) return ErrorResponses.unauthorized()
 
     // 2. Rate Limiting
-    const identifier = getRateLimitIdentifier(request, user.id)
-    const rateLimitResult = await checkRateLimit(apiRateLimiter, identifier)
+    const rateLimitResult = await checkRateLimit(...)
+    if (!rateLimitResult.success) return NextResponse.json({...}, {status: 429})
 
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: `Rate limit exceeded. Try again after ${new Date(rateLimitResult.reset).toLocaleTimeString()}.`,
-          limit: rateLimitResult.limit,
-          remaining: rateLimitResult.remaining,
-          reset: rateLimitResult.reset
-        },
-        { status: 429, headers: rateLimitResult.headers }
-      )
-    }
-
-    // 3. Parse and validate input
+    // 3. Validate Input
     const body = await request.json()
-    const { field1, field2 } = body
+    if (!body.field) return ErrorResponses.missingField('field')
 
-    if (!field1) {
-      return ErrorResponses.missingField('field1')
-    }
+    // 4. Business Logic
+    const result = await processRequest(...)
 
-    // 4. Business logic
-    const result = await processRequest(field1, field2)
-
-    // 5. Success response
-    return NextResponse.json({
-      success: true,
-      data: result
-    })
+    // 5. Success Response
+    return NextResponse.json({ success: true, data: result })
   } catch (error: any) {
-    console.error('Error in /api/endpoint:', error)
     return ErrorResponses.internalError(error.message)
   }
 }
 ```
 
-### 5.2 Database Query Pattern
-
+**Database Query Pattern**:
 ```typescript
-// Client-side query (with RLS)
-import { supabase } from '@/lib/supabase/client'
-
+// Client-side (with RLS)
 const { data, error } = await supabase
   .from('posts')
   .select('*')
-  .eq('user_id', userId)  // RLS handles this automatically
+  .eq('user_id', userId)  // RLS enforces this
   .order('created_at', { ascending: false })
 
-// Server-side query (with admin privileges when needed)
-import { getSupabaseAdmin } from '@/lib/supabase'
-
+// Server-side (admin privileges)
 const supabaseAdmin = getSupabaseAdmin()
 const { data, error } = await supabaseAdmin
   .from('posts')
   .update({ status: 'posted' })
   .eq('id', postId)
-  .single()
 ```
 
-### 5.3 Type Safety Pattern
-
+**Type Safety Pattern**:
 ```typescript
-// lib/types.ts - Central type definitions
+// lib/types.ts
 export type Platform = 'twitter' | 'linkedin' | 'instagram'
-export type Tone = 'professional' | 'casual' | 'friendly' | 'authoritative' | 'enthusiastic'
 export type PostStatus = 'draft' | 'scheduled' | 'posted' | 'failed'
 
 export interface Post {
@@ -801,250 +1816,85 @@ export interface Post {
   adapted_content: string
   scheduled_time: string | null
   status: PostStatus
-  posted_at: string | null
-  error_message: string | null
-  qstash_message_id: string | null
   created_at: string
-  updated_at: string
-}
-
-export interface SchedulePostJob {
-  postId: string
-  platform: Platform
-  content: string
-  userId: string
-}
-```
-
-### 5.4 Error Handling Pattern
-
-```typescript
-// lib/api/errors.ts - Standardized error responses
-export enum ErrorCode {
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  NOT_FOUND = 'NOT_FOUND',
-  INVALID_INPUT = 'INVALID_INPUT',
-  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-  OPENAI_ERROR = 'OPENAI_ERROR',
-  QSTASH_ERROR = 'QSTASH_ERROR',
-  INTERNAL_ERROR = 'INTERNAL_ERROR'
-}
-
-export const ErrorResponses = {
-  unauthorized: () => NextResponse.json(
-    { error: 'Unauthorized', code: ErrorCode.UNAUTHORIZED },
-    { status: 401 }
-  ),
-
-  missingField: (field: string) => NextResponse.json(
-    { error: `Missing required field: ${field}`, code: ErrorCode.INVALID_INPUT },
-    { status: 400 }
-  ),
-
-  internalError: (details?: string) => NextResponse.json(
-    {
-      error: 'Internal server error',
-      code: ErrorCode.INTERNAL_ERROR,
-      details: process.env.NODE_ENV === 'development' ? details : undefined
-    },
-    { status: 500 }
-  )
 }
 ```
 
 ---
 
-## 6. Testing & Quality Assurance
+### Testing & QA
 
-### 6.1 Testing Strategy
-
+**Testing Strategy**:
 ```yaml
 Unit Tests (Jest):
-  - Location: lib/__tests__/
-  - Coverage: Utility functions, OAuth helpers, type guards
-  - Run: npm test
+  Location: lib/__tests__/
+  Coverage: Utility functions, OAuth helpers
+  Run: npm test
 
 Integration Tests (Jest):
-  - Location: app/api/__tests__/
-  - Coverage: API endpoints with mocked external services
-  - Run: npm run test:integration
+  Location: app/api/__tests__/
+  Coverage: API endpoints with mocks
+  Run: npm run test:integration
 
 E2E Tests (Playwright):
-  - Location: tests/
-  - Coverage: Critical user flows (auth, content creation, scheduling)
-  - Run: npx playwright test
+  Location: tests/
+  Coverage: Critical user flows
+  Run: npx playwright test
 ```
 
-### 6.2 Test Patterns
-
-```typescript
-// Unit test example - lib/__tests__/twitter.test.ts
-import { generatePKCE } from '../twitter'
-
-describe('Twitter OAuth', () => {
-  it('should generate valid PKCE challenge', () => {
-    const { verifier, challenge } = generatePKCE()
-
-    expect(verifier).toHaveLength(128)
-    expect(challenge).toHaveLength(43)
-    expect(challenge).toMatch(/^[A-Za-z0-9_-]+$/)
-  })
-})
-
-// E2E test example - tests/scheduling-flow.spec.ts
-import { test, expect } from '@playwright/test'
-
-test('user can schedule a post', async ({ page }) => {
-  // Login
-  await page.goto('/login')
-  await page.fill('[name=email]', 'test@example.com')
-  await page.fill('[name=password]', 'password123')
-  await page.click('button[type=submit]')
-
-  // Create content
-  await page.goto('/create')
-  await page.fill('textarea[name=content]', 'Test content')
-  await page.selectOption('select[name=tone]', 'professional')
-  await page.check('[value=twitter]')
-  await page.click('button:has-text("Adapt")')
-
-  // Wait for adaptation
-  await expect(page.locator('.adapted-content')).toBeVisible()
-
-  // Schedule
-  await page.fill('input[type=datetime-local]', '2025-12-31T23:59')
-  await page.click('button:has-text("Schedule")')
-
-  // Verify success
-  await expect(page.locator('.success-message')).toContainText('scheduled')
-})
-```
-
-**Subagent recommendation:**
-- For comprehensive test suites: Invoke Testing & QA Automation Agent
+**Subagent recommendation**: For comprehensive tests → test-validator
 
 ---
 
-## 7. Deployment & Operations
+### Deployment & Operations
 
-### 7.1 Environment Management
-
+**Environments**:
 ```bash
-# Local Development
-.env.local                    # Local environment variables (gitignored)
-npm run dev                   # Start dev server on localhost:3000
-
-# Staging Environment
-Vercel Project: repurpose-staging
-Branch: develop → auto-deploy
-Database: Supabase staging project
-URL: https://repurpose-staging.vercel.app
-
-# Production Environment
-Vercel Project: repurpose
-Branch: main → auto-deploy
-Database: Supabase production project
-URL: https://repurpose-orpin.vercel.app
+Local: http://localhost:3000 (npm run dev)
+Staging: https://repurpose-staging.vercel.app (branch: develop)
+Production: https://repurpose-orpin.vercel.app (branch: main)
 ```
 
-### 7.2 Deployment Checklist
-
-**Pre-deployment:**
-- [ ] All tests passing (`npm test && npx playwright test`)
-- [ ] TypeScript compilation successful (`npm run build`)
-- [ ] Lint checks passing (`npm run lint`)
+**Deployment Checklist**:
+- [ ] All tests passing
+- [ ] TypeScript compiles (`npm run build`)
+- [ ] Lint passes (`npm run lint`)
 - [ ] Environment variables set in Vercel
 - [ ] Database migrations applied
 - [ ] OAuth callback URLs updated
 
-**Post-deployment:**
-- [ ] Verify health check endpoint
-- [ ] Test critical user flows
-- [ ] Monitor error rates in Sentry (if configured)
-- [ ] Check QStash job execution
-- [ ] Verify OAuth flows on production URLs
-
-### 7.3 Vercel Configuration
-
-```json
-// vercel.json
-{
-  "buildCommand": "next build --turbopack",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "regions": ["iad1"],
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
-    },
-    "app/api/adapt/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  }
-}
-```
-
-**Subagent recommendation:**
-- For deployment configuration: Invoke Deployment & DevOps Agent
+**Subagent recommendation**: For deployment → solodev-claude-reviewer (pre-commit)
 
 ---
 
-## 8. Security & Compliance
+### Security & Compliance
 
-### 8.1 Security Checklist
-
-**Authentication & Authorization:**
+**Security Checklist**:
 - [x] All API routes require authentication
 - [x] RLS policies enforce user isolation
 - [x] JWT/session validation on every request
-- [x] User ID verification (no user impersonation)
-
-**Input Validation:**
+- [x] User ID verification (no impersonation)
 - [x] Content length limits enforced
-- [x] Platform/tone enum validation
 - [x] SQL injection prevention (parameterized queries)
 - [x] XSS prevention (input sanitization)
-
-**Rate Limiting:**
-- [x] AI adaptation: 10 requests/hour per user
-- [x] API endpoints: 30 requests/minute per user
+- [x] Rate limiting: AI (10/hour), API (30/min)
 - [x] QStash signature verification
-
-**OAuth Security:**
 - [x] PKCE implementation for Twitter OAuth
 - [x] State parameter validation
 - [x] Encrypted token storage
-- [x] Token refresh logic with expiration handling
+- [x] Token refresh logic with expiration
+- [x] Environment variables in Vercel (not git)
 
-**Secrets Management:**
-- [x] Environment variables in Vercel (not in git)
-- [x] Separate credentials for staging/production
-- [x] Regular key rotation schedule (quarterly)
-
-### 8.2 Known Security Issues (from audit)
-
-| ID | Severity | Issue | Status |
-|----|----------|-------|--------|
-| CRIT-001 | Critical | `.env` files in git history | ✅ Fixed (keys rotated) |
-| CRIT-002 | Critical | `/api/adapt` missing auth | ✅ Fixed |
-| CRIT-003 | Critical | Hardcoded PKCE verifier | ✅ Fixed |
-| CRIT-004 | High | Token refresh fallback insecure | ✅ Fixed |
-| HIGH-001 | High | Missing rate limiting | ✅ Fixed |
-
-**Subagent recommendation:**
-- For security audits: Invoke API Security & Authentication Agent
+**Subagent recommendation**: For security audits → code-reviewer + solodev-claude-reviewer
 
 ---
 
-## 9. Performance & Optimization
+### Performance & Optimization
 
-### 9.1 Performance Targets
-
+**Performance Targets**:
 ```yaml
 API Response Times (p95):
-  /api/adapt: < 5000ms  (OpenAI dependency)
+  /api/adapt: < 5000ms (OpenAI dependency)
   /api/schedule: < 800ms
   /api/posts: < 300ms
   /api/auth: < 500ms
@@ -1059,182 +1909,66 @@ Database Queries:
   List queries: < 100ms
 ```
 
-### 9.2 Optimization Strategies
-
-**API Optimization:**
+**Optimization Strategies**:
 - Use `Promise.all` for parallel platform adaptation
 - Implement Redis caching for common adaptations
-- Lazy load heavy dependencies
+- Lazy load heavy dependencies (Framer Motion)
 - Optimize Supabase queries with indexes
-
-**Frontend Optimization:**
 - Next.js Image optimization (automatic)
 - Code splitting with dynamic imports
-- Lazy load non-critical components
-- Implement skeleton loaders for better perceived performance
 
-**Database Optimization:**
+**Database Indexes**:
 ```sql
--- Indexes for common queries
 CREATE INDEX idx_posts_user_status ON posts(user_id, status);
 CREATE INDEX idx_posts_scheduled_time ON posts(scheduled_time) WHERE status = 'scheduled';
 CREATE INDEX idx_social_accounts_user_platform ON social_accounts(user_id, platform);
 ```
 
----
-
-## 10. Troubleshooting & Debugging
-
-### 10.1 Common Issues & Solutions
-
-#### Issue: OAuth callback fails with "Invalid state"
-
-**Diagnosis:**
-```typescript
-// Check if state is being stored and retrieved correctly
-console.log('Stored state:', storedState)
-console.log('Callback state:', callbackState)
-console.log('Match:', storedState === callbackState)
-```
-
-**Solution:**
-- Verify session/cookie storage is working
-- Check domain/path settings for cookies
-- Ensure state has reasonable expiration (5 minutes)
-
-**Subagent**: Invoke OAuth Expert Agent
+**Subagent recommendation**: For performance optimization → Explore + code-reviewer + feature-implementer (iterative)
 
 ---
 
-#### Issue: QStash jobs not executing
+### Troubleshooting & Debugging
 
-**Diagnosis:**
-```bash
-# Check QStash dashboard
-https://console.upstash.com/qstash
+**Common Issues**:
 
-# Verify callback URL is accessible
-curl -X POST https://your-app.vercel.app/api/post/execute \
-  -H "Content-Type: application/json" \
-  -d '{"test": true}'
-```
+1. **OAuth callback fails with "Invalid state"**
+   - Subagent: Explore + code-reviewer
+   - Check: Session/cookie storage, domain settings, state expiration
 
-**Solution:**
-- Verify `NEXT_PUBLIC_APP_URL` is set correctly
-- Check QStash signing key verification
-- Ensure `/api/post/execute` is not blocked by middleware
-- Verify Vercel function timeout is sufficient (30s+)
+2. **QStash jobs not executing**
+   - Subagent: Explore + code-reviewer
+   - Check: NEXT_PUBLIC_APP_URL, signing keys, middleware blocks, timeout
 
-**Subagent**: Invoke Job Scheduling Agent
+3. **Rate limit errors in production**
+   - Subagent: code-reviewer
+   - Check: Redis connection, rate limit windows, user quotas
 
----
-
-#### Issue: Rate limit errors in production
-
-**Diagnosis:**
-```typescript
-// Check Redis connection
-const redis = Redis.fromEnv()
-const result = await redis.ping()
-console.log('Redis connected:', result === 'PONG')
-
-// Check rate limit config
-console.log('Rate limiter config:', {
-  limit: aiRateLimiter.limiter,
-  window: aiRateLimiter.window
-})
-```
-
-**Solution:**
-- Verify Upstash Redis credentials
-- Check rate limit windows (10/hour for AI, 30/min for API)
-- Implement user feedback with remaining quota
-- Consider tiered rate limits for premium users
-
-**Subagent**: Invoke API Security Agent
+4. **Content adaptation returns empty responses**
+   - Subagent: general-purpose + code-reviewer
+   - Check: OpenAI API key, quota, prompt length, token limits
 
 ---
 
-#### Issue: Content adaptation returns empty or malformed responses
-
-**Diagnosis:**
-```typescript
-// Enable detailed OpenAI logging
-console.log('OpenAI request:', {
-  model: 'gpt-4o',
-  prompt: prompt.substring(0, 200),
-  max_tokens: 1024
-})
-
-console.log('OpenAI response:', {
-  choices: completion.choices.length,
-  content: completion.choices[0]?.message?.content?.substring(0, 200)
-})
-```
-
-**Solution:**
-- Verify OpenAI API key is valid and has quota
-- Check prompt length (context window limits)
-- Adjust `max_tokens` if responses are truncated
-- Implement retry logic with exponential backoff
-- Add fallback to basic templates if API fails
-
-**Subagent**: Invoke Content Adaptation Agent
-
----
-
-### 10.2 Debugging Tools
-
-```bash
-# Local development debugging
-npm run dev  # Start with hot reload
-
-# View build logs
-npm run build  # Check for TypeScript errors
-
-# Database debugging
-# 1. Go to Supabase dashboard
-# 2. Open SQL Editor
-# 3. Run diagnostic queries:
-SELECT * FROM posts WHERE status = 'failed' ORDER BY created_at DESC LIMIT 10;
-SELECT * FROM social_accounts WHERE expires_at < NOW();
-
-# QStash debugging
-# Visit: https://console.upstash.com/qstash
-# - View scheduled messages
-# - Check failed deliveries
-# - Review callback logs
-
-# Vercel debugging
-# Visit: https://vercel.com/chudi-nnorukams-projects/repurpose
-# - View function logs
-# - Check deployment status
-# - Monitor performance metrics
-```
-
----
-
-## Appendix A: Quick Reference
+## 📚 Appendix: Quick Reference
 
 ### Essential Commands
 
 ```bash
 # Development
-npm run dev              # Start dev server (http://localhost:3000)
-npm run build            # Build for production
-npm run start            # Start production server
-npm run lint             # Run ESLint
-npm test                 # Run Jest tests
-npx playwright test      # Run E2E tests
+npm run dev                # Start dev server (http://localhost:3000)
+npm run build              # Build for production
+npm test                   # Run Jest tests
+npx playwright test        # Run E2E tests
 
 # Database
-supabase link            # Link to Supabase project
-supabase db pull         # Pull remote schema
+supabase link              # Link to Supabase project
+supabase db pull           # Pull remote schema
 supabase gen types typescript --local > lib/database.types.ts
 
 # Deployment
-git push origin main     # Auto-deploy to production
-vercel --prod            # Manual production deploy
+git push origin main       # Auto-deploy to production
+vercel --prod              # Manual production deploy
 ```
 
 ### Important File Locations
@@ -1245,22 +1979,30 @@ app/
 │   ├── adapt/route.ts            # Content adaptation
 │   ├── schedule/route.ts         # Post scheduling
 │   ├── post/execute/route.ts     # QStash callback
+│   ├── batch/                    # Batch operations
 │   └── auth/                     # OAuth flows
 ├── dashboard/page.tsx            # Main dashboard
 ├── create/page.tsx               # Content creation
-└── layout.tsx                    # Root layout
+├── batch-create/page.tsx         # Batch content generation
+├── posts/page.tsx                # Posts management
+└── connections/page.tsx          # Social account connections
 
 lib/
-├── anthropic.ts                  # OpenAI integration (misnamed)
+├── anthropic.ts                  # OpenAI integration
 ├── qstash.ts                     # Job scheduling
 ├── twitter.ts                    # Twitter API
 ├── linkedin.ts                   # LinkedIn API
-├── supabase/                     # Database clients
+├── supabase-client.ts            # Supabase browser client (SSR)
+├── supabase/                     # Supabase server clients
 ├── rate-limit.ts                 # Rate limiting
-└── types.ts                      # TypeScript types
+├── design-tokens.ts              # Design system tokens
+├── types.ts                      # TypeScript types
+└── constants.ts                  # Platform limits
 
 components/
-└── ui/                           # shadcn/ui components
+├── ui/                           # shadcn/ui components
+├── layout/                       # Layout components
+└── posts/                        # Post-related components
 ```
 
 ### Environment Variables
@@ -1293,55 +2035,29 @@ NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
 ---
 
-## Appendix B: Subagent Decision Tree
+## ✅ Validation Checklist
 
-```
-START: New development task received
-│
-├─── Is it a simple, single-file edit?
-│    ├─── YES → Handle directly
-│    └─── NO → Continue
-│
-├─── Does it involve OAuth or authentication?
-│    ├─── YES → Invoke API Security or OAuth Expert Agent
-│    └─── NO → Continue
-│
-├─── Does it involve database schema changes?
-│    ├─── YES → Invoke Database Architect Agent
-│    └─── NO → Continue
-│
-├─── Does it involve job scheduling or async tasks?
-│    ├─── YES → Invoke Job Scheduling Agent
-│    └─── NO → Continue
-│
-├─── Does it involve AI/content generation?
-│    ├─── YES → Invoke Content Adaptation Agent
-│    └─── NO → Continue
-│
-├─── Does it involve UI/UX components?
-│    ├─── YES → Invoke Frontend UX Agent
-│    └─── NO → Continue
-│
-├─── Does it involve testing or QA?
-│    ├─── YES → Invoke Testing & QA Agent
-│    └─── NO → Continue
-│
-├─── Does it involve deployment or DevOps?
-│    ├─── YES → Invoke Deployment & DevOps Agent
-│    └─── NO → Continue
-│
-└─── Complex multi-domain task?
-     ├─── YES → Create sequential or parallel subagent chain
-     └─── NO → Handle directly with general-purpose approach
-```
+- [x] All 12 real agents documented
+- [x] No fictional "legacy agents"
+- [x] 30-second decision tree included
+- [x] Domain → Agent matrix complete (15 scenarios)
+- [x] 4 execution patterns with examples
+- [x] 7 Repurpose playbooks with time estimates
+- [x] 10 real-world examples (3 actual, 7 realistic)
+- [x] Project context preserved
+- [x] Copy-paste invocation templates for each agent
+- [x] Parallel execution opportunities highlighted
+- [x] Real commit references (2d381ee, bf06137, 92220dc, etc.)
 
 ---
 
-**Document Maintenance:**
-- Update version number on major architectural changes
-- Review quarterly for accuracy
-- Link to SOURCE_OF_TRUTH.md and AGENTS.md
-- Keep subagent invocation examples current
+**Version**: 3.0.0  
+**Last Updated**: October 17, 2025  
+**Next Review**: January 17, 2026  
+**Maintainer**: Repurpose MVP Development Team
 
-**Last Reviewed**: October 13, 2025
-**Next Review**: January 13, 2026
+---
+
+**Document Purpose**: This document serves as the **single source of truth** for subagent orchestration in the Repurpose MVP project. All development should follow these patterns and playbooks for consistent, high-quality outcomes.
+
+**For Questions**: Refer to the Quick Reference Card at the top for instant decisions, or consult the relevant playbook for detailed guidance.
