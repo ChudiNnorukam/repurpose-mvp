@@ -168,15 +168,13 @@ export function calculateOptimalSchedulingTimes(
 ): Date[] {
   const times: Date[] = []
   const optimalTimes = OPTIMAL_TIMES[platform]
-  let currentDate = new Date(startDate)
+  const currentDate = new Date(startDate)
   
   // Start from tomorrow to avoid scheduling conflicts with immediate posts
   currentDate.setDate(currentDate.getDate() + 1)
   currentDate.setHours(0, 0, 0, 0)
 
   let timeIndex = 0
-  let dayCount = 0
-
   for (let i = 0; i < numPosts; i++) {
     const scheduledDate = new Date(currentDate)
     const optimalTime = optimalTimes[timeIndex % optimalTimes.length]
@@ -199,9 +197,7 @@ export function calculateOptimalSchedulingTimes(
     timeIndex++
     
     // After cycling through all optimal times for a day, move to next day
-    if (timeIndex % optimalTimes.length === 0) {
-      dayCount++
-      currentDate.setDate(currentDate.getDate() + 1)
+    if (timeIndex % optimalTimes.length === 0) {      currentDate.setDate(currentDate.getDate() + 1)
       
       // Skip weekends for LinkedIn
       if (platform === 'linkedin') {
