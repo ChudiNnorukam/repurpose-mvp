@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -9,6 +9,9 @@ import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { COLOR_PRIMARY, COLOR_AI, BUTTON_VARIANTS } from '@/lib/design-tokens'
+import { CalendarFilters } from '@/components/calendar/CalendarFilters'
+import { CalendarPost } from '@/components/calendar/CalendarPost'
+import { DayDetailModal } from '@/components/calendar/DayDetailModal'
 
 
 interface Post {
@@ -18,10 +21,18 @@ interface Post {
   scheduled_time: string
   status: string
   created_at: string
+  qstash_message_id: string | null
+  tone: string | null
 }
 
 interface SocialAccount {
   platform: string
+}
+
+interface FiltersState {
+  platforms: string[]
+  status: string
+  search: string
 }
 
 export default function DashboardPage() {
@@ -30,6 +41,12 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [connectedAccounts, setConnectedAccounts] = useState<SocialAccount[]>([])
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
+  const [filters, setFilters] = useState<FiltersState>({
+    platforms: ['twitter', 'linkedin', 'instagram'],
+    status: 'all',
+    search: ''
+  })
   const router = useRouter()
   const supabase = createClient()
 
@@ -57,13 +74,12 @@ export default function DashboardPage() {
   }
 
   const loadDashboardData = async (userId: string) => {
-    // Load posts
+    // Load ALL posts (removed .limit(10))
     const { data: postsData } = await supabase
       .from('posts')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(10)
+      .order('scheduled_time', { ascending: true })
 
     if (postsData) {
       setPosts(postsData)
@@ -79,6 +95,24 @@ export default function DashboardPage() {
       setConnectedAccounts(accountsData)
     }
   }
+
+  // Apply filters with memoization
+  const filteredPosts = useMemo(() => {
+    return posts.filter(post => {
+      // Platform filter
+      if (!filters.platforms.includes(post.platform)) return false
+      
+      // Status filter
+      if (filters.status !== 'all' && post.status !== filters.status) return false
+      
+      // Search filter
+      if (filters.search && !post.adapted_content.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false
+      }
+      
+      return true
+    })
+  }, [posts, filters])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -125,7 +159,7 @@ export default function DashboardPage() {
 
   const getPostsForDay = (day: Date | null) => {
     if (!day) return []
-    return posts.filter(post => {
+    return filteredPosts.filter(post => {
       const postDate = new Date(post.scheduled_time || post.created_at)
       return (
         postDate.getDate() === day.getDate() &&
@@ -191,6 +225,12 @@ export default function DashboardPage() {
     nextCell?.focus()
   }
 
+  const handleDayClick = (day: Date | null) => {
+    if (day) {
+      setSelectedDay(day)
+    }
+  }
+
   if (loading) {
     return (
       <DashboardLayout user={user}>
@@ -198,6 +238,8 @@ export default function DashboardPage() {
       </DashboardLayout>
     )
   }
+
+  const selectedDayPosts = selectedDay ? getPostsForDay(selectedDay) : []
 
   return (
     <DashboardLayout user={user}>
@@ -232,6 +274,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => changeMonth(-1)}
                 className="p-2 hover:bg-gray-100 rounded-md"
+                aria-label="Previous month"
               >
                 ←
               </button>
@@ -241,11 +284,15 @@ export default function DashboardPage() {
               <button
                 onClick={() => changeMonth(1)}
                 className="p-2 hover:bg-gray-100 rounded-md"
+                aria-label="Next month"
               >
                 →
               </button>
             </div>
           </div>
+
+          {/* Filters */}
+          <CalendarFilters filters={filters} onChange={setFilters} />
 
           <div className="grid grid-cols-7 gap-2">
             {/* Day headers */}
@@ -258,13 +305,11 @@ export default function DashboardPage() {
             {/* Calendar days */}
             {getDaysInMonth(currentMonth).map((day, index) => {
               const dayPosts = getPostsForDay(day)
-              const hasScheduled = dayPosts.some(p => p.status === 'scheduled')
-              const hasPosted = dayPosts.some(p => p.status === 'posted')
 
               return (
                 <button
                   key={index}
-                  onClick={() => day && console.log("Day clicked:", day)}
+                  onClick={() => handleDayClick(day)}
                   onKeyDown={(e) => handleDayKeyDown(e, index)}
                   data-calendar-day
                   tabIndex={day ? 0 : -1}
@@ -275,7 +320,7 @@ export default function DashboardPage() {
                   }
                   aria-current={isToday(day) ? "date" : undefined}
                   disabled={!day}
-                  className={`min-h-[80px] p-2 border rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${
+                  className={`min-h-[80px] md:min-h-[100px] p-2 border rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-left ${
                     day ? "bg-white hover:bg-gray-50 cursor-pointer" : "bg-gray-50 cursor-default"
                   } ${isToday(day) ? "ring-2 ring-blue-500" : ""}`}
                 >
@@ -287,19 +332,10 @@ export default function DashboardPage() {
                       </div>
                       <div className="space-y-1">
                         {dayPosts.slice(0, 2).map(post => (
-                          <div
-                            key={post.id}
-                            className={`text-xs px-1 py-0.5 rounded truncate ${
-                              post.status === "scheduled"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-green-100 text-green-700"
-                            }`}
-                          >
-                            {post.platform}
-                          </div>
+                          <CalendarPost key={post.id} post={post} />
                         ))}
                         {dayPosts.length > 2 && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 hover:text-gray-700 transition">
                             +{dayPosts.length - 2} more
                           </div>
                         )}
@@ -311,6 +347,15 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
+
+        {/* Day Detail Modal */}
+        <DayDetailModal
+          date={selectedDay}
+          posts={selectedDayPosts}
+          isOpen={!!selectedDay}
+          onClose={() => setSelectedDay(null)}
+          onPostUpdated={() => user && loadDashboardData(user.id)}
+        />
 
         {/* Create New Post CTA */}
         <div className="bg-white rounded-lg shadow p-8">
@@ -346,7 +391,7 @@ export default function DashboardPage() {
           ) : (
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="divide-y divide-gray-200">
-                {posts.map((post) => (
+                {posts.slice(0, 10).map((post) => (
                   <div key={post.id} className="p-6 hover:bg-gray-50">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
