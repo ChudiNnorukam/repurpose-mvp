@@ -7,10 +7,18 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { COLOR_PRIMARY } from '@/lib/design-tokens'
+
 
 interface AppHeaderProps {
   variant?: 'landing' | 'dashboard'
   user?: any
+}
+
+interface NavLink {
+  href: string
+  label: string
+  badge?: string
 }
 
 export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
@@ -39,7 +47,7 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+              <Button size="sm" className={`${COLOR_PRIMARY.bg} text-white ${COLOR_PRIMARY.bgHover}`}>
                 Sign Up
               </Button>
             </Link>
@@ -52,8 +60,7 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
   // Dashboard variant
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/create', label: 'Create' },
-    { href: '/generate', label: 'Generate' },
+    { href: '/create', label: 'Create', badge: 'AI' },
     { href: '/posts', label: 'Posts' },
     { href: '/templates', label: 'Templates' },
     { href: '/connections', label: 'Connections' },
@@ -74,13 +81,18 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'text-sm transition',
+                  'text-sm transition flex items-center gap-1',
                   isActive(link.href)
-                    ? 'text-gray-900 font-semibold border-b-2 border-blue-600 pb-1'
+                    ? `text-gray-900 font-semibold border-b-2 ${COLOR_PRIMARY.border} pb-1`
                     : 'text-gray-600 hover:text-gray-900'
                 )}
               >
                 {link.label}
+                {link.badge && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             ))}
             <span className="text-sm text-gray-600 hidden lg:inline">
@@ -114,13 +126,18 @@ export function AppHeader({ variant = 'landing', user }: AppHeaderProps) {
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  'block text-sm py-2 px-3 rounded-md transition',
+                  'flex items-center gap-2 text-sm py-2 px-3 rounded-md transition',
                   isActive(link.href)
-                    ? 'bg-blue-50 text-blue-700 font-semibold'
+                    ? `${COLOR_PRIMARY.bgLight} ${COLOR_PRIMARY.text} font-semibold`
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 )}
               >
                 {link.label}
+                {link.badge && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             ))}
             <div className="text-sm text-gray-600 py-2 px-3">{user?.email}</div>
