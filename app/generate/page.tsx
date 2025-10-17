@@ -69,7 +69,7 @@ export default function GeneratePage() {
       console.log('[DEBUG] Querying social_accounts table...')
       const { data: accounts, error } = await supabase
         .from('social_accounts')
-        .select('id, platform, account_username, connected_at, expires_at')
+        .select('*')
         .eq('user_id', userId)
         .order('connected_at', { ascending: false })
 
