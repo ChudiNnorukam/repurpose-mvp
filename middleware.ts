@@ -14,6 +14,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
  * - /create
  * - /posts
  * - /connections
+ * - /batch-create
  * - /templates
  * - /api/* (except public auth routes)
  */
@@ -88,6 +89,7 @@ export async function middleware(request: NextRequest) {
     '/posts',
     '/connections',
     '/templates',
+    '/batch-create',
   ]
 
   // Public routes that should redirect to dashboard if authenticated
