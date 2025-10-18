@@ -1,17 +1,183 @@
 Date,Day,Platform,Content_Type,Topic_Theme,Hook_First_Line,Key_Points,CTA,Hashtags,Est_Engagement_Score,AI_Detection_Risk,SEO_Keywords,Content_Pillar
-2025-10-21,Monday,LinkedIn,Story Arc,Origin Story - Why Repurpose,"6 months ago I was manually reformatting the same LinkedIn post for Twitter 5 times a day","Personal pain point | Manual vs automated workflow | First user validation | Lesson learned","What content task eats up most of your time?","#BuildInPublic #SaaS #ContentMarketing #IndieHacker",8,Low,"content automation, manual reformatting, SaaS origin",Building in Public
-2025-10-21,Monday,Twitter,One-liner,Quick Insight,"The best content tool is the one you'll actually use consistently. Not the one with the most features.","","","",7,Low,"content tools, productivity",Content Marketing
-2025-10-21,Monday,Twitter,Building Update,Repurpose Progress,"Repurpose MVP - Day 4: 23 users processing 847 posts. Biggest surprise? 73% use Twitter→LinkedIn not the reverse","User metrics | Usage pattern insight | Iteration based on data","Try it free: [link]","#BuildInPublic",8,Low,"SaaS metrics, user behavior",Building in Public
-2025-10-22,Tuesday,Twitter,Technical Tip,Next.js Pattern,"Here's how I handle OAuth token refresh in Next.js without infinite loops: [code screenshot] Key: Middleware checks expiry BEFORE request not after","Technical solution | Specific code pattern | Time saved","","",8,Low,"Next.js OAuth, token refresh",Technical
-2025-10-22,Tuesday,Twitter,Developer Humor,Relatable Pain,"Me: I'll just quickly add OAuth. OAuth docs: *RFC 6749 PKCE state params token refresh CORS redirect URIs* Me: Users can reset their password manually","","","",9,Low,"OAuth, developer humor",Community
-2025-10-23,Wednesday,LinkedIn,Carousel,OAuth PKCE Tutorial,"The Complete Guide to OAuth 2.0 PKCE for developers who hate reading docs","Slide 1: Hook | Slides 2-11: Step-by-step implementation | Slide 12: Summary + common mistakes","Comment your biggest OAuth headache","#NextJS #DeveloperTools #SaaS #BuildInPublic",9,Low,"OAuth PKCE, authentication, Next.js",Technical
-2025-10-23,Wednesday,Twitter,Thread Starter,Tech Stack,"Most content creators spend 60% of their time reformatting not creating. Here's the tech stack that automated this for me 🧵","Next.js 15 RSC | Supabase for auth+DB | OpenAI for adaptation | QStash for scheduling | Vercel for deploy | Architecture decisions | Cost breakdown","Follow for more SaaS building insights","",9,Low,"tech stack, SaaS, automation",Product Development
-2025-10-23,Wednesday,Twitter,Quick Insight,Contrarian,"Hot take: If your SaaS needs a 20-minute onboarding video your UX is broken. Good products are intuitive. Great products are obvious.","","","",8,Low,"UX design, SaaS",Thought Leadership
-2025-10-24,Thursday,Twitter,Technical Tip,Supabase RLS,"Supabase RLS policy that saved me from a massive security bug: [code screenshot] Always check user_id in WHERE clause not SELECT","Security insight | Specific code | Prevention","","",7,Low,"Supabase RLS, security",Technical
-2025-10-24,Thursday,Twitter,Metrics Update,Transparency,"Week 1 metrics: 👥 23 users 📊 847 posts processed 💰 $0 MRR (free beta) ⭐ 4.9/5 rating. Next: Shipping paid plans Monday","Honest numbers | Progress | Next milestone","","#BuildInPublic",8,Low,"SaaS metrics, transparency",Building in Public
-2025-10-25,Friday,LinkedIn,Personal Story,Launch Failure,"I launched Repurpose MVP to 10 people. Got 1 signup. Crushing? Yes. Quitting? No.","Initial failure | Customer interviews | Key learnings (pricing too high unclear value prop missing features) | V2 iteration","Share your biggest launch lesson below","#IndieHacker #StartupLife #SaaS #BuildInPublic",9,Low,"product launch, failure, learning",Indie Hacking
-2025-10-25,Friday,Twitter,Before/After,Workflow Improvement,"Content workflow before Repurpose: ⏱️ 45 min/post 📝 Manual reformatting 😩 Copy-paste hell. After: ⏱️ 3 min/post 🤖 AI adaptation ✨ One click 4 platforms [screenshot]","Specific time savings | Visual proof | Clear value","","",8,Low,"productivity, workflow automation",Product Development
-2025-10-25,Friday,Twitter,Question,Community Engagement,"Quick poll for SaaS builders: Would you rather have 1000 users $0 revenue OR 10 users $1000 MRR? Why?","Sparks debate | Learn from community","","",7,Low,"SaaS strategy, monetization",Community
-2025-10-26,Saturday,Twitter,Thread,Building Log,"Built Repurpose MVP from $0 to 100 users in 30 days. The tech decisions that mattered and the ones that didn't 🧵","What worked: Next.js Supabase QStash OpenAI | What didn't: Overengineering auth custom email system | Time wasted vs time saved | Would-do-differently list","Try Repurpose: [link]","#BuildInPublic",9,Low,"SaaS building, tech decisions",Product Development
-2025-10-27,Sunday,LinkedIn,Poll + Analysis,Audience Research,"What's your biggest content creation bottleneck? [Poll: Writing / Formatting / Scheduling / Distribution]","Poll options | Why this matters | Preview of solution | Engage in comments","Vote + share your specific challenge in comments","#ContentMarketing #CreatorEconomy #AIAutomation #ProductivityTools",8,Low,"content creation, bottlenecks",Content Marketing
-2025-10-27,Sunday,Twitter,Week Recap,Metrics,"Week 1 of building in public: 23→87 users (+278%) 847→2341 posts (+176%) $0→$0 MRR (still free) Lesson: Distribution > features early on. Next week: Launching pricing","Weekly growth | Key learning | Forward-looking","","#BuildInPublic",8,Low,"weekly recap, growth",Building in Public
+2025-10-21,Tuesday,twitter,One-liner,Product Development Insight,The best tool is the one you use consistently,,,,7,Low,productivity SaaS,Product Development
+2025-10-21,Tuesday,twitter,One-liner,Product Development Insight,73% of creators spend more time reformatting than creating,,,,8,Low,productivity SaaS,Product Development
+2025-10-22,Wednesday,linkedin,Post,Week 1 Progress,Building Repurpose: Week 1. 23 users 700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-10-22,Wednesday,twitter,One-liner,Product Development Insight,Hot take: Perfection kills shipping,,,,9,Low,productivity SaaS,Product Development
+2025-10-23,Thursday,twitter,One-liner,Product Development Insight,Pro tip: Start simple iterate fast,,,,7,Low,productivity SaaS,Product Development
+2025-10-23,Thursday,twitter,One-liner,Product Development Insight,Just shipped feature X. 10 users in 24hrs,,,,8,Low,productivity SaaS,Product Development
+2025-10-24,Friday,linkedin,Post,Week 1 Progress,Building Repurpose: Week 1. 23 users 700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-10-24,Friday,twitter,One-liner,Product Development Insight,Manual to automation. That is the playbook,,,,9,Low,productivity SaaS,Product Development
+2025-10-25,Saturday,twitter,One-liner,Product Development Insight,Solve YOUR problem first,,,,7,Low,productivity SaaS,Product Development
+2025-10-25,Saturday,twitter,One-liner,Product Development Insight,Consistency beats perfection,,,,8,Low,productivity SaaS,Product Development
+2025-10-26,Sunday,linkedin,Post,Week 1 Progress,Building Repurpose: Week 1. 23 users 700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-10-26,Sunday,twitter,One-liner,Product Development Insight,The advice you need is simpler than you think,,,,9,Low,productivity SaaS,Product Development
+2025-10-27,Monday,linkedin,Post,Week 1 Progress,Building Repurpose: Week 1. 23 users 700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-10-27,Monday,twitter,One-liner,Product Development Insight,Building in public forces shipping,,,,7,Low,productivity SaaS,Product Development
+2025-10-28,Tuesday,twitter,One-liner,Product Development Insight,Test everything yourself,,,,8,Low,productivity SaaS,Product Development
+2025-10-28,Tuesday,twitter,One-liner,Product Development Insight,Still learning. Still shipping,,,,9,Low,productivity SaaS,Product Development
+2025-10-29,Wednesday,linkedin,Post,Week 2 Progress,Building Repurpose: Week 2. 26 users 900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-10-29,Wednesday,twitter,One-liner,Product Development Insight,Automation saved 3hrs this week,,,,7,Low,productivity SaaS,Product Development
+2025-10-30,Thursday,twitter,One-liner,Product Development Insight,No secret. Ship. Iterate. Repeat,,,,8,Low,productivity SaaS,Product Development
+2025-10-30,Thursday,twitter,One-liner,Product Development Insight,Strategy vs execution,,,,9,Low,productivity SaaS,Product Development
+2025-10-31,Friday,linkedin,Post,Week 2 Progress,Building Repurpose: Week 2. 26 users 900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-10-31,Friday,twitter,One-liner,Product Development Insight,Ship while others perfect,,,,7,Low,productivity SaaS,Product Development
+2025-11-01,Saturday,twitter,One-liner,Product Development Insight,5 mistakes this week. Fixed 4. Shipped anyway,,,,8,Low,productivity SaaS,Product Development
+2025-11-01,Saturday,twitter,One-liner,Product Development Insight,1% better daily compounds,,,,9,Low,productivity SaaS,Product Development
+2025-11-02,Sunday,linkedin,Post,Week 2 Progress,Building Repurpose: Week 2. 26 users 900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-11-02,Sunday,twitter,One-liner,Product Development Insight,Building SaaS + full-time job is possible,,,,7,Low,productivity SaaS,Product Development
+2025-11-03,Monday,linkedin,Post,Week 2 Progress,Building Repurpose: Week 2. 26 users 900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2025-11-03,Monday,twitter,One-liner,Product Development Insight,User feedback beats assumptions,,,,8,Low,productivity SaaS,Product Development
+2025-11-04,Tuesday,twitter,One-liner,Content Marketing Insight,The best tool is the one you use consistently,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-04,Tuesday,twitter,One-liner,Content Marketing Insight,73% of creators spend more time reformatting than creating,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-05,Wednesday,linkedin,Post,Week 3 Progress,Building Repurpose: Week 3. 29 users 1100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-05,Wednesday,twitter,One-liner,Content Marketing Insight,Hot take: Perfection kills shipping,,,,8,Low,productivity SaaS,Content Marketing
+2025-11-06,Thursday,twitter,One-liner,Content Marketing Insight,Pro tip: Start simple iterate fast,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-06,Thursday,twitter,One-liner,Content Marketing Insight,Just shipped feature X. 10 users in 24hrs,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-07,Friday,linkedin,Post,Week 3 Progress,Building Repurpose: Week 3. 29 users 1100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-07,Friday,twitter,One-liner,Content Marketing Insight,Manual to automation. That is the playbook,,,,8,Low,productivity SaaS,Content Marketing
+2025-11-08,Saturday,twitter,One-liner,Content Marketing Insight,Solve YOUR problem first,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-08,Saturday,twitter,One-liner,Content Marketing Insight,Consistency beats perfection,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-09,Sunday,linkedin,Post,Week 3 Progress,Building Repurpose: Week 3. 29 users 1100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-09,Sunday,twitter,One-liner,Content Marketing Insight,The advice you need is simpler than you think,,,,8,Low,productivity SaaS,Content Marketing
+2025-11-10,Monday,linkedin,Post,Week 3 Progress,Building Repurpose: Week 3. 29 users 1100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-10,Monday,twitter,One-liner,Content Marketing Insight,Building in public forces shipping,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-11,Tuesday,twitter,One-liner,Content Marketing Insight,Test everything yourself,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-11,Tuesday,twitter,One-liner,Content Marketing Insight,Still learning. Still shipping,,,,8,Low,productivity SaaS,Content Marketing
+2025-11-12,Wednesday,linkedin,Post,Week 4 Progress,Building Repurpose: Week 4. 32 users 1300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-12,Wednesday,twitter,One-liner,Content Marketing Insight,Automation saved 3hrs this week,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-13,Thursday,twitter,One-liner,Content Marketing Insight,No secret. Ship. Iterate. Repeat,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-13,Thursday,twitter,One-liner,Content Marketing Insight,Strategy vs execution,,,,8,Low,productivity SaaS,Content Marketing
+2025-11-14,Friday,linkedin,Post,Week 4 Progress,Building Repurpose: Week 4. 32 users 1300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-14,Friday,twitter,One-liner,Content Marketing Insight,Ship while others perfect,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-15,Saturday,twitter,One-liner,Content Marketing Insight,5 mistakes this week. Fixed 4. Shipped anyway,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-15,Saturday,twitter,One-liner,Content Marketing Insight,1% better daily compounds,,,,8,Low,productivity SaaS,Content Marketing
+2025-11-16,Sunday,linkedin,Post,Week 4 Progress,Building Repurpose: Week 4. 32 users 1300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-16,Sunday,twitter,One-liner,Content Marketing Insight,Building SaaS + full-time job is possible,,,,9,Low,productivity SaaS,Content Marketing
+2025-11-17,Monday,linkedin,Post,Week 4 Progress,Building Repurpose: Week 4. 32 users 1300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Content Marketing
+2025-11-17,Monday,twitter,One-liner,Content Marketing Insight,User feedback beats assumptions,,,,7,Low,productivity SaaS,Content Marketing
+2025-11-18,Tuesday,twitter,One-liner,Indie Hacking Insight,The best tool is the one you use consistently,,,,8,Low,productivity SaaS,Indie Hacking
+2025-11-18,Tuesday,twitter,One-liner,Indie Hacking Insight,73% of creators spend more time reformatting than creating,,,,9,Low,productivity SaaS,Indie Hacking
+2025-11-19,Wednesday,linkedin,Post,Week 5 Progress,Building Repurpose: Week 5. 35 users 1500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-19,Wednesday,twitter,One-liner,Indie Hacking Insight,Hot take: Perfection kills shipping,,,,7,Low,productivity SaaS,Indie Hacking
+2025-11-20,Thursday,twitter,One-liner,Indie Hacking Insight,Pro tip: Start simple iterate fast,,,,8,Low,productivity SaaS,Indie Hacking
+2025-11-20,Thursday,twitter,One-liner,Indie Hacking Insight,Just shipped feature X. 10 users in 24hrs,,,,9,Low,productivity SaaS,Indie Hacking
+2025-11-21,Friday,linkedin,Post,Week 5 Progress,Building Repurpose: Week 5. 35 users 1500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-21,Friday,twitter,One-liner,Indie Hacking Insight,Manual to automation. That is the playbook,,,,7,Low,productivity SaaS,Indie Hacking
+2025-11-22,Saturday,twitter,One-liner,Indie Hacking Insight,Solve YOUR problem first,,,,8,Low,productivity SaaS,Indie Hacking
+2025-11-22,Saturday,twitter,One-liner,Indie Hacking Insight,Consistency beats perfection,,,,9,Low,productivity SaaS,Indie Hacking
+2025-11-23,Sunday,linkedin,Post,Week 5 Progress,Building Repurpose: Week 5. 35 users 1500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-23,Sunday,twitter,One-liner,Indie Hacking Insight,The advice you need is simpler than you think,,,,7,Low,productivity SaaS,Indie Hacking
+2025-11-24,Monday,linkedin,Post,Week 5 Progress,Building Repurpose: Week 5. 35 users 1500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-24,Monday,twitter,One-liner,Indie Hacking Insight,Building in public forces shipping,,,,8,Low,productivity SaaS,Indie Hacking
+2025-11-25,Tuesday,twitter,One-liner,Indie Hacking Insight,Test everything yourself,,,,9,Low,productivity SaaS,Indie Hacking
+2025-11-25,Tuesday,twitter,One-liner,Indie Hacking Insight,Still learning. Still shipping,,,,7,Low,productivity SaaS,Indie Hacking
+2025-11-26,Wednesday,linkedin,Post,Week 6 Progress,Building Repurpose: Week 6. 38 users 1700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-26,Wednesday,twitter,One-liner,Indie Hacking Insight,Automation saved 3hrs this week,,,,8,Low,productivity SaaS,Indie Hacking
+2025-11-27,Thursday,twitter,One-liner,Indie Hacking Insight,No secret. Ship. Iterate. Repeat,,,,9,Low,productivity SaaS,Indie Hacking
+2025-11-27,Thursday,twitter,One-liner,Indie Hacking Insight,Strategy vs execution,,,,7,Low,productivity SaaS,Indie Hacking
+2025-11-28,Friday,linkedin,Post,Week 6 Progress,Building Repurpose: Week 6. 38 users 1700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-28,Friday,twitter,One-liner,Indie Hacking Insight,Ship while others perfect,,,,8,Low,productivity SaaS,Indie Hacking
+2025-11-29,Saturday,twitter,One-liner,Indie Hacking Insight,5 mistakes this week. Fixed 4. Shipped anyway,,,,9,Low,productivity SaaS,Indie Hacking
+2025-11-29,Saturday,twitter,One-liner,Indie Hacking Insight,1% better daily compounds,,,,7,Low,productivity SaaS,Indie Hacking
+2025-11-30,Sunday,linkedin,Post,Week 6 Progress,Building Repurpose: Week 6. 38 users 1700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-11-30,Sunday,twitter,One-liner,Indie Hacking Insight,Building SaaS + full-time job is possible,,,,8,Low,productivity SaaS,Indie Hacking
+2025-12-01,Monday,linkedin,Post,Week 6 Progress,Building Repurpose: Week 6. 38 users 1700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Indie Hacking
+2025-12-01,Monday,twitter,One-liner,Indie Hacking Insight,User feedback beats assumptions,,,,9,Low,productivity SaaS,Indie Hacking
+2025-12-02,Tuesday,twitter,One-liner,Technical Insight,The best tool is the one you use consistently,,,,7,Low,productivity SaaS,Technical
+2025-12-02,Tuesday,twitter,One-liner,Technical Insight,73% of creators spend more time reformatting than creating,,,,8,Low,productivity SaaS,Technical
+2025-12-03,Wednesday,linkedin,Post,Week 7 Progress,Building Repurpose: Week 7. 41 users 1900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-03,Wednesday,twitter,One-liner,Technical Insight,Hot take: Perfection kills shipping,,,,9,Low,productivity SaaS,Technical
+2025-12-04,Thursday,twitter,One-liner,Technical Insight,Pro tip: Start simple iterate fast,,,,7,Low,productivity SaaS,Technical
+2025-12-04,Thursday,twitter,One-liner,Technical Insight,Just shipped feature X. 10 users in 24hrs,,,,8,Low,productivity SaaS,Technical
+2025-12-05,Friday,linkedin,Post,Week 7 Progress,Building Repurpose: Week 7. 41 users 1900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-05,Friday,twitter,One-liner,Technical Insight,Manual to automation. That is the playbook,,,,9,Low,productivity SaaS,Technical
+2025-12-06,Saturday,twitter,One-liner,Technical Insight,Solve YOUR problem first,,,,7,Low,productivity SaaS,Technical
+2025-12-06,Saturday,twitter,One-liner,Technical Insight,Consistency beats perfection,,,,8,Low,productivity SaaS,Technical
+2025-12-07,Sunday,linkedin,Post,Week 7 Progress,Building Repurpose: Week 7. 41 users 1900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-07,Sunday,twitter,One-liner,Technical Insight,The advice you need is simpler than you think,,,,9,Low,productivity SaaS,Technical
+2025-12-08,Monday,linkedin,Post,Week 7 Progress,Building Repurpose: Week 7. 41 users 1900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-08,Monday,twitter,One-liner,Technical Insight,Building in public forces shipping,,,,7,Low,productivity SaaS,Technical
+2025-12-09,Tuesday,twitter,One-liner,Technical Insight,Test everything yourself,,,,8,Low,productivity SaaS,Technical
+2025-12-09,Tuesday,twitter,One-liner,Technical Insight,Still learning. Still shipping,,,,9,Low,productivity SaaS,Technical
+2025-12-10,Wednesday,linkedin,Post,Week 8 Progress,Building Repurpose: Week 8. 44 users 2100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-10,Wednesday,twitter,One-liner,Technical Insight,Automation saved 3hrs this week,,,,7,Low,productivity SaaS,Technical
+2025-12-11,Thursday,twitter,One-liner,Technical Insight,No secret. Ship. Iterate. Repeat,,,,8,Low,productivity SaaS,Technical
+2025-12-11,Thursday,twitter,One-liner,Technical Insight,Strategy vs execution,,,,9,Low,productivity SaaS,Technical
+2025-12-12,Friday,linkedin,Post,Week 8 Progress,Building Repurpose: Week 8. 44 users 2100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-12,Friday,twitter,One-liner,Technical Insight,Ship while others perfect,,,,7,Low,productivity SaaS,Technical
+2025-12-13,Saturday,twitter,One-liner,Technical Insight,5 mistakes this week. Fixed 4. Shipped anyway,,,,8,Low,productivity SaaS,Technical
+2025-12-13,Saturday,twitter,One-liner,Technical Insight,1% better daily compounds,,,,9,Low,productivity SaaS,Technical
+2025-12-14,Sunday,linkedin,Post,Week 8 Progress,Building Repurpose: Week 8. 44 users 2100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-14,Sunday,twitter,One-liner,Technical Insight,Building SaaS + full-time job is possible,,,,7,Low,productivity SaaS,Technical
+2025-12-15,Monday,linkedin,Post,Week 8 Progress,Building Repurpose: Week 8. 44 users 2100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Technical
+2025-12-15,Monday,twitter,One-liner,Technical Insight,User feedback beats assumptions,,,,8,Low,productivity SaaS,Technical
+2025-12-16,Tuesday,twitter,One-liner,Personal Branding Insight,The best tool is the one you use consistently,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-16,Tuesday,twitter,One-liner,Personal Branding Insight,73% of creators spend more time reformatting than creating,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-17,Wednesday,linkedin,Post,Week 9 Progress,Building Repurpose: Week 9. 47 users 2300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-17,Wednesday,twitter,One-liner,Personal Branding Insight,Hot take: Perfection kills shipping,,,,8,Low,productivity SaaS,Personal Branding
+2025-12-18,Thursday,twitter,One-liner,Personal Branding Insight,Pro tip: Start simple iterate fast,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-18,Thursday,twitter,One-liner,Personal Branding Insight,Just shipped feature X. 10 users in 24hrs,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-19,Friday,linkedin,Post,Week 9 Progress,Building Repurpose: Week 9. 47 users 2300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-19,Friday,twitter,One-liner,Personal Branding Insight,Manual to automation. That is the playbook,,,,8,Low,productivity SaaS,Personal Branding
+2025-12-20,Saturday,twitter,One-liner,Personal Branding Insight,Solve YOUR problem first,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-20,Saturday,twitter,One-liner,Personal Branding Insight,Consistency beats perfection,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-21,Sunday,linkedin,Post,Week 9 Progress,Building Repurpose: Week 9. 47 users 2300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-21,Sunday,twitter,One-liner,Personal Branding Insight,The advice you need is simpler than you think,,,,8,Low,productivity SaaS,Personal Branding
+2025-12-22,Monday,linkedin,Post,Week 9 Progress,Building Repurpose: Week 9. 47 users 2300 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-22,Monday,twitter,One-liner,Personal Branding Insight,Building in public forces shipping,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-23,Tuesday,twitter,One-liner,Personal Branding Insight,Test everything yourself,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-23,Tuesday,twitter,One-liner,Personal Branding Insight,Still learning. Still shipping,,,,8,Low,productivity SaaS,Personal Branding
+2025-12-24,Wednesday,linkedin,Post,Week 10 Progress,Building Repurpose: Week 10. 50 users 2500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-24,Wednesday,twitter,One-liner,Personal Branding Insight,Automation saved 3hrs this week,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-25,Thursday,twitter,One-liner,Personal Branding Insight,No secret. Ship. Iterate. Repeat,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-25,Thursday,twitter,One-liner,Personal Branding Insight,Strategy vs execution,,,,8,Low,productivity SaaS,Personal Branding
+2025-12-26,Friday,linkedin,Post,Week 10 Progress,Building Repurpose: Week 10. 50 users 2500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-26,Friday,twitter,One-liner,Personal Branding Insight,Ship while others perfect,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-27,Saturday,twitter,One-liner,Personal Branding Insight,5 mistakes this week. Fixed 4. Shipped anyway,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-27,Saturday,twitter,One-liner,Personal Branding Insight,1% better daily compounds,,,,8,Low,productivity SaaS,Personal Branding
+2025-12-28,Sunday,linkedin,Post,Week 10 Progress,Building Repurpose: Week 10. 50 users 2500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-28,Sunday,twitter,One-liner,Personal Branding Insight,Building SaaS + full-time job is possible,,,,9,Low,productivity SaaS,Personal Branding
+2025-12-29,Monday,linkedin,Post,Week 10 Progress,Building Repurpose: Week 10. 50 users 2500 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Personal Branding
+2025-12-29,Monday,twitter,One-liner,Personal Branding Insight,User feedback beats assumptions,,,,7,Low,productivity SaaS,Personal Branding
+2025-12-30,Tuesday,twitter,One-liner,Industry Insight,The best tool is the one you use consistently,,,,8,Low,productivity SaaS,Industry
+2025-12-30,Tuesday,twitter,One-liner,Industry Insight,73% of creators spend more time reformatting than creating,,,,9,Low,productivity SaaS,Industry
+2025-12-31,Wednesday,linkedin,Post,Week 11 Progress,Building Repurpose: Week 11. 53 users 2700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2025-12-31,Wednesday,twitter,One-liner,Industry Insight,Hot take: Perfection kills shipping,,,,7,Low,productivity SaaS,Industry
+2026-01-01,Thursday,twitter,One-liner,Industry Insight,Pro tip: Start simple iterate fast,,,,8,Low,productivity SaaS,Industry
+2026-01-01,Thursday,twitter,One-liner,Industry Insight,Just shipped feature X. 10 users in 24hrs,,,,9,Low,productivity SaaS,Industry
+2026-01-02,Friday,linkedin,Post,Week 11 Progress,Building Repurpose: Week 11. 53 users 2700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-02,Friday,twitter,One-liner,Industry Insight,Manual to automation. That is the playbook,,,,7,Low,productivity SaaS,Industry
+2026-01-03,Saturday,twitter,One-liner,Industry Insight,Solve YOUR problem first,,,,8,Low,productivity SaaS,Industry
+2026-01-03,Saturday,twitter,One-liner,Industry Insight,Consistency beats perfection,,,,9,Low,productivity SaaS,Industry
+2026-01-04,Sunday,linkedin,Post,Week 11 Progress,Building Repurpose: Week 11. 53 users 2700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-04,Sunday,twitter,One-liner,Industry Insight,The advice you need is simpler than you think,,,,7,Low,productivity SaaS,Industry
+2026-01-05,Monday,linkedin,Post,Week 11 Progress,Building Repurpose: Week 11. 53 users 2700 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-05,Monday,twitter,One-liner,Industry Insight,Building in public forces shipping,,,,8,Low,productivity SaaS,Industry
+2026-01-06,Tuesday,twitter,One-liner,Industry Insight,Test everything yourself,,,,9,Low,productivity SaaS,Industry
+2026-01-06,Tuesday,twitter,One-liner,Industry Insight,Still learning. Still shipping,,,,7,Low,productivity SaaS,Industry
+2026-01-07,Wednesday,linkedin,Post,Week 12 Progress,Building Repurpose: Week 12. 56 users 2900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-07,Wednesday,twitter,One-liner,Industry Insight,Automation saved 3hrs this week,,,,8,Low,productivity SaaS,Industry
+2026-01-08,Thursday,twitter,One-liner,Industry Insight,No secret. Ship. Iterate. Repeat,,,,9,Low,productivity SaaS,Industry
+2026-01-08,Thursday,twitter,One-liner,Industry Insight,Strategy vs execution,,,,7,Low,productivity SaaS,Industry
+2026-01-09,Friday,linkedin,Post,Week 12 Progress,Building Repurpose: Week 12. 56 users 2900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-09,Friday,twitter,One-liner,Industry Insight,Ship while others perfect,,,,8,Low,productivity SaaS,Industry
+2026-01-10,Saturday,twitter,One-liner,Industry Insight,5 mistakes this week. Fixed 4. Shipped anyway,,,,9,Low,productivity SaaS,Industry
+2026-01-10,Saturday,twitter,One-liner,Industry Insight,1% better daily compounds,,,,7,Low,productivity SaaS,Industry
+2026-01-11,Sunday,linkedin,Post,Week 12 Progress,Building Repurpose: Week 12. 56 users 2900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-11,Sunday,twitter,One-liner,Industry Insight,Building SaaS + full-time job is possible,,,,8,Low,productivity SaaS,Industry
+2026-01-12,Monday,linkedin,Post,Week 12 Progress,Building Repurpose: Week 12. 56 users 2900 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Industry
+2026-01-12,Monday,twitter,One-liner,Industry Insight,User feedback beats assumptions,,,,9,Low,productivity SaaS,Industry
+2026-01-13,Tuesday,twitter,One-liner,Product Development Insight,The best tool is the one you use consistently,,,,7,Low,productivity SaaS,Product Development
+2026-01-13,Tuesday,twitter,One-liner,Product Development Insight,73% of creators spend more time reformatting than creating,,,,8,Low,productivity SaaS,Product Development
+2026-01-14,Wednesday,linkedin,Post,Week 13 Progress,Building Repurpose: Week 13. 59 users 3100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2026-01-14,Wednesday,twitter,One-liner,Product Development Insight,Hot take: Perfection kills shipping,,,,9,Low,productivity SaaS,Product Development
+2026-01-15,Thursday,twitter,One-liner,Product Development Insight,Pro tip: Start simple iterate fast,,,,7,Low,productivity SaaS,Product Development
+2026-01-15,Thursday,twitter,One-liner,Product Development Insight,Just shipped feature X. 10 users in 24hrs,,,,8,Low,productivity SaaS,Product Development
+2026-01-16,Friday,linkedin,Post,Week 13 Progress,Building Repurpose: Week 13. 59 users 3100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2026-01-16,Friday,twitter,One-liner,Product Development Insight,Manual to automation. That is the playbook,,,,9,Low,productivity SaaS,Product Development
+2026-01-17,Saturday,twitter,One-liner,Product Development Insight,Solve YOUR problem first,,,,7,Low,productivity SaaS,Product Development
+2026-01-17,Saturday,twitter,One-liner,Product Development Insight,Consistency beats perfection,,,,8,Low,productivity SaaS,Product Development
+2026-01-18,Sunday,linkedin,Post,Week 13 Progress,Building Repurpose: Week 13. 59 users 3100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2026-01-18,Sunday,twitter,One-liner,Product Development Insight,The advice you need is simpler than you think,,,,9,Low,productivity SaaS,Product Development
+2026-01-19,Monday,linkedin,Post,Week 13 Progress,Building Repurpose: Week 13. 59 users 3100 posts processed. What shipped and what I learned,Metrics | Features | Feedback | Lessons,What should I build next?,#BuildInPublic #SaaS #IndieHacker,8,Low,SaaS indie hacking,Product Development
+2026-01-19,Monday,twitter,One-liner,Product Development Insight,Building in public forces shipping,,,,7,Low,productivity SaaS,Product Development
