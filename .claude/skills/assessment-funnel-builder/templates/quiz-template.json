@@ -1,0 +1,192 @@
+{
+  "meta": {
+    "campaign": "[CAMPAIGN_NAME]",
+    "time_estimate": "3 minutes",
+    "total_questions": 15,
+    "created_by": "assessment-funnel-builder skill",
+    "version": "1.0.0"
+  },
+  "contact": [
+    {
+      "id": "full_name",
+      "label": "Full name",
+      "type": "text",
+      "required": true,
+      "placeholder": "Jane Smith"
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "type": "email",
+      "required": true,
+      "placeholder": "jane@example.com"
+    },
+    {
+      "id": "phone",
+      "label": "Phone (optional)",
+      "type": "tel",
+      "required": false,
+      "placeholder": "+1 (555) 123-4567"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "bp1",
+      "q": "[MEASUREMENT_AREA_1: Do you consistently...?]",
+      "type": "boolean",
+      "weight": 7,
+      "help_text": "Select Yes if you do this 5+ days per week"
+    },
+    {
+      "id": "bp2",
+      "q": "[MEASUREMENT_AREA_1: Do you avoid...?]",
+      "type": "boolean",
+      "weight": 7
+    },
+    {
+      "id": "bp3",
+      "q": "[MEASUREMENT_AREA_2: Do you have...?]",
+      "type": "boolean",
+      "weight": 8
+    },
+    {
+      "id": "bp4",
+      "q": "[MEASUREMENT_AREA_2: Do you regularly...?]",
+      "type": "boolean",
+      "weight": 5
+    },
+    {
+      "id": "bp5",
+      "q": "[MEASUREMENT_AREA_2: Do you track...?]",
+      "type": "boolean",
+      "weight": 5
+    },
+    {
+      "id": "bp6",
+      "q": "[MEASUREMENT_AREA_3: Is your environment...?]",
+      "type": "boolean",
+      "weight": 6
+    },
+    {
+      "id": "bp7",
+      "q": "[MEASUREMENT_AREA_3: Do you follow...?]",
+      "type": "boolean",
+      "weight": 6
+    },
+    {
+      "id": "bp8",
+      "q": "[MEASUREMENT_AREA_1: Do you limit...?]",
+      "type": "boolean",
+      "weight": 5
+    },
+    {
+      "id": "bp9",
+      "q": "[MEASUREMENT_AREA_3: Do you use tools to...?]",
+      "type": "boolean",
+      "weight": 6
+    },
+    {
+      "id": "bp10",
+      "q": "[OUTCOME: Do you currently achieve [90-day outcome]?]",
+      "type": "boolean",
+      "weight": 8
+    }
+  ],
+  "qualifiers": [
+    {
+      "id": "situation",
+      "q": "Which best describes your current situation?",
+      "type": "single_choice",
+      "options": [
+        "Student",
+        "Early career",
+        "Manager",
+        "Executive",
+        "Retired"
+      ],
+      "weight": 0,
+      "purpose": "Segmentation for personalized follow-up"
+    },
+    {
+      "id": "outcome90",
+      "q": "Which outcome is most important to you in the next 90 days?",
+      "type": "single_choice",
+      "options": [
+        "[OUTCOME_1]",
+        "[OUTCOME_2]",
+        "[OUTCOME_3]",
+        "[OUTCOME_4]"
+      ],
+      "weight": 0,
+      "purpose": "Identify primary goal"
+    },
+    {
+      "id": "obstacle",
+      "q": "What do you think is your biggest obstacle right now?",
+      "type": "single_choice",
+      "options": [
+        "Time",
+        "Knowledge",
+        "Motivation",
+        "Resources",
+        "Medical/physical issue"
+      ],
+      "weight": 0,
+      "purpose": "Identify pain point for messaging"
+    },
+    {
+      "id": "pref_solution",
+      "q": "Which solution format fits you best?",
+      "type": "single_choice",
+      "options": [
+        "Self-study course",
+        "Group program",
+        "1:1 coaching",
+        "Done-for-you service"
+      ],
+      "weight": 0,
+      "purpose": "Product fit and pricing tier"
+    },
+    {
+      "id": "open_notes",
+      "q": "Anything else we should know about your situation?",
+      "type": "long_text",
+      "weight": 0,
+      "placeholder": "Optional: Share any context that helps us personalize your results...",
+      "purpose": "Capture qualitative insights"
+    }
+  ],
+  "scoring": {
+    "max_score": 100,
+    "calculation": "Sum of (answer * weight) / sum of weights * 100",
+    "buckets": [
+      {
+        "name": "cold",
+        "min": 0,
+        "max": 49,
+        "label": "Foundation Phase",
+        "description": "Significant opportunities to improve. Focus on basics first."
+      },
+      {
+        "name": "warm",
+        "min": 50,
+        "max": 79,
+        "label": "Progress Phase",
+        "description": "Good foundations in place. Ready for optimization."
+      },
+      {
+        "name": "hot",
+        "min": 80,
+        "max": 100,
+        "label": "Optimization Phase",
+        "description": "Excellent practices. Fine-tuning will unlock next level."
+      }
+    ]
+  },
+  "instructions": {
+    "how_to_use": "Replace [PLACEHOLDERS] with your campaign-specific content",
+    "scoring_weights": "Higher weight = more important to overall score (5-8 recommended range)",
+    "best_practices_count": "10 questions is optimal (keeps quiz under 3 minutes)",
+    "qualifiers_count": "5 questions captures segmentation + product fit without fatigue"
+  }
+}
