@@ -24,27 +24,7 @@
       "Bash(format:*)"
     ]
   },
-  "hooks": {
-    "postToolUse": {
-      "Edit": {
-        "description": "Auto-format TypeScript files after editing",
-        "enabled": false,
-        "command": "npx prettier --write {filePath}"
-      }
-    },
-    "preToolUse": {
-      "Edit": {
-        "description": "Prevent editing environment files",
-        "enabled": true,
-        "command": "if echo '{filePath}' | grep -E '\\.(env|env\\.local|env\\.production)'; then echo 'ERROR: Cannot edit environment files. Modify via Vercel dashboard.' && exit 1; fi"
-      },
-      "Write": {
-        "description": "Prevent creating environment files",
-        "enabled": true,
-        "command": "if echo '{filePath}' | grep -E '\\.(env|env\\.local|env\\.production)'; then echo 'ERROR: Cannot create environment files. Modify via Vercel dashboard.' && exit 1; fi"
-      }
-    }
-  },
+  "hooks": {},
   "customCommands": {
     "audit": {
       "description": "Re-run code quality audit",

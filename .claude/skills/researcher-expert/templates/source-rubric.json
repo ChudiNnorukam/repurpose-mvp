@@ -1,0 +1,73 @@
+{
+  "rubric_name": "CRAAP Source Evaluation",
+  "version": "1.0.0",
+  "scoring_axes": [
+    {
+      "name": "Currency",
+      "weight": 0.15,
+      "description": "Timeliness of information",
+      "criteria": {
+        "5": "Published/updated within 6 months",
+        "4": "Published/updated within 1 year",
+        "3": "Published/updated within 2 years",
+        "2": "Published/updated within 5 years",
+        "1": "Older than 5 years but still relevant",
+        "0": "Outdated or obsolete"
+      }
+    },
+    {
+      "name": "Relevance",
+      "weight": 0.25,
+      "description": "Direct applicability to task",
+      "criteria": {
+        "5": "Directly addresses exact query with implementation details",
+        "4": "Addresses query with substantial relevant content",
+        "3": "Partially addresses query, some relevant sections",
+        "2": "Tangentially related, minimal relevant content",
+        "1": "Barely related to query",
+        "0": "Not relevant"
+      }
+    },
+    {
+      "name": "Authority",
+      "weight": 0.25,
+      "description": "Publisher/author credibility",
+      "criteria": {
+        "5": "Official standard body (IETF, W3C) or vendor docs",
+        "4": "Reputable tech company (Google, Microsoft) or academic",
+        "3": "Known tech blog/publication (CSS-Tricks, Smashing Mag)",
+        "2": "Individual expert with credentials",
+        "1": "Unknown author but verifiable content",
+        "0": "No credentials or authority"
+      }
+    },
+    {
+      "name": "Accuracy",
+      "weight": 0.25,
+      "description": "Evidence quality and citations",
+      "criteria": {
+        "5": "Cites standards, includes empirical data, peer-reviewed",
+        "4": "Cites authoritative sources, includes examples",
+        "3": "Some citations, verifiable claims",
+        "2": "Few citations, mostly opinion with examples",
+        "1": "No citations but appears accurate",
+        "0": "Inaccurate or misleading"
+      }
+    },
+    {
+      "name": "Purpose",
+      "weight": 0.10,
+      "description": "Intent and bias",
+      "criteria": {
+        "5": "Educational/neutral, no commercial bias",
+        "4": "Primarily educational, minor commercial tie",
+        "3": "Balanced commercial/educational",
+        "2": "Commercial with useful info",
+        "1": "Heavy commercial bias",
+        "0": "Pure marketing or misleading"
+      }
+    }
+  ],
+  "minimum_threshold": 3.2,
+  "usage_notes": "Score each axis 0-5, compute weighted sum. Filter sources <3.2 unless user explicitly requests lower-quality sources."
+}

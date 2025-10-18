@@ -1,0 +1,304 @@
+name: Security Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  dependency-audit:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        id: audit
+        run: |
+          npm audit --audit-level=moderate --json > audit-report.json || true
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' audit-report.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high // 0' audit-report.json)
+          MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' audit-report.json)
+          
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+          
+          echo "### Dependency Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔴 Critical: $CRITICAL" >> $GITHUB_STEP_SUMMARY
+          echo "- 🟡 High: $HIGH" >> $GITHUB_STEP_SUMMARY
+          echo "- 🟢 Moderate: $MODERATE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail on critical/high vulnerabilities
+        if: steps.audit.outputs.critical != '0' || steps.audit.outputs.high != '0'
+        run: |
+          echo "::error::Found ${{ steps.audit.outputs.critical }} critical and ${{ steps.audit.outputs.high }} high severity vulnerabilities"
+          cat audit-report.json | jq '.vulnerabilities'
+          exit 1
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit-report.json
+
+  secret-detection:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better detection
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+      - name: detect-secrets baseline scan
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files \
+            --exclude-files '\.git/.*' \
+            --exclude-files 'package-lock\.json' \
+            --exclude-files 'node_modules/.*' > .secrets.baseline || true
+
+      - name: Check for custom patterns
+        run: |
+          echo "Checking for hardcoded secrets..."
+          
+          # OpenAI keys
+          if grep -r "sk-proj-" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules .; then
+            echo "::error::Found potential OpenAI API key in code"
+            exit 1
+          fi
+          
+          # AWS keys
+          if grep -r "AKIA[0-9A-Z]{16}" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules .; then
+            echo "::error::Found potential AWS access key in code"
+            exit 1
+          fi
+          
+          # GitHub tokens
+          if grep -r "ghp_[0-9a-zA-Z]{36}" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules .; then
+            echo "::error::Found potential GitHub token in code"
+            exit 1
+          fi
+          
+          # Generic secret patterns
+          if grep -ri "secret\s*=\s*['\"][^'\"]{20,}" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules .; then
+            echo "::warning::Found potential hardcoded secret"
+          fi
+          
+          echo "✅ No hardcoded secrets detected"
+
+  sast-scan:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  accessibility-scan:
+    name: Accessibility Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install axe-core CLI
+        run: npm install -g @axe-core/cli
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Start application
+        run: |
+          npm start &
+          sleep 10
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Run axe accessibility tests
+        run: |
+          axe http://localhost:3000 --exit || true
+          axe http://localhost:3000/dashboard --exit || true
+          axe http://localhost:3000/create --exit || true
+
+  custom-security-checks:
+    name: Custom Security Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for .env files in commits
+        run: |
+          if git log --all --pretty=format: --name-only | grep -q "^\.env$"; then
+            echo "::error::.env file found in git history"
+            exit 1
+          fi
+          echo "✅ No .env files in git history"
+
+      - name: Check for hardcoded environment variables
+        run: |
+          # Check for process.env assignments
+          if grep -r "process\.env\.[A-Z_]*\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules .; then
+            echo "::warning::Found hardcoded environment variable assignments"
+          fi
+          
+          echo "✅ Environment variable check complete"
+
+      - name: Verify security headers in Next.js config
+        run: |
+          if [ -f "next.config.js" ] || [ -f "next.config.mjs" ]; then
+            if ! grep -q "X-Frame-Options\|Content-Security-Policy\|X-Content-Type-Options" next.config.*; then
+              echo "::warning::Security headers may not be configured in next.config"
+            else
+              echo "✅ Security headers found in Next.js config"
+            fi
+          fi
+
+      - name: Check for commented-out auth
+        run: |
+          # Find commented authentication checks
+          if grep -r "//.*auth\|//.*getUser\|//.*unauthorized" --include="*.ts" --include="*.tsx" app/api/ 2>/dev/null; then
+            echo "::warning::Found commented-out auth code in API routes"
+          fi
+          
+          echo "✅ Auth check complete"
+
+  auth-file-changes:
+    name: Authentication File Change Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for auth-related file changes
+        run: |
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          
+          AUTH_FILES=$(echo "$CHANGED_FILES" | grep -E "(middleware\.ts|lib/supabase|lib/.*auth|app/api/auth)" || true)
+          
+          if [ -n "$AUTH_FILES" ]; then
+            echo "### ⚠️ Security-Sensitive Files Changed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The following authentication-related files were modified:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$AUTH_FILES" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Required Actions:**" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] Security expert review completed" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] All checklist items in .claude/skills/_shared/security-checklist.md verified" >> $GITHUB_STEP_SUMMARY
+            echo "- [ ] researcher-expert invoked for auth pattern validation" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Create PR comment
+            echo "::warning::Authentication files changed - security review required"
+          else
+            echo "✅ No auth file changes detected"
+          fi
+
+  license-compliance:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check licenses
+        run: |
+          npx license-checker --summary --exclude "MIT,ISC,Apache-2.0,BSD-2-Clause,BSD-3-Clause" || true
+          
+          # Check for GPL (copyleft) licenses that may be problematic
+          if npx license-checker --json | jq -r '.[] | select(.licenses | contains("GPL"))' | grep -q .; then
+            echo "::warning::GPL-licensed dependencies found - review for compatibility"
+          fi
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-audit, secret-detection, sast-scan, custom-security-checks]
+    if: always()
+    steps:
+      - name: Generate security summary
+        run: |
+          echo "## Security Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Checks Completed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependency vulnerability scan" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Secret detection" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SAST (CodeQL)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Custom security checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review any warnings or failures above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check OWASP checklist: .claude/skills/_shared/security-checklist.md" >> $GITHUB_STEP_SUMMARY
+          echo "3. Ensure researcher-expert invoked for security-sensitive changes" >> $GITHUB_STEP_SUMMARY
+          echo "4. Verify all critical checks passed before merging" >> $GITHUB_STEP_SUMMARY

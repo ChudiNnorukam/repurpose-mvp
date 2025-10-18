@@ -5,8 +5,10 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Sparkles, Zap, Clock, Target, ChevronDown, ArrowDown } from "lucide-react"
+import { Sparkles, Zap, Clock, Target, ChevronDown, ArrowDown, Twitter, Linkedin, Instagram } from "lucide-react"
 import { COLOR_PRIMARY } from '@/lib/design-tokens'
+import { ShimmerButton } from "@/components/magicui/shimmer-button"
+import { GridPattern } from "@/components/magicui/grid-pattern"
 
 /** Lightweight animated aurora background */
 function AuroraBackground({ className = "" }: { className?: string }) {
@@ -145,6 +147,15 @@ export function Hero() {
 
   return (
     <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-16 text-[#ededed] md:py-24" data-testid="hero-section">
+      {/* Skip to main content link for accessibility */}
+      <a
+        href="#how-it-works"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        Skip to main content
+      </a>
+
+      <GridPattern className="opacity-20" />
       <AuroraBackground className="absolute inset-0 -z-10" />
 
       {/* Navigation Header */}
@@ -173,7 +184,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-5xl font-bold tracking-tight md:text-6xl"
+          className="text-7xl font-extrabold tracking-tight md:text-9xl"
         >
           One Thought →
           <span className="bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent"> Ten Posts</span>
@@ -183,7 +194,7 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25, duration: 0.6 }}
-          className="mt-6 max-w-2xl text-lg text-muted-foreground"
+          className="mt-6 max-w-2xl text-xl text-muted-foreground"
           data-testid="hero-subtext"
         >
           Write once. Our AI adapts it for LinkedIn, Twitter, Instagram — instantly.
@@ -193,27 +204,15 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="mt-10 flex flex-col gap-4 sm:flex-row"
+          className="mt-10"
         >
-          <Button
-            size="lg"
-            className={`${COLOR_PRIMARY.bg} text-white ${COLOR_PRIMARY.bgHover}`}
-            aria-label="Get started with AI repurposing"
-            data-testid="cta-primary"
+          <ShimmerButton
             onClick={() => router.push('/signup')}
+            className="text-xl px-10 py-6"
+            aria-label="Start creating content with AI"
           >
-            Get Started → Transform
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-            aria-label="Open example demo"
-            data-testid="cta-secondary"
-            onClick={() => setShowDemo(true)}
-          >
-            See Example
-          </Button>
+            Start Creating Content
+          </ShimmerButton>
         </motion.div>
 
         <RadialVisual />
@@ -298,6 +297,50 @@ export function Hero() {
   )
 }
 
+/** Social Proof Section */
+function SocialProof() {
+  return (
+    <section className="bg-gray-50 py-12 border-b border-gray-200">
+      <div className="container mx-auto max-w-6xl px-6 sm:px-8">
+        <div className="flex flex-col items-center justify-center gap-8 md:flex-row md:gap-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center md:text-left"
+          >
+            <p className="text-sm text-gray-500 mb-2">Trusted by content creators</p>
+            <p className="text-3xl font-bold text-gray-900">1,000+ Creators</p>
+          </motion.div>
+
+          <div className="h-12 w-px bg-gray-300 hidden md:block" aria-hidden />
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center gap-6"
+          >
+            <div className="flex flex-col items-center">
+              <Twitter className="h-8 w-8 text-blue-500 mb-2" aria-label="Twitter" />
+              <span className="text-xs text-gray-500">Twitter</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <Linkedin className="h-8 w-8 text-blue-700 mb-2" aria-label="LinkedIn" />
+              <span className="text-xs text-gray-500">LinkedIn</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <Instagram className="h-8 w-8 text-pink-600 mb-2" aria-label="Instagram" />
+              <span className="text-xs text-gray-500">Instagram</span>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /** How It Works Section */
 function HowItWorks() {
   const steps = [
@@ -322,7 +365,7 @@ function HowItWorks() {
   ]
 
   return (
-    <section className="bg-gray-50 py-24">
+    <section id="how-it-works" className="bg-gray-50 py-24">
       <div className="container mx-auto max-w-6xl px-6 sm:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900">How It Works</h2>
@@ -668,6 +711,7 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       <Hero />
+      <SocialProof />
       <HowItWorks />
       <Features />
       <FAQ />

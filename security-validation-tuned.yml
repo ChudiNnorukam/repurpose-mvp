@@ -1,0 +1,52 @@
+# Security Validation - Tuned for Production (v3.2)
+#
+# DESIGN: Staged checks to balance speed & coverage
+# - PR: Quick checks (< 3 min) - audit summary, baseline secrets, CodeQL quick, critical-page axe
+# - Main/Nightly: Full checks (10-20 min) - deep audit, full CodeQL, trufflehog, multi-page axe
+
+name: Security Validation (Tuned)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+  checks: write
+
+env:
+  AUDIT_LEVEL_PR: high
+  AUDIT_LEVEL_MAIN: moderate
+  TIMEOUT_AUDIT: 3
+  TIMEOUT_CODEQL_QUICK: 5
+  TIMEOUT_CODEQL_FULL: 15
+  TIMEOUT_AXE: 5
+  TIMEOUT_TRUFFLEHOG: 10
+
+jobs:
+  detect-changes:
+    name: Detect Changed Files
+    runs-on: ubuntu-latest
+    outputs:
+      auth_changed: \${{ steps.filter.outputs.auth }}
+      deps_changed: \${{ steps.filter.outputs.deps }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            auth:
+              - 'middleware.ts'
+              - 'lib/supabase*.ts'
+              - 'lib/**/auth*.ts'
+              - 'app/api/auth/**'
+            deps:
+              - 'package.json'
+              - 'package-lock.json'

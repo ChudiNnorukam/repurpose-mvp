@@ -1,0 +1,4 @@
+# Human Review Queue
+# Tasks flagged for security expert review
+# Format: [DATE] [AGENT] [OWASP_CAT] DESCRIPTION
+# Process: Review and mark as [REVIEWED] when complete

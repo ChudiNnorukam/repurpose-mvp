@@ -244,3 +244,69 @@ After completion, suggest:
 ---
 
 *This skill enhances the built-in shadcn-expert subagent with Repurpose MVP-specific knowledge and patterns.*
+
+## Auto-Fallback to researcher-expert
+
+**Trigger Conditions** (invoke researcher-expert if ANY match):
+- Failed 2+ times on same task
+- Unfamiliar library/API/pattern
+- Security/auth implementation or review
+- Standards compliance (RFC, WCAG, GDPR, platform policies)
+- Making recommendation without authoritative source
+- Confidence < 0.7
+
+**Action**: See `.claude/skills/_shared/auto-fallback-pattern.md`
+
+## Pre-Output Self-Check (REQUIRED)
+
+Before returning results:
+- [ ] **Delegation**: Task >10 lines → delegated to subagent?
+- [ ] **Citations**: All recommendations have authoritative sources?
+- [ ] **Errors**: 2+ failures → invoked researcher-expert?
+- [ ] **Common questions**: See `.claude/skills/_shared/common-questions.md`
+
+Reference: `.claude/skills/_shared/pre-output-checklist.md`
+
+
+
+---
+
+## OWASP Security Triggers (Enhanced Auto-Fallback)
+
+In addition to standard auto-fallback triggers, IMMEDIATELY invoke researcher-expert when ANY OWASP condition detected:
+
+### 🔴 A1 - Broken Access Control (CRITICAL)
+- Implementing authentication/authorization logic
+- Adding protected routes or API endpoints
+- Modifying middleware.ts or RLS policies
+
+### 🔴 A2 - Cryptographic Failures (CRITICAL)
+- Token storage (OAuth, session, JWT)
+- Secret/credential handling
+- Encryption/hashing operations
+
+### 🔴 A3 - Injection (CRITICAL)
+- Processing user input (forms, query params)
+- AI-generated content rendering
+- Database queries (verify RLS + sanitization)
+
+### 🟡 A5/A7 - Dependencies & Config (HIGH)
+- Adding/updating npm packages
+- Changing environment variables
+- Modifying security configs (CORS, CSP)
+
+### 🟢 A10 - Logging & Monitoring (MEDIUM)
+- Implementing auth flows
+- Sensitive operations logging
+- Security event detection
+
+**When OWASP trigger activated**:
+1. STOP current task
+2. Invoke researcher-expert in security mode (min CRAAP 4.0)
+3. Follow security-checklist.md for relevant OWASP category
+4. Ensure all citations have verification_status
+5. Flag for human review in telemetry
+
+See: `.claude/skills/_shared/auto-fallback-pattern.md` (OWASP section)
+See: `.claude/skills/_shared/security-checklist.md` (validation)
+

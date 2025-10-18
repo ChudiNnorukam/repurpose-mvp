@@ -1,0 +1,38 @@
+Date,Task,Agent,Delegated?,Researched?,Citations?,Errors Recovered?,Notes,Outcome
+2025-10-17,Example: Instagram OAuth,feature-implementer,✅,✅,✅,N/A,Auto-researched first then delegated,Success
+2025-10-17,Example: Fix redirect bug,code-reviewer,✅,❌,✅,✅,Used Explore fallback,Success
+,,,,,,,,
+INSTRUCTIONS:,,,,,,,
+"Fill out this spreadsheet daily to track agent behavior",,,,,,,"Target metrics after 2-3 weeks:",
+"- Delegation rate: 90% (tasks >10 lines use subagents)",,,,,,,
+"- Research rate: 80% (unfamiliar patterns trigger researcher-expert)",,,,,,,
+"- Citation rate: 95% (claims have sources with snippets)",,,,,,,
+"- Error recovery: 85% (2nd failure triggers fallback)",,,,,,,
+,,,,,,,,
+COLUMN GUIDE:,,,,,,,
+"Date: YYYY-MM-DD format",,,,,,,"Track when task occurred",
+"Task: Short description",,,,,,,"e.g., 'Add Twitter OAuth' or 'Fix calendar bug'",
+"Agent: Which agent handled it",,,,,,,"feature-implementer, code-reviewer, ui-ux-expert, etc.",
+"Delegated?: ✅ or ❌",,,,,,,"Did agent delegate to subagent if >10 lines?",
+"Researched?: ✅ or ❌",,,,,,,"Did agent invoke researcher-expert when unfamiliar/security/standards?",
+"Citations?: ✅ or ❌",,,,,,,"Do all claims have sources with snippets?",
+"Errors Recovered?: ✅ or ❌ or N/A",,,,,,,"After 2 failures, did agent research solutions? N/A if no failures",
+"Notes: Free text",,,,,,,"Any observations, issues, or context",
+"Outcome: Success/Partial/Failure",,,,,,,"Success = completed fully, Partial = user corrections needed, Failure = didn't work",
+,,,,,,,,
+WEEKLY SUMMARY (calculate these):,,,,,,,
+"Week of: [date]",,,,,,,
+"Total tasks: [count]",,,,,,,
+"Delegation rate: [✅ count / tasks >10 lines]",,,,,,,
+"Research rate: [✅ count / unfamiliar tasks]",,,,,,,
+"Citation rate: [✅ count / tasks with recommendations]",,,,,,,
+"Error recovery rate: [✅ count / tasks with 2+ failures]",,,,,,,
+"Success rate: [Success count / total tasks]",,,,,,,
+,,,,,,,,
+TARGET vs ACTUAL:,,,,,,,
+Metric,Target,Actual (Week 1),Actual (Week 2),Actual (Week 3),Trend,Status
+Delegation rate,90%,[calculate],[calculate],[calculate],[↑/↓/→],[✅/❌]
+Research rate,80%,[calculate],[calculate],[calculate],[↑/↓/→],[✅/❌]
+Citation rate,95%,[calculate],[calculate],[calculate],[↑/↓/→],[✅/❌]
+Error recovery,85%,[calculate],[calculate],[calculate],[↑/↓/→],[✅/❌]
+Success rate,80%,[calculate],[calculate],[calculate],[↑/↓/→],[✅/❌]
