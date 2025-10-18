@@ -9,7 +9,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { PostEditorModal } from '@/components/posts/PostEditorModal'
 import { BulkSelectToolbar } from '@/components/posts/BulkSelectToolbar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { COLOR_PRIMARY, COLOR_SUCCESS, BUTTON_VARIANTS } from '@/lib/design-tokens'
+import { COLOR_PRIMARY, COLOR_SUCCESS, BUTTON_VARIANTS, BADGE_VARIANTS } from '@/lib/design-tokens'
 
 
 interface Post {
@@ -123,11 +123,11 @@ export default function PostsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'posted':
-        return 'text-green-600 bg-green-50'
+        return BADGE_VARIANTS.success
       case 'scheduled':
-        return 'text-blue-600 bg-blue-50'
+        return BADGE_VARIANTS.primary
       case 'failed':
-        return 'text-red-600 bg-red-50'
+        return BADGE_VARIANTS.destructive
       default:
         return 'text-gray-600 bg-gray-50'
     }

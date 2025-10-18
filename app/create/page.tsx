@@ -9,7 +9,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { CharacterCounter } from '@/components/ui/character-counter'
 import { PLATFORM_LIMITS, Platform as PlatformType } from '@/lib/constants'
 import { LoadingState, LoadingButton, ProgressBar } from '@/components/ui/loading'
-import { COLOR_PRIMARY, COLOR_SUCCESS, BUTTON_VARIANTS } from '@/lib/design-tokens'
+import { COLOR_PRIMARY, COLOR_SUCCESS, COLOR_DESTRUCTIVE, BUTTON_VARIANTS, ALERT_VARIANTS } from '@/lib/design-tokens'
 
 
 type Platform = 'twitter' | 'linkedin' | 'instagram'
@@ -82,7 +82,7 @@ function DetailedErrorBanner({
         </div>
         <button
           onClick={onDismiss}
-          className="rounded border border-red-200 px-3 py-1 text-xs font-medium uppercase tracking-wide text-red-600 hover:bg-red-100"
+          className={`rounded border ${COLOR_DESTRUCTIVE.border} px-3 py-1 text-xs font-medium uppercase tracking-wide ${COLOR_DESTRUCTIVE.text} hover:bg-red-100`}
         >
           Dismiss
         </button>
@@ -136,7 +136,7 @@ function DetailedErrorBanner({
               navigator.clipboard.writeText(error.traceId!)
               toast.success('Trace ID copied to clipboard')
             }}
-            className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+            className={`rounded border ${COLOR_DESTRUCTIVE.border} px-3 py-1 text-xs font-medium ${COLOR_DESTRUCTIVE.text} hover:bg-red-100`}
           >
             Copy Trace ID
           </button>
@@ -147,14 +147,14 @@ function DetailedErrorBanner({
               navigator.clipboard.writeText(error.details!)
               toast.success('Error details copied')
             }}
-            className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+            className={`rounded border ${COLOR_DESTRUCTIVE.border} px-3 py-1 text-xs font-medium ${COLOR_DESTRUCTIVE.text} hover:bg-red-100`}
           >
             Copy Details
           </button>
         )}
         <Link
           href="/settings/connections"
-          className="rounded border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+          className={`rounded border ${COLOR_DESTRUCTIVE.border} px-3 py-1 text-xs font-medium ${COLOR_DESTRUCTIVE.text} hover:bg-red-100`}
         >
           Manage Connections
         </Link>
@@ -187,7 +187,7 @@ function SuccessBanner({
         </div>
         <button
           onClick={onDismiss}
-          className="rounded border border-green-200 px-3 py-1 text-xs font-medium uppercase tracking-wide text-green-700 hover:bg-green-100"
+          className={`rounded border ${COLOR_SUCCESS.border} px-3 py-1 text-xs font-medium uppercase tracking-wide ${COLOR_SUCCESS.textDark} hover:bg-green-100`}
         >
           Dismiss
         </button>
@@ -195,7 +195,7 @@ function SuccessBanner({
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
         <Link
           href="/posts?filter=scheduled"
-          className="rounded border border-green-200 px-3 py-1 font-medium text-green-700 hover:bg-green-100"
+          className={`rounded border ${COLOR_SUCCESS.border} px-3 py-1 font-medium ${COLOR_SUCCESS.textDark} hover:bg-green-100`}
         >
           View scheduled posts
         </Link>
@@ -205,7 +205,7 @@ function SuccessBanner({
               navigator.clipboard.writeText(success.traceId!)
               toast.success('Trace ID copied to clipboard')
             }}
-            className="rounded border border-green-200 px-3 py-1 font-medium text-green-700 hover:bg-green-100"
+            className={`rounded border ${COLOR_SUCCESS.border} px-3 py-1 font-medium ${COLOR_SUCCESS.textDark} hover:bg-green-100`}
           >
             Copy Trace ID
           </button>

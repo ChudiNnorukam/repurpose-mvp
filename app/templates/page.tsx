@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { COLOR_PRIMARY, COLOR_AI, COLOR_SUCCESS, BUTTON_VARIANTS } from '@/lib/design-tokens'
+import { COLOR_PRIMARY, COLOR_AI, COLOR_SUCCESS, COLOR_DESTRUCTIVE, BUTTON_VARIANTS, BADGE_VARIANTS } from '@/lib/design-tokens'
 
 interface Template {
   id: string

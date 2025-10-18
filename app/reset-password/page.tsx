@@ -1,5 +1,7 @@
 'use client'
 
+import { ALERT_VARIANTS } from '@/lib/design-tokens'
+
 import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -101,7 +103,7 @@ function ResetPasswordForm() {
         footerLink={{ text: 'Request password reset', href: '/forgot-password' }}
       >
         <div className="space-y-6">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="assertive" aria-atomic="true">
+          <div className={`${ALERT_VARIANTS.error} px-4 py-3 rounded-md text-sm`} role="alert" aria-live="assertive" aria-atomic="true">
             {error}
           </div>
           <Button
@@ -124,7 +126,7 @@ function ResetPasswordForm() {
         footerLink={{ text: '', href: '' }}
       >
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="polite" aria-atomic="true">
+          <div className={`${ALERT_VARIANTS.success} px-4 py-3 rounded-md text-sm`} role="alert" aria-live="polite" aria-atomic="true">
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
               <div>
@@ -154,7 +156,7 @@ function ResetPasswordForm() {
     >
       <form className="space-y-6" onSubmit={handleResetPassword}>
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="assertive" aria-atomic="true">
+          <div className={`${ALERT_VARIANTS.error} px-4 py-3 rounded-md text-sm`} role="alert" aria-live="assertive" aria-atomic="true">
             {error}
           </div>
         )}

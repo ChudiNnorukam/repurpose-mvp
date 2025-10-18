@@ -8,7 +8,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { COLOR_PRIMARY, COLOR_AI, BUTTON_VARIANTS } from '@/lib/design-tokens'
+import { COLOR_PRIMARY, COLOR_AI, BUTTON_VARIANTS, BADGE_VARIANTS } from '@/lib/design-tokens'
 import { CalendarFilters } from '@/components/calendar/CalendarFilters'
 import { CalendarPost } from '@/components/calendar/CalendarPost'
 import { DayDetailModal } from '@/components/calendar/DayDetailModal'
@@ -117,11 +117,11 @@ export default function DashboardPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'posted':
-        return 'text-green-600 bg-green-50'
+        return BADGE_VARIANTS.success
       case 'scheduled':
-        return 'text-blue-600 bg-blue-50'
+        return BADGE_VARIANTS.primary
       case 'failed':
-        return 'text-red-600 bg-red-50'
+        return BADGE_VARIANTS.destructive
       default:
         return 'text-gray-600 bg-gray-50'
     }

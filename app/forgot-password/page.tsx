@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
+import { ALERT_VARIANTS } from '@/lib/design-tokens'
 import Link from 'next/link'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { Button } from '@/components/ui/button'
@@ -53,7 +54,7 @@ export default function ForgotPasswordPage() {
         footerLink={{ text: 'Log in', href: '/login' }}
       >
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="polite" aria-atomic="true">
+          <div className={`${ALERT_VARIANTS.success} px-4 py-3 rounded-md text-sm`} role="alert" aria-live="polite" aria-atomic="true">
             <p className="font-medium mb-1">Password reset email sent!</p>
             <p>We've sent password reset instructions to <strong>{email}</strong>. Please check your inbox and follow the link to reset your password.</p>
           </div>
@@ -88,7 +89,7 @@ export default function ForgotPasswordPage() {
     >
       <form className="space-y-6" onSubmit={handleResetRequest}>
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" role="alert" aria-live="assertive" aria-atomic="true">
+          <div className={`${ALERT_VARIANTS.error} px-4 py-3 rounded-md text-sm`} role="alert" aria-live="assertive" aria-atomic="true">
             {error}
           </div>
         )}

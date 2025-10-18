@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { COLOR_PRIMARY, BUTTON_VARIANTS } from '@/lib/design-tokens'
+import { COLOR_PRIMARY, COLOR_DESTRUCTIVE, COLOR_SUCCESS, BUTTON_VARIANTS, ALERT_VARIANTS } from '@/lib/design-tokens'
 
 
 interface SocialAccount {
@@ -162,13 +162,13 @@ function ConnectionsContent() {
         </div>
 
         {message && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <div className={`mb-6 ${ALERT_VARIANTS.success} px-4 py-3 rounded`}>
             {message}
           </div>
         )}
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className={`mb-6 ${ALERT_VARIANTS.error} px-4 py-3 rounded`}>
             {error}
           </div>
         )}
