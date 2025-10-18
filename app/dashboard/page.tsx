@@ -365,18 +365,13 @@ export default function DashboardPage() {
           <p className="text-gray-600 mb-6 text-center">
             Transform your content for Twitter, LinkedIn, and Instagram
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link
               href="/create"
-              className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${COLOR_PRIMARY.bg} ${COLOR_PRIMARY.bgHover}`}
+              className={`inline-flex items-center gap-2 justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${COLOR_PRIMARY.bg} ${COLOR_PRIMARY.bgHover}`}
             >
-              Repurpose Content
-            </Link>
-            <Link
-              href="/generate"
-              className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${COLOR_AI.bg} ${COLOR_AI.bgHover}`}
-            >
-              ✨ Generate from Topic
+              Create Content
+              <span className="px-2 py-0.5 text-xs font-bold rounded bg-purple-100 text-purple-700">AI</span>
             </Link>
           </div>
         </div>
