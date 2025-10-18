@@ -90,6 +90,7 @@ export async function middleware(request: NextRequest) {
     '/connections',
     '/templates',
     '/batch-create',
+    '/content-calendar',
   ]
 
   // Public routes that should redirect to dashboard if authenticated
