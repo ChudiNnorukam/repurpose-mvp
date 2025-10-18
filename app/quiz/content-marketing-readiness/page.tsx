@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { COLOR_PRIMARY, COLOR_AI } from '@/lib/design-tokens'
 
-export default function QuizLandingPage() {
+function QuizLandingContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const variant = searchParams.get('v') || 'A'
@@ -173,5 +173,13 @@ function ValueBullet({ text }: { text: string }) {
       <span className="text-green-600 text-2xl flex-shrink-0">✓</span>
       <p className="text-gray-700">{text}</p>
     </div>
+  )
+}
+
+export default function QuizLandingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <QuizLandingContent />
+    </Suspense>
   )
 }

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import quizData from '@/data/quiz-content-marketing.json'
 import { QuizAnswers } from '@/lib/quiz/types'
 import { calculateScores } from '@/lib/quiz/scoring'
 import { COLOR_PRIMARY, COLOR_AI } from '@/lib/design-tokens'
 
-export default function QuizQuestionsPage() {
+function QuizQuestionsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const variant = searchParams.get('v') || 'A'
@@ -237,5 +237,13 @@ export default function QuizQuestionsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function QuizQuestionsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div><p className="text-gray-600">Loading quiz...</p></div></div>}>
+      <QuizQuestionsContent />
+    </Suspense>
   )
 }
