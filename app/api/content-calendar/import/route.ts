@@ -37,19 +37,19 @@ export async function POST(request: NextRequest) {
       // Parse date
       const scheduled_date = new Date(row.Date).toISOString().split('T')[0]
       
-      // Parse key points (assumed comma-separated in CSV)
-      const key_points = row['Key Points'] 
-        ? row['Key Points'].split('•').map((p: string) => p.trim()).filter(Boolean)
+      // Parse key points (pipe-separated in CSV)
+      const key_points = row.Key_Points && row.Key_Points.trim()
+        ? row.Key_Points.split('|').map((p: string) => p.trim()).filter(Boolean)
         : []
       
-      // Parse hashtags
-      const hashtags = row.Hashtags 
-        ? row.Hashtags.split(',').map((h: string) => h.trim())
+      // Parse hashtags (space-separated)
+      const hashtags = row.Hashtags && row.Hashtags.trim()
+        ? row.Hashtags.split(/\s+/).map((h: string) => h.trim()).filter(Boolean)
         : []
       
-      // Parse SEO keywords
-      const seo_keywords = row['SEO Keywords']
-        ? row['SEO Keywords'].split(',').map((k: string) => k.trim())
+      // Parse SEO keywords (comma-separated)
+      const seo_keywords = row.SEO_Keywords && row.SEO_Keywords.trim()
+        ? row.SEO_Keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
         : []
       
       // Calculate week number (1-13 for 90 days)
@@ -58,23 +58,26 @@ export async function POST(request: NextRequest) {
       // Get day of week (0-6)
       const day_of_week = new Date(row.Date).getDay()
       
+      // Parse platform (convert to lowercase)
+      const platform = (row.Platform || '').toLowerCase().trim() || 'linkedin'
+      
       return {
         user_id: user.id,
         scheduled_date,
-        scheduled_time: row.Time || null,
-        platform: row.Platform.toLowerCase(),
-        content_type: row['Content Type'],
-        topic_theme: row['Topic/Theme'],
-        hook: row.Hook,
+        scheduled_time: null, // Can be added later
+        platform,
+        content_type: row.Content_Type || 'Post', // Default if missing
+        topic_theme: row.Topic_Theme || 'General',
+        hook: row.Hook_First_Line || '',
         key_points,
         full_content: null, // Will be populated from week1-content or generated
-        cta: row.CTA,
+        cta: row.CTA || null,
         hashtags,
         seo_keywords,
-        estimated_engagement_score: parseInt(row['Est. Engagement Score']) || 5,
-        ai_detection_risk: row['AI Detection Risk']?.toLowerCase() || 'low',
+        estimated_engagement_score: parseInt(row.Est_Engagement_Score) || 5,
+        ai_detection_risk: (row.AI_Detection_Risk || 'low').toLowerCase(),
         status: 'draft',
-        content_pillar: row['Content Pillar'] || 'General',
+        content_pillar: row.Content_Pillar || 'General',
         week_number,
         day_of_week
       }
@@ -102,7 +105,11 @@ export async function POST(request: NextRequest) {
         total_entries: data.length,
         week_1_entries: data.filter(e => e.week_number === 1).length,
         linkedin_entries: data.filter(e => e.platform === 'linkedin' || e.platform === 'both').length,
-        twitter_entries: data.filter(e => e.platform === 'twitter' || e.platform === 'both').length
+        twitter_entries: data.filter(e => e.platform === 'twitter' || e.platform === 'both').length,
+        date_range: {
+          start: data[0]?.scheduled_date,
+          end: data[data.length - 1]?.scheduled_date
+        }
       }
     })
 
