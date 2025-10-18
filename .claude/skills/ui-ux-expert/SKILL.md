@@ -192,6 +192,104 @@ logger.error('Failed operation', { error, context })
 - UI component → Use shadcn + design tokens
 - Batch operation → See batch-generation.ts pattern
 
+
+
+## Onboarding System Templates
+
+### Overview
+The ui-ux-expert skill includes production-ready templates for building user onboarding flows with database migrations, React components, and hooks.
+
+### Database Migration Template
+**File**: `.claude/skills/ui-ux-expert/templates/onboarding-migration.sql`
+
+**What it includes**:
+- 5 onboarding tracking columns for `user_preferences` table
+- Performance indexes for onboarding queries
+- Documentation comments
+- Usage examples (completion rate, avg time to complete)
+- Rollback script
+
+**Columns added**:
+- `onboarding_completed`: Boolean flag for completion status
+- `onboarding_started_at`: Timestamp of first interaction
+- `onboarding_completed_at`: Timestamp of completion
+- `onboarding_steps_completed`: JSONB array of step IDs
+- `show_welcome_modal`: Boolean flag for modal display
+
+**Usage**:
+```bash
+# Run migration in Supabase SQL Editor
+# Or via CLI
+supabase db push
+```
+
+### Component Architecture
+Based on Repurpose MVP implementation (`components/onboarding/`):
+
+**Core Components**:
+1. `WelcomeModal.tsx` - First-time user welcome with product overview
+2. `OnboardingChecklist.tsx` - Step-by-step task list with progress tracking
+3. `ChecklistItem.tsx` - Individual step component with CTA buttons
+4. `ProgressIndicator.tsx` - Mini progress widget for header/nav
+
+**Hook**:
+- `lib/hooks/useOnboarding.ts` - React hook for onboarding state management
+
+**Features**:
+- Progress tracking with confetti on completion
+- Dismissible checklist
+- Persistent state in database
+- Mobile-responsive design
+- Accessibility (WCAG 2.1 AA)
+
+### Implementation Pattern
+```typescript
+// 1. Run database migration (onboarding-migration.sql)
+
+// 2. Create onboarding hook
+import { useOnboarding } from '@/lib/hooks/useOnboarding'
+
+export default function Dashboard() {
+  const onboarding = useOnboarding(user?.id)
+  
+  return (
+    <>
+      <WelcomeModal />
+      <ProgressIndicator 
+        completed={onboarding.state.completed}
+        totalSteps={5}
+        completedSteps={Object.values(onboarding.progress).filter(Boolean).length}
+      />
+      {!onboarding.state.completed && (
+        <OnboardingChecklist 
+          progress={onboarding.progress}
+          onDismiss={onboarding.dismissOnboarding}
+        />
+      )}
+    </>
+  )
+}
+```
+
+### Customization Guide
+**To add custom onboarding steps**:
+1. Update `onboarding_steps_completed` JSONB array with your step IDs
+2. Modify `OnboardingChecklist.tsx` to add/remove steps
+3. Update `useOnboarding.ts` progress calculation
+4. Adjust `ProgressIndicator` total steps count
+
+**To customize styling**:
+- Use design tokens from `lib/design-tokens.ts`
+- Modify component Tailwind classes
+- Update animations in `OnboardingChecklist.tsx`
+
+### Analytics Queries
+See `onboarding-migration.sql` template for:
+- Completion rate by cohort
+- Average time to complete
+- Drop-off points analysis
+- Active vs completed users
+
 ## Anti-Patterns to Avoid
 
 ❌ **Don't**: Hardcode colors/styles - use design tokens
