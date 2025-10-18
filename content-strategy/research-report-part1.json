@@ -1,0 +1,98 @@
+{
+  "metadata": {
+    "research_date": "2025-10-17",
+    "researcher": "Claude (researcher-expert)",
+    "project": "Chudi Nnorukam Personal Brand Growth - 90-Day Content Calendar",
+    "total_sources": 28,
+    "avg_craap_score": 4.1
+  },
+  "executive_summary": {
+    "key_findings": [
+      "LinkedIn carousels have highest engagement rate (45.85%) - prioritize for educational content",
+      "Twitter threads get 45% more engagement than single tweets - use 2-3x/week",
+      "First 60 minutes (golden hour) determines 80% of content reach on both platforms",
+      "Personal profiles outperform company pages by 6x on LinkedIn",
+      "Building in public is the #1 growth strategy for indie hackers (Vassallo: 0\u219291K followers)",
+      "AI detection bypass requires burstiness (sentence variation) + personal anecdotes",
+      "Optimal posting: LinkedIn 3-5x/week at 8-10 AM, Twitter 1-3x/day at 9-11 AM EST"
+    ],
+    "recommended_strategy": {
+      "linkedin": "4 posts/week (Mon/Wed/Fri/Sun) - mix story arcs, carousels, metrics posts",
+      "twitter": "2 tweets/day + 1 thread/week - focus on technical insights + building in public",
+      "content_pillars": [
+        "Product development (Repurpose MVP)",
+        "Technical deep-dives (Next.js/OAuth/AI)",
+        "Indie hacking journey",
+        "Content marketing insights",
+        "Building in public updates"
+      ],
+      "tone": "Conversational technical founder - empathy + expertise + authenticity"
+    }
+  },
+  "profile_analysis": {
+    "current_context": "Based on Repurpose MVP project context (LinkedIn API access unavailable)",
+    "inferred_profile": {
+      "headline": "SaaS Founder | Building Repurpose MVP - AI-Powered Content Automation | Next.js/React Developer",
+      "niche": "SaaS founder solving content repurposing problems with AI/automation for creators",
+      "target_audience": {
+        "primary": [
+          "Content creators",
+          "Marketers",
+          "Indie hackers",
+          "Developer founders"
+        ],
+        "demographics": "B2B professionals, solopreneurs, technical founders, 25-45 years old",
+        "psychographics": "Value efficiency, authenticity, technical depth, building in public, creator empathy",
+        "pain_points": [
+          "Manual content reformatting",
+          "Multi-platform posting",
+          "Time wasted on distribution vs creation",
+          "Finding authentic tech tools"
+        ]
+      },
+      "brand_positioning": {
+        "unique_value": "Technical founder with creator empathy - solves real pain points through hands-on development",
+        "authority_markers": [
+          "Built working MVP (Repurpose)",
+          "Deep technical expertise (Next.js 15, Supabase, OAuth, QStash, AI integration)",
+          "Understands multi-platform content workflows firsthand",
+          "Building in public approach with metrics transparency"
+        ],
+        "differentiation": "Not another no-code guru - actual developer building real solutions for real problems",
+        "positioning_statement": "For content creators tired of manual reformatting, I build AI-powered automation tools that feel like magic but are backed by solid engineering"
+      }
+    },
+    "tone_profile": {
+      "formality": "Conversational professional (7/10)",
+      "emotion": "Balanced authentic (6/10) - shares wins AND struggles",
+      "humor": "Subtle developer wit (5/10) - relatable not try-hard",
+      "technical_depth": "Accessible with depth (8/10) - explains complex simply",
+      "vulnerability": "Transparent building in public (7/10)",
+      "voice_description": "Technical founder who 'gets it' - empathy for creator pain points, no BS marketing speak",
+      "style_keywords": [
+        "Clear",
+        "Direct",
+        "Human not corporate",
+        "Specific numbers/metrics",
+        "Real wins AND struggles",
+        "Show don't tell"
+      ],
+      "example_phrases": [
+        "Here's what nobody tells you about OAuth integration...",
+        "Spent 6 hours debugging this. Turns out...",
+        "Most content tools are designed for agencies. Creators need X instead.",
+        "Built Repurpose MVP because I was tired of manually reformatting posts 5x/day",
+        "Plot twist: the bug was in line 247",
+        "At 2am, third coffee, I realized...",
+        "This drove me insane until..."
+      ],
+      "avoid": [
+        "Corporate jargon",
+        "Fake guru energy",
+        "Empty motivational fluff",
+        "Overhyped promises",
+        "Generic advice"
+      ]
+    }
+  }
+}

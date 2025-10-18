@@ -1,0 +1,163 @@
+{
+  "growth_methods": {
+    "linkedin": {
+      "optimal_frequency": "3-5 posts per week (or daily for aggressive growth)",
+      "best_times": {
+        "primary": "8:00-10:00 AM weekdays (EST) - before meetings start",
+        "secondary": "12:00-2:00 PM weekdays (EST) - lunch break scrolling",
+        "weekend_strategy": "1 post on Sunday afternoon - 25% higher engagement potential due to less competition",
+        "spacing_rule": "Minimum 12 hours between posts"
+      },
+      "content_formats_ranked": [
+        {
+          "format": "Carousel",
+          "engagement_rate": "45.85%",
+          "best_for": "Educational deep-dives, step-by-step guides, architecture breakdowns, technical tutorials",
+          "optimal_length": "10-12 slides, 25-50 words per slide",
+          "craap_score": 4.5
+        },
+        {
+          "format": "Native Video",
+          "engagement_rate": "5.60%",
+          "shares_multiplier": "5x vs text posts",
+          "best_for": "Product demos, code walkthroughs, behind-the-scenes",
+          "optimal_length": "45-90 seconds with captions",
+          "craap_score": 4.3
+        },
+        {
+          "format": "Multi-image Post",
+          "engagement_rate": "6.60%",
+          "best_for": "Before/after comparisons, progress updates, visual stories",
+          "optimal_length": "2-4 images with 100-200 word caption",
+          "craap_score": 4.2
+        },
+        {
+          "format": "Text-only (Story Arc)",
+          "engagement_rate": "5.20% baseline",
+          "best_for": "Personal stories, contrarian takes, authentic vulnerability",
+          "optimal_length": "150-300 words (1-2 min read)",
+          "craap_score": 4.4
+        },
+        {
+          "format": "Polls",
+          "best_for": "Triggering algorithm (immediate engagement), audience research, community building",
+          "engagement_boost": "Immediate interaction signals value to algorithm",
+          "craap_score": 4.0
+        }
+      ],
+      "algorithm_signals": [
+        "First 60 minutes (golden hour) - 80% more traction if engagement surges early",
+        "Dwell time - longer reads (150-300 words) signal value to algorithm",
+        "Meaningful comments > likes (comments = conversation = algorithm boost)",
+        "Relevance to connections' interests > recency (quality over timing)",
+        "Personal profiles > company pages for organic reach (6x better)",
+        "Early team engagement creates momentum (encourage network to engage in first hour)"
+      ],
+      "engagement_tactics": [
+        "Post 3-5x/week consistently (weekly posting = 2x engagement lift)",
+        "Write 5-10 comments/day (10-40 words, thoughtful not generic 'Great post!')",
+        "Encourage team/network to engage in first hour (momentum snowballs)",
+        "Mix content types (variety signals active creator to algorithm)",
+        "Space posts minimum 12 hours apart (algorithm penalizes spam)",
+        "Focus on core message weekly (consistency > one-off virality)",
+        "Share actionable insights (3x more saves than self-promotion)",
+        "Personalized content drives 6x more engagement than recycled material"
+      ],
+      "profile_optimization": {
+        "headline": {
+          "formula": "[Role] | [Product/Value Prop] | [Tech Stack/Approach] (120 chars max)",
+          "example": "SaaS Founder | Building Repurpose\u2014AI Content Automation for Creators | Next.js \u2022 React \u2022 Supabase | Building in Public",
+          "keywords": [
+            "SaaS Founder",
+            "AI Content Automation",
+            "Creators",
+            "Next.js",
+            "Building in Public"
+          ]
+        },
+        "about_section": {
+          "structure": "First 2 sentences: Core keywords + value prop \u2192 Middle: Story with keywords \u2192 End: Clear CTA + link",
+          "example_start": "I build AI-powered content tools for creators tired of manual reformatting. Repurpose MVP automates multi-platform content adaptation using Next.js 15, Supabase, and OpenAI.",
+          "length": "2000-2600 chars (full space)",
+          "keywords_to_include": [
+            "SaaS",
+            "content automation",
+            "AI",
+            "creators",
+            "Next.js",
+            "indie hacker"
+          ]
+        },
+        "featured_section": [
+          "Pin top-performing posts (update monthly)",
+          "Repurpose MVP product demo/explainer video",
+          "Case study or testimonial post",
+          "Technical deep-dive that shows expertise"
+        ],
+        "custom_url": "linkedin.com/in/chudinnorukam"
+      },
+      "top_sources": [
+        {
+          "title": "LinkedIn Algorithm 2025 Update",
+          "url": "https://www.useaware.co/blog/linkedin-algorithm",
+          "authority": "Aware (LinkedIn analytics platform)",
+          "craap_score": 4.5,
+          "key_insights": [
+            "Algorithm rewards authentic expertise over viral participation",
+            "First 60 minutes determines reach",
+            "Dwell time and conversation depth matter most"
+          ],
+          "fetch_date": "2025-10-17"
+        },
+        {
+          "title": "Founder-Led Marketing Playbook for B2B SaaS",
+          "url": "https://www.everything.design/blog/founder-led-linkedin-marketing-playbook-b2b-startups",
+          "authority": "Everything Design",
+          "craap_score": 4.3,
+          "key_insights": [
+            "Founder-led content drives higher organic reach",
+            "Personal posts build trust faster",
+            "Adam Robinson: 21M views \u2192 $4M ARR"
+          ],
+          "fetch_date": "2025-10-17"
+        },
+        {
+          "title": "LinkedIn Organic Reach 2025: Strategies That Work",
+          "url": "https://empathyfirstmedia.com/linkedin-organic-reach-strategies-2025/",
+          "authority": "Empathy First Media",
+          "craap_score": 4.2,
+          "key_insights": [
+            "Personal content = 6x engagement vs recycled",
+            "Actionable insights = 3x more saves",
+            "Quality > volume in 2025"
+          ],
+          "fetch_date": "2025-10-17"
+        },
+        {
+          "title": "7 Proven LinkedIn Post Formats That Convert",
+          "url": "https://ligo.ertiqah.com/blog/7-linkedin-post-formats-proven-to-increase-engagement-with-examples",
+          "authority": "LiGo",
+          "craap_score": 4.1,
+          "key_insights": [
+            "Carousels: 45.85% engagement rate (highest)",
+            "Video: 5x more shares than text",
+            "Mix formats for algorithm favor"
+          ],
+          "fetch_date": "2025-10-17"
+        },
+        {
+          "title": "Best Days & Times to Post on LinkedIn 2025",
+          "url": "https://authoredup.com/blog/best-days-to-post-linkedin",
+          "authority": "AuthoredUp (LinkedIn optimization tool)",
+          "craap_score": 4.0,
+          "key_insights": [
+            "8-10 AM weekdays = highest engagement",
+            "Weekends: 25% higher top post engagement (less competition)",
+            "Tuesday-Thursday best for B2B"
+          ],
+          "fetch_date": "2025-10-17"
+        }
+      ]
+    }
+  }
+}
