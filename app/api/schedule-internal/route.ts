@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     // Verify service role authentication
     const authHeader = request.headers.get('Authorization')
-    const expectedKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const expectedKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
 
     // Debug logging (remove after testing)
     console.log('[schedule-internal] Auth check:', {
