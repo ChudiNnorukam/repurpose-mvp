@@ -18,10 +18,21 @@ export default function DashboardPage() {
   useEffect(() => {
     async function getUser() {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        const { data: { user: currentUser }, error } = await supabase.auth.getUser()
+
+        // If there's an invalid refresh token error, clear session and redirect
+        if (error && error.message.includes('Refresh Token')) {
+          await supabase.auth.signOut()
+          window.location.href = '/login'
+          return
+        }
+
         setUser(currentUser)
       } catch (error) {
         console.error('Error fetching user:', error)
+        // Clear any corrupt session data and redirect
+        await supabase.auth.signOut()
+        window.location.href = '/login'
       } finally {
         setLoading(false)
       }
@@ -30,7 +41,7 @@ export default function DashboardPage() {
     getUser()
   }, [])
 
-  const onboarding = useOnboarding(user?.id)
+  const onboarding = useOnboarding()
 
   if (loading || onboarding.loading) {
     return (
@@ -61,10 +72,10 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <ProgressIndicator 
-        completed={onboarding.state.completed}
+      <ProgressIndicator
+        completed={onboarding.completed}
         totalSteps={5}
-        completedSteps={Object.values(onboarding.progress).filter(Boolean).length}
+        completedSteps={onboarding.stepsCompleted.length}
       />
 
       <WelcomeModal />
@@ -132,11 +143,13 @@ export default function DashboardPage() {
 
           <div className="lg:col-span-4">
             <div className="sticky top-24 space-y-6">
-              {!onboarding.state.completed && (
-                <OnboardingChecklist 
-                  progress={onboarding.progress}
-                  onDismiss={onboarding.dismissOnboarding}
-                  onRefresh={onboarding.refreshProgress}
+              {!onboarding.completed && onboarding.showWelcomeModal && (
+                <OnboardingChecklist
+                  completed={onboarding.completed}
+                  stepsCompleted={onboarding.stepsCompleted}
+                  progressPercentage={onboarding.progressPercentage}
+                  onCompleteStep={onboarding.completeStep}
+                  onDismiss={onboarding.dismissWelcomeModal}
                 />
               )}
 

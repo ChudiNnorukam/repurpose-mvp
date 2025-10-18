@@ -1,0 +1,290 @@
+{
+  "name": "Repurpose Content Personalizer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "getAll",
+        "tableId": "scheduled_posts",
+        "returnAll": false,
+        "limit": 20,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "pending"
+            },
+            {
+              "keyName": "ai_reviewed",
+              "condition": "equals",
+              "keyValue": "false"
+            },
+            {
+              "keyName": "scheduled_time",
+              "condition": "smallerEqual",
+              "keyValue": "={{ $now.plus({ hours: 24 }).toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "get-unreviewed-posts",
+      "name": "Get Unreviewed Posts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a content optimization expert specializing in social media engagement. Your task is to review and improve social media posts for maximum engagement while avoiding AI detection.\n\nGuidelines:\n- Make content sound natural and human-written\n- Add personality and authentic voice\n- Use platform-specific best practices (Twitter: concise + hooks, LinkedIn: professional + insights)\n- Optimize for engagement (questions, calls-to-action, storytelling)\n- Preserve the core message and intent\n- Keep character limits in mind (Twitter: 280, LinkedIn: 3000)\n- Add relevant emojis strategically (not excessive)\n- Remove obvious AI patterns (e.g., 'delve', 'unlock', 'dive deep')\n\nOutput Format:\n{\n  \"improved_content\": \"optimized post text\",\n  \"changes_made\": [\"list of improvements\"],\n  \"engagement_score\": 1-10,\n  \"ai_detection_risk\": \"low|medium|high\",\n  \"recommendations\": \"additional tips\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "=Platform: {{ $json.platform }}\n\nOriginal Content:\n{{ $json.content }}\n\nContext: This is post {{ $json.id }} scheduled for {{ $json.scheduled_time }}. Please review and optimize for maximum engagement while maintaining authenticity."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1000
+        }
+      },
+      "id": "ai-review",
+      "name": "AI Content Review",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [650, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and extract improvements\nconst aiResponse = $input.item.json.response?.text || '{}';\nlet parsed;\n\ntry {\n  // Try to parse JSON from response\n  const jsonMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\n  parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};\n} catch (e) {\n  console.error('Failed to parse AI response:', e);\n  parsed = {\n    improved_content: $input.item.json.content,\n    changes_made: ['No changes - parsing error'],\n    engagement_score: 5,\n    ai_detection_risk: 'unknown'\n  };\n}\n\n// Return merged data\nreturn {\n  ...($input.item.json),\n  ai_review: parsed,\n  improved_content: parsed.improved_content || $input.item.json.content,\n  engagement_score: parsed.engagement_score || 5,\n  ai_detection_risk: parsed.ai_detection_risk || 'unknown',\n  ai_reviewed: true,\n  reviewed_at: new Date().toISOString()\n};"
+      },
+      "id": "parse-response",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.engagement_score }}",
+              "operation": "larger",
+              "value2": "={{ $json.engagement_score_original || 5 }}"
+            }
+          ]
+        }
+      },
+      "id": "check-if-improved",
+      "name": "Check If Improved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "update",
+        "tableId": "scheduled_posts",
+        "filterType": "manual",
+        "matchingColumns": "id",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $json.improved_content }}"
+            },
+            {
+              "fieldId": "ai_reviewed",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "ai_review_data",
+              "fieldValue": "={{ JSON.stringify($json.ai_review) }}"
+            },
+            {
+              "fieldId": "engagement_score",
+              "fieldValue": "={{ $json.engagement_score }}"
+            },
+            {
+              "fieldId": "ai_detection_risk",
+              "fieldValue": "={{ $json.ai_detection_risk }}"
+            }
+          ]
+        }
+      },
+      "id": "update-with-improvements",
+      "name": "Update With Improvements",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "update",
+        "tableId": "scheduled_posts",
+        "filterType": "manual",
+        "matchingColumns": "id",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "ai_reviewed",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "ai_review_data",
+              "fieldValue": "={{ JSON.stringify($json.ai_review) }}"
+            },
+            {
+              "fieldId": "engagement_score",
+              "fieldValue": "={{ $json.engagement_score }}"
+            }
+          ]
+        }
+      },
+      "id": "mark-as-reviewed",
+      "name": "Mark As Reviewed (No Changes)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 400],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Unreviewed Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unreviewed Posts": {
+      "main": [
+        [
+          {
+            "node": "AI Content Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Content Review": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Check If Improved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Improved": {
+      "main": [
+        [
+          {
+            "node": "Update With Improvements",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark As Reviewed (No Changes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "repurpose-content-personalizer"
+  },
+  "tags": []
+}

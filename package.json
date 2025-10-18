@@ -13,7 +13,13 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:linear": "tsx scripts/playwright-linear-integration.ts",
-    "test:linear:iterate": "bash scripts/run-linear-integration.sh"
+    "test:linear:iterate": "bash scripts/run-linear-integration.sh",
+    "setup:n8n": "tsx scripts/setup-n8n-automation.ts",
+    "create-post": "tsx scripts/create-post.ts",
+    "trigger-scheduler": "tsx scripts/trigger-n8n-workflow.ts",
+    "trigger-personalizer": "tsx scripts/trigger-n8n-workflow.ts 'Repurpose Content Personalizer'",
+    "trigger-quality-gate": "tsx scripts/trigger-n8n-workflow.ts 'Repurpose Quality Gate'",
+    "trigger-engagement": "tsx scripts/trigger-n8n-workflow.ts 'Repurpose Engagement Monitor'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
@@ -67,6 +73,7 @@
     "@types/node": "^20.19.20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "jest": "^30.2.0",

@@ -23,9 +23,22 @@ export default function LoginPage() {
   // Check if user is already logged in
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        router.push('/dashboard')
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        // If there's an invalid refresh token error, clear the session
+        if (error && error.message.includes('Refresh Token')) {
+          await supabase.auth.signOut()
+          return
+        }
+
+        if (session) {
+          router.push('/dashboard')
+        }
+      } catch (error) {
+        console.error('Session check error:', error)
+        // Clear any corrupt session data
+        await supabase.auth.signOut()
       }
     }
     checkUser()

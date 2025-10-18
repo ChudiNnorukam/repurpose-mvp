@@ -11,7 +11,24 @@ export function createClient() {
     )
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  const client = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      // Automatically handle invalid refresh tokens
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  })
+
+  // Listen for auth errors and clear invalid sessions
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      // Session was cleared or refreshed
+      console.log(`Auth event: ${event}`)
+    }
+  })
+
+  return client
 }
 
 // Singleton instance for client-side use

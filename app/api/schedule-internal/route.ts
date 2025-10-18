@@ -12,17 +12,39 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('Authorization')
     const expectedKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    if (!authHeader || !expectedKey) {
+    // Debug logging (remove after testing)
+    console.log('[schedule-internal] Auth check:', {
+      hasAuthHeader: !!authHeader,
+      hasExpectedKey: !!expectedKey,
+      authHeaderPrefix: authHeader?.substring(0, 20),
+      expectedKeyPrefix: expectedKey?.substring(0, 20)
+    })
+
+    if (!authHeader) {
       return NextResponse.json(
-        { error: 'Unauthorized', message: 'Missing authentication' },
+        { error: 'Unauthorized', message: 'Missing Authorization header' },
         { status: 401 }
       )
     }
 
+    if (!expectedKey) {
+      console.error('[schedule-internal] SUPABASE_SERVICE_ROLE_KEY not set in environment!')
+      return NextResponse.json(
+        { error: 'Server Error', message: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Extract Bearer token
-    const token = authHeader.replace('Bearer ', '')
+    const token = authHeader.replace('Bearer ', '').trim()
 
     if (token !== expectedKey) {
+      console.error('[schedule-internal] Token mismatch!', {
+        receivedLength: token.length,
+        expectedLength: expectedKey.length,
+        receivedPrefix: token.substring(0, 30),
+        expectedPrefix: expectedKey.substring(0, 30)
+      })
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Invalid service role key' },
         { status: 401 }

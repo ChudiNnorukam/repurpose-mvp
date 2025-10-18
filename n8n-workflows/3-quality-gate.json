@@ -1,0 +1,341 @@
+{
+  "name": "Repurpose Quality Gate (Compliance)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "getAll",
+        "tableId": "scheduled_posts",
+        "returnAll": false,
+        "limit": 30,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "pending"
+            },
+            {
+              "keyName": "compliance_checked",
+              "condition": "equals",
+              "keyValue": "false"
+            }
+          ]
+        }
+      },
+      "id": "get-unchecked-posts",
+      "name": "Get Unchecked Posts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a content compliance expert specializing in social media platform policies. Your task is to review posts for compliance with Twitter, LinkedIn, GDPR, and content safety guidelines.\n\nCheck for:\n\nTWITTER POLICIES:\n- No spam or manipulation\n- No hateful conduct, abusive behavior, or harassment\n- No misinformation or misleading content\n- No impersonation\n- No private information sharing\n- Character limit compliance (280 chars)\n- No excessive automation patterns\n\nLINKEDIN POLICIES:\n- Professional content standards\n- No spam or scams\n- No misleading claims\n- No hateful or discriminatory content\n- No private/confidential information\n- No excessive self-promotion\n\nGDPR COMPLIANCE:\n- No personal data without consent\n- No tracking without disclosure\n- Data minimization\n\nCONTENT SAFETY:\n- No explicit/adult content\n- No violence or dangerous content\n- No illegal activities\n- Age-appropriate content\n\nOutput Format:\n{\n  \"compliant\": true|false,\n  \"violations\": [\"list of specific violations\"],\n  \"severity\": \"none|low|medium|high|critical\",\n  \"platform_issues\": {\n    \"twitter\": [\"issues\"],\n    \"linkedin\": [\"issues\"]\n  },\n  \"recommendations\": \"how to fix issues\",\n  \"safe_to_publish\": true|false\n}"
+            },
+            {
+              "role": "user",
+              "content": "=Platform: {{ $json.platform }}\n\nContent to Review:\n{{ $json.content }}\n\nPost ID: {{ $json.id }}\nScheduled: {{ $json.scheduled_time }}\n\nPlease perform a comprehensive compliance review and return the result in JSON format."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 800
+        }
+      },
+      "id": "compliance-check",
+      "name": "AI Compliance Check",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [650, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse compliance response\nconst aiResponse = $input.item.json.response?.text || '{}';\nlet parsed;\n\ntry {\n  const jsonMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\n  parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};\n} catch (e) {\n  console.error('Failed to parse compliance response:', e);\n  parsed = {\n    compliant: false,\n    violations: ['Failed to parse AI response'],\n    severity: 'medium',\n    safe_to_publish: false\n  };\n}\n\n// Return merged data\nreturn {\n  ...($input.item.json),\n  compliance_check: parsed,\n  compliant: parsed.compliant || false,\n  compliance_violations: parsed.violations || [],\n  compliance_severity: parsed.severity || 'unknown',\n  safe_to_publish: parsed.safe_to_publish || false,\n  compliance_checked: true,\n  compliance_checked_at: new Date().toISOString()\n};"
+      },
+      "id": "parse-compliance",
+      "name": "Parse Compliance Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.safe_to_publish }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-safe-to-publish",
+      "name": "Check If Safe",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "update",
+        "tableId": "scheduled_posts",
+        "filterType": "manual",
+        "matchingColumns": "id",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "compliance_checked",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "compliant",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "compliance_data",
+              "fieldValue": "={{ JSON.stringify($json.compliance_check) }}"
+            },
+            {
+              "fieldId": "safe_to_publish",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "id": "mark-compliant",
+      "name": "Mark As Compliant",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "update",
+        "tableId": "scheduled_posts",
+        "filterType": "manual",
+        "matchingColumns": "id",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "flagged"
+            },
+            {
+              "fieldId": "compliance_checked",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "compliant",
+              "fieldValue": "false"
+            },
+            {
+              "fieldId": "compliance_data",
+              "fieldValue": "={{ JSON.stringify($json.compliance_check) }}"
+            },
+            {
+              "fieldId": "safe_to_publish",
+              "fieldValue": "false"
+            },
+            {
+              "fieldId": "requires_human_review",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "id": "flag-for-review",
+      "name": "Flag For Human Review",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 400],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.compliance_severity }}",
+              "operation": "equals",
+              "value2": "critical"
+            }
+          ]
+        }
+      },
+      "id": "check-if-critical",
+      "name": "Check If Critical",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 500]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL' }}",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  text: `🚨 CRITICAL COMPLIANCE VIOLATION`,\n  blocks: [\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Post ID:* ${$json.id}\\n*Platform:* ${$json.platform}\\n*Severity:* ${$json.compliance_severity}\\n*Violations:* ${$json.compliance_violations.join(', ')}`\n      }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Content:*\\n${$json.content}`\n      }\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "send-alert",
+      "name": "Send Critical Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1450, 500]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Unchecked Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unchecked Posts": {
+      "main": [
+        [
+          {
+            "node": "AI Compliance Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Compliance Check": {
+      "main": [
+        [
+          {
+            "node": "Parse Compliance Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Compliance Result": {
+      "main": [
+        [
+          {
+            "node": "Check If Safe",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check If Critical",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Safe": {
+      "main": [
+        [
+          {
+            "node": "Mark As Compliant",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Flag For Human Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Critical": {
+      "main": [
+        [
+          {
+            "node": "Send Critical Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "repurpose-quality-gate"
+  },
+  "tags": []
+}

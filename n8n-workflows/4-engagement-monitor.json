@@ -1,0 +1,456 @@
+{
+  "name": "Repurpose Engagement Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "getAll",
+        "tableId": "published_posts",
+        "returnAll": false,
+        "limit": 20,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "published"
+            },
+            {
+              "keyName": "published_at",
+              "condition": "greaterEqual",
+              "keyValue": "={{ $now.minus({ days: 3 }).toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "get-recent-posts",
+      "name": "Get Recent Published Posts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.platform }}",
+              "operation": "equals",
+              "value2": "twitter"
+            }
+          ]
+        }
+      },
+      "id": "check-platform",
+      "name": "Route By Platform",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.twitter.com/2/tweets/{{ $json.platform_post_id }}/mentions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twitterOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $credentials.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "tweet.fields",
+                "value": "created_at,text,author_id,public_metrics"
+              },
+              {
+                "name": "expansions",
+                "value": "author_id"
+              },
+              {
+                "name": "max_results",
+                "value": "10"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-twitter-engagement",
+      "name": "Get Twitter Engagement",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 200],
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "3",
+          "name": "Twitter OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.linkedin.com/v2/socialActions/{{ $json.platform_post_id }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "linkedInOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $credentials.accessToken }}"
+            }
+          ]
+        },
+        "options": {
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "count",
+                "value": "10"
+              }
+            ]
+          }
+        }
+      },
+      "id": "get-linkedin-engagement",
+      "name": "Get LinkedIn Engagement",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 400],
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "4",
+          "name": "LinkedIn OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse engagement data from Twitter or LinkedIn\nconst platform = $input.first().json.platform;\nconst response = $input.item.json;\n\nlet engagements = [];\n\nif (platform === 'twitter') {\n  // Parse Twitter response\n  const tweets = response.data || [];\n  const users = response.includes?.users || [];\n  \n  engagements = tweets.map(tweet => {\n    const author = users.find(u => u.id === tweet.author_id);\n    return {\n      platform: 'twitter',\n      type: 'mention',\n      author_name: author?.name || 'Unknown',\n      author_username: author?.username || 'unknown',\n      text: tweet.text,\n      engagement_id: tweet.id,\n      created_at: tweet.created_at,\n      metrics: tweet.public_metrics,\n      post_id: $input.first().json.id\n    };\n  });\n} else if (platform === 'linkedin') {\n  // Parse LinkedIn response\n  const comments = response.elements || [];\n  \n  engagements = comments.map(comment => ({\n    platform: 'linkedin',\n    type: 'comment',\n    author_name: comment.actor?.name || 'Unknown',\n    text: comment.message?.text || '',\n    engagement_id: comment.id,\n    created_at: comment.created?.time,\n    post_id: $input.first().json.id\n  }));\n}\n\nreturn engagements.map(e => ({ json: e }));"
+      },
+      "id": "parse-engagement",
+      "name": "Parse Engagement Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a social media engagement expert. Analyze comments/mentions and determine:\n1. Sentiment (positive/neutral/negative)\n2. Priority (high/medium/low)\n3. Whether a reply is needed\n4. Suggested reply (if needed)\n5. Category (question, feedback, appreciation, complaint, spam)\n\nOutput Format:\n{\n  \"sentiment\": \"positive|neutral|negative\",\n  \"priority\": \"high|medium|low\",\n  \"requires_reply\": true|false,\n  \"suggested_reply\": \"reply text or null\",\n  \"category\": \"question|feedback|appreciation|complaint|spam\",\n  \"reasoning\": \"brief explanation\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "=Platform: {{ $json.platform }}\nAuthor: {{ $json.author_name }} (@{{ $json.author_username || 'N/A' }})\nEngagement Type: {{ $json.type }}\n\nText:\n{{ $json.text }}\n\nOriginal Post ID: {{ $json.post_id }}\n\nPlease analyze this engagement and provide recommendations."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.6,
+          "maxTokens": 500
+        }
+      },
+      "id": "analyze-engagement",
+      "name": "AI Engagement Analysis",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [1250, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI analysis response\nconst aiResponse = $input.item.json.response?.text || '{}';\nlet analysis;\n\ntry {\n  const jsonMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\n  analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};\n} catch (e) {\n  console.error('Failed to parse AI analysis:', e);\n  analysis = {\n    sentiment: 'neutral',\n    priority: 'low',\n    requires_reply: false,\n    category: 'unknown'\n  };\n}\n\n// Get original engagement data from previous node\nconst engagementData = $input.first().json;\n\nreturn {\n  ...engagementData,\n  analysis: analysis,\n  sentiment: analysis.sentiment,\n  priority: analysis.priority,\n  requires_reply: analysis.requires_reply,\n  suggested_reply: analysis.suggested_reply,\n  category: analysis.category,\n  analyzed_at: new Date().toISOString()\n};"
+      },
+      "id": "parse-analysis",
+      "name": "Parse Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "create",
+        "tableId": "engagement_queue",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "post_id",
+              "fieldValue": "={{ $json.post_id }}"
+            },
+            {
+              "fieldId": "platform",
+              "fieldValue": "={{ $json.platform }}"
+            },
+            {
+              "fieldId": "engagement_type",
+              "fieldValue": "={{ $json.type }}"
+            },
+            {
+              "fieldId": "author_name",
+              "fieldValue": "={{ $json.author_name }}"
+            },
+            {
+              "fieldId": "author_username",
+              "fieldValue": "={{ $json.author_username }}"
+            },
+            {
+              "fieldId": "text",
+              "fieldValue": "={{ $json.text }}"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $json.sentiment }}"
+            },
+            {
+              "fieldId": "priority",
+              "fieldValue": "={{ $json.priority }}"
+            },
+            {
+              "fieldId": "requires_reply",
+              "fieldValue": "={{ $json.requires_reply }}"
+            },
+            {
+              "fieldId": "suggested_reply",
+              "fieldValue": "={{ $json.suggested_reply }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $json.category }}"
+            },
+            {
+              "fieldId": "analysis_data",
+              "fieldValue": "={{ JSON.stringify($json.analysis) }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "pending"
+            }
+          ]
+        }
+      },
+      "id": "save-to-queue",
+      "name": "Save To Engagement Queue",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1650, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.priority }}",
+              "operation": "equals",
+              "value2": "high"
+            }
+          ]
+        }
+      },
+      "id": "check-if-high-priority",
+      "name": "Check If High Priority",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL' }}",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  text: `🔥 High Priority Engagement Alert`,\n  blocks: [\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Platform:* ${$json.platform.toUpperCase()}\\n*From:* ${$json.author_name} (@${$json.author_username})\\n*Category:* ${$json.category}\\n*Sentiment:* ${$json.sentiment}`\n      }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Their Message:*\\n${$json.text}`\n      }\n    },\n    {\n      type: 'section',\n      text: {\n        type: 'mrkdwn',\n        text: `*Suggested Reply:*\\n${$json.suggested_reply || 'N/A'}`\n      }\n    },\n    {\n      type: 'actions',\n      elements: [\n        {\n          type: 'button',\n          text: { type: 'plain_text', text: 'Approve Reply' },\n          value: 'approve',\n          action_id: 'approve_reply'\n        },\n        {\n          type: 'button',\n          text: { type: 'plain_text', text: 'Edit & Reply' },\n          value: 'edit',\n          action_id: 'edit_reply'\n        },\n        {\n          type: 'button',\n          text: { type: 'plain_text', text: 'Ignore' },\n          value: 'ignore',\n          action_id: 'ignore'\n        }\n      ]\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "send-high-priority-alert",
+      "name": "Send High Priority Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2050, 200]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Recent Published Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Recent Published Posts": {
+      "main": [
+        [
+          {
+            "node": "Route By Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route By Platform": {
+      "main": [
+        [
+          {
+            "node": "Get Twitter Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get LinkedIn Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Twitter Engagement": {
+      "main": [
+        [
+          {
+            "node": "Parse Engagement Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get LinkedIn Engagement": {
+      "main": [
+        [
+          {
+            "node": "Parse Engagement Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Engagement Data": {
+      "main": [
+        [
+          {
+            "node": "AI Engagement Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Engagement Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Analysis": {
+      "main": [
+        [
+          {
+            "node": "Save To Engagement Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save To Engagement Queue": {
+      "main": [
+        [
+          {
+            "node": "Check If High Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If High Priority": {
+      "main": [
+        [
+          {
+            "node": "Send High Priority Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "repurpose-engagement-monitor"
+  },
+  "tags": []
+}
