@@ -1,0 +1,406 @@
+{
+  "meta": {
+    "campaign": "content-marketing-readiness",
+    "total_questions": 15,
+    "time_estimate": "3 minutes",
+    "sections": [
+      "production",
+      "distribution",
+      "analytics"
+    ]
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "section": "production",
+      "text": "How often do you publish NEW content (not reposts)?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Daily (I'm a machine... or a masochist)",
+          "points": 10
+        },
+        {
+          "text": "3-5x/week",
+          "points": 8
+        },
+        {
+          "text": "1-2x/week",
+          "points": 5
+        },
+        {
+          "text": "A few times a month",
+          "points": 3
+        },
+        {
+          "text": "When guilt overpowers procrastination",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "section": "production",
+      "text": "How long does it take you to create ONE piece of content (idea → published)?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Under 30 mins, I'm efficient AF",
+          "points": 10
+        },
+        {
+          "text": "30-60 mins",
+          "points": 8
+        },
+        {
+          "text": "1-2 hours",
+          "points": 5
+        },
+        {
+          "text": "2-4 hours",
+          "points": 3
+        },
+        {
+          "text": "Half my Sunday, every Sunday",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "section": "production",
+      "text": "What percentage of your content ideas actually get published?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "80-100% — I execute everything",
+          "points": 10
+        },
+        {
+          "text": "50-80% — Most ideas see daylight",
+          "points": 7
+        },
+        {
+          "text": "30-50% — Some slip through",
+          "points": 4
+        },
+        {
+          "text": "Under 30% — Graveyard of good intentions",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "section": "production",
+      "text": "What's your biggest content creation pain point?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "I don't have one, I'm a content wizard",
+          "points": 10
+        },
+        {
+          "text": "Coming up with ideas",
+          "points": 7
+        },
+        {
+          "text": "Making it look good",
+          "points": 5
+        },
+        {
+          "text": "Reformatting for different platforms",
+          "points": 3
+        },
+        {
+          "text": "Finding time to post",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "section": "production",
+      "text": "Do you use a content calendar?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Yes, it's color-coded and I worship it",
+          "points": 10
+        },
+        {
+          "text": "Yes, but I ignore it",
+          "points": 7
+        },
+        {
+          "text": "I have a Notes app with 'post ideas'",
+          "points": 3
+        },
+        {
+          "text": "Bold of you to assume I plan ahead",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "section": "distribution",
+      "text": "How many platforms do you actively post on?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "5+ platforms, I'm everywhere",
+          "points": 10
+        },
+        {
+          "text": "3-4 platforms",
+          "points": 8
+        },
+        {
+          "text": "2 platforms (I'm loyal)",
+          "points": 5
+        },
+        {
+          "text": "1 platform",
+          "points": 2
+        },
+        {
+          "text": "0, I just think about posting",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "section": "distribution",
+      "text": "How much do you customize content for each platform?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "I rewrite for each platform's vibe",
+          "points": 10
+        },
+        {
+          "text": "I tweak formatting and hashtags",
+          "points": 7
+        },
+        {
+          "text": "I copy-paste with minor edits",
+          "points": 4
+        },
+        {
+          "text": "I post the exact same thing everywhere",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "section": "distribution",
+      "text": "What's your biggest multi-platform struggle?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "I don't have one",
+          "points": 10
+        },
+        {
+          "text": "Remembering each platform's character limits",
+          "points": 7
+        },
+        {
+          "text": "Different image sizes for each platform",
+          "points": 5
+        },
+        {
+          "text": "Rewriting the same idea 5 different ways",
+          "points": 3
+        },
+        {
+          "text": "Logging into 7 dashboards (I'm not a designer, Karen)",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "section": "distribution",
+      "text": "How often do you repurpose ONE piece of content into multiple formats?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Every single time (I squeeze it dry)",
+          "points": 10
+        },
+        {
+          "text": "Often",
+          "points": 7
+        },
+        {
+          "text": "Sometimes",
+          "points": 4
+        },
+        {
+          "text": "Rarely",
+          "points": 2
+        },
+        {
+          "text": "What does 'repurpose' even mean?",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "section": "distribution",
+      "text": "If you could save 10 hours/week on content, what would you automate first?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Scheduling and posting",
+          "points": 10
+        },
+        {
+          "text": "Reformatting for different platforms",
+          "points": 8
+        },
+        {
+          "text": "Creating graphics/videos",
+          "points": 5
+        },
+        {
+          "text": "Writing captions",
+          "points": 3
+        },
+        {
+          "text": "Analytics tracking",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q11",
+      "section": "analytics",
+      "text": "How do you track content performance?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Custom dashboard with all platforms",
+          "points": 10
+        },
+        {
+          "text": "Platform-by-platform (I have 7 tabs open)",
+          "points": 7
+        },
+        {
+          "text": "Occasionally check likes/comments",
+          "points": 3
+        },
+        {
+          "text": "I don't, I just vibe",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q12",
+      "section": "analytics",
+      "text": "How do you decide what content to create next?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Data-driven (I analyze top performers)",
+          "points": 10
+        },
+        {
+          "text": "Mix of data and intuition",
+          "points": 7
+        },
+        {
+          "text": "Whatever I feel like that day",
+          "points": 4
+        },
+        {
+          "text": "Panic + Sunday scaries",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q13",
+      "section": "analytics",
+      "text": "Do you know your content ROI?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Yes, I track revenue per post",
+          "points": 10
+        },
+        {
+          "text": "I track engagement, not revenue",
+          "points": 7
+        },
+        {
+          "text": "I know which posts do well",
+          "points": 4
+        },
+        {
+          "text": "ROI? I just want people to notice me",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q14",
+      "section": "analytics",
+      "text": "How quickly can you iterate based on performance?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Real-time (I A/B test constantly)",
+          "points": 10
+        },
+        {
+          "text": "Weekly (I review and adjust)",
+          "points": 7
+        },
+        {
+          "text": "Monthly-ish",
+          "points": 4
+        },
+        {
+          "text": "I posted once in 2019 and never looked back",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "q15",
+      "section": "analytics",
+      "text": "If you had ONE magic button, what would it do?",
+      "type": "single_choice",
+      "options": [
+        {
+          "text": "Auto-generate 30 days of content in 1 click",
+          "points": 10
+        },
+        {
+          "text": "Schedule everything weeks in advance",
+          "points": 8
+        },
+        {
+          "text": "Automatically repurpose my best content",
+          "points": 7
+        },
+        {
+          "text": "Make my content go viral",
+          "points": 5
+        },
+        {
+          "text": "Delete all my social media accounts",
+          "points": 0
+        }
+      ]
+    }
+  ]
+}
