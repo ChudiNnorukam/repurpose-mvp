@@ -66,23 +66,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Schedule with QStash
-    const result = await schedulePostJob({
-      postId,
-      userId,
-      platform,
-      content,
-      scheduledTime: new Date(scheduledTime),
-    })
-
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          error: 'Scheduling Failed',
-          message: result.error || 'Failed to schedule post with QStash'
-        },
-        { status: 500 }
-      )
-    }
+    const messageId = await schedulePostJob(
+      {
+        postId,
+        userId,
+        platform,
+        content,
+      },
+      new Date(scheduledTime)
+    )
 
     // Update post in database
     const supabase = getSupabaseAdmin()
@@ -90,7 +82,7 @@ export async function POST(request: NextRequest) {
       .from('scheduled_posts')
       .update({
         status: 'scheduled',
-        qstash_message_id: result.messageId,
+        qstash_message_id: messageId,
       })
       .eq('id', postId)
 
@@ -101,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      messageId: result.messageId,
+      messageId: messageId,
       scheduledFor: scheduledTime,
       postId,
     })
