@@ -14,21 +14,19 @@ export const qstash = new Client({
 
 /**
  * Retry configuration for QStash jobs
- * - Max retries: 5 (up to 6 total attempts including initial)
- * - Backoff: Exponential with base 2 (2s, 4s, 8s, 16s, 32s)
+ * - Max retries: 3 (free tier limit)
+ * - Backoff: Exponential with base 2 (2s, 4s, 8s)
  * - Max delay: 60s (prevents excessive wait times)
- * 
+ *
  * Formula: min(60000, 2000 * pow(2, retried))
  * Retry schedule:
  * - Attempt 1: Immediate
  * - Attempt 2: 2s later
  * - Attempt 3: 4s later
  * - Attempt 4: 8s later
- * - Attempt 5: 16s later
- * - Attempt 6: 32s later
  */
 const RETRY_CONFIG = {
-  maxRetries: 5,
+  maxRetries: 3,
   // Exponential backoff: 2s * 2^retried, capped at 60s
   retryDelay: 'min(60000, 2000 * pow(2, retried))' as const,
 }
