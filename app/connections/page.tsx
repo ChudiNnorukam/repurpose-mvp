@@ -12,7 +12,7 @@ import { COLOR_PRIMARY, COLOR_DESTRUCTIVE, COLOR_SUCCESS, BUTTON_VARIANTS, ALERT
 interface SocialAccount {
   id: string
   platform: string
-  account_username: string
+  platform_username: string
   connected_at: string
 }
 
@@ -30,15 +30,19 @@ function ConnectionsContent() {
     checkUser()
 
     // Check for OAuth callback messages
-    const connected = searchParams.get('connected')
+    const success = searchParams.get('success')
+    const username = searchParams.get('username')
     const errorParam = searchParams.get('error')
 
-    if (connected) {
-      toast.success(`Successfully connected ${connected}!`)
+    if (success === 'twitter_connected' && username) {
+      toast.success(`Successfully connected Twitter as @${username}!`)
+    } else if (success) {
+      toast.success(`Successfully connected!`)
     }
 
     if (errorParam) {
-      toast.error(`Error: ${errorParam}`)
+      const message = searchParams.get('message')
+      toast.error(message ? `Error: ${errorParam} - ${message}` : `Error: ${errorParam}`)
     }
   }, [searchParams])
 
@@ -78,38 +82,42 @@ function ConnectionsContent() {
   const handleConnect = async (platform: string) => {
     try {
       const platformName = platform.charAt(0).toUpperCase() + platform.slice(1)
-      const loadingToast = toast.loading(`Connecting to ${platformName}...`)
+      toast.loading(`Connecting to ${platformName}...`)
 
-      const endpoint = platform === 'twitter' ? '/api/auth/init-twitter' : '/api/auth/init-linkedin'
+      // Twitter uses GET request that directly redirects
+      // LinkedIn uses POST request that returns authUrl
+      if (platform === 'twitter') {
+        // Redirect directly to Twitter OAuth init endpoint
+        window.location.href = '/api/auth/twitter/init'
+      } else if (platform === 'linkedin') {
+        const response = await fetch('/api/auth/init-linkedin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id })
+        })
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-      })
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: `Request failed with code ${response.status}` }))
+          toast.error(`Failed to connect: ${errorData.error || 'Unknown error'}`)
+          console.error(`Connection error for ${platform}:`, response.status, errorData)
+          return
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `Request failed with code ${response.status}` }))
-        toast.error(`Failed to connect: ${errorData.error || 'Unknown error'}`, { id: loadingToast })
-        console.error(`Connection error for ${platform}:`, response.status, errorData)
-        return
+        const data = await response.json()
+
+        if (data.error) {
+          toast.error(`Failed to connect: ${data.error}`)
+          return
+        }
+
+        if (!data.authUrl) {
+          toast.error('Failed to get authorization URL')
+          return
+        }
+
+        // Redirect to LinkedIn OAuth
+        window.location.href = data.authUrl
       }
-
-      const data = await response.json()
-
-      if (data.error) {
-        toast.error(`Failed to connect: ${data.error}`, { id: loadingToast })
-        return
-      }
-
-      if (!data.authUrl) {
-        toast.error('Failed to get authorization URL', { id: loadingToast })
-        return
-      }
-
-      toast.dismiss(loadingToast)
-      // Redirect to OAuth
-      window.location.href = data.authUrl
     } catch (error: any) {
       console.error('Connection error:', error)
       toast.error(`Failed to initiate connection: ${error.message || 'Unknown error'}`)
@@ -185,7 +193,7 @@ function ConnectionsContent() {
                   <h3 className="text-lg font-semibold text-gray-900">Twitter</h3>
                   {isConnected('twitter') ? (
                     <p className="text-sm text-green-600">
-                      Connected as @{accounts.find(a => a.platform === 'twitter')?.account_username}
+                      Connected as @{accounts.find(a => a.platform === 'twitter')?.platform_username}
                     </p>
                   ) : (
                     <p className="text-sm text-gray-500">Not connected</p>
@@ -221,7 +229,7 @@ function ConnectionsContent() {
                   <h3 className="text-lg font-semibold text-gray-900">LinkedIn</h3>
                   {isConnected('linkedin') ? (
                     <p className="text-sm text-green-600">
-                      Connected as {accounts.find(a => a.platform === 'linkedin')?.account_username}
+                      Connected as {accounts.find(a => a.platform === 'linkedin')?.platform_username}
                     </p>
                   ) : (
                     <p className="text-sm text-gray-500">Not connected</p>
