@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/Users/chudinnorukam/Downloads/Repurpose MVP /logs/.d29002ecca7077c02949bc0c72bf99244478ab09-audit.json",
+    "files": [
+        {
+            "date": 1760986457190,
+            "name": "/Users/chudinnorukam/Downloads/Repurpose MVP /logs/mcp-puppeteer-2025-10-20.log",
+            "hash": "10e95bb36191bd74e7d51322761ce1d9130b3c38ef096ed1160c6a72a1e46c27"
+        }
+    ],
+    "hashType": "sha256"
+}
