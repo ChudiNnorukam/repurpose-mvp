@@ -108,10 +108,28 @@ export async function GET(request: NextRequest) {
     )
 
   } catch (error: any) {
-    console.error('Twitter OAuth callback error:', error)
+    console.error('Twitter OAuth callback error:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    })
+
+    // Categorize errors for user-friendly messages
+    const ERROR_MESSAGES: Record<string, string> = {
+      'invalid_grant': 'Authorization code expired. Please try connecting again.',
+      'invalid_client': 'App configuration error. Please contact support.',
+      'ECONNREFUSED': 'Could not connect to Twitter. Please try again.',
+      'ETIMEDOUT': 'Request timed out. Please try again.',
+      'Failed to fetch Twitter user': 'Could not get your Twitter information. Please try again.',
+      'Failed to save Twitter account': 'Could not save your account. Please try again.'
+    }
+
+    const userMessage = ERROR_MESSAGES[error.code]
+      || ERROR_MESSAGES[error.message]
+      || 'Connection failed. Please try again.'
 
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=twitter_failed&message=${encodeURIComponent(error.message)}`
+      `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=twitter_failed&message=${encodeURIComponent(userMessage)}`
     )
   }
 }

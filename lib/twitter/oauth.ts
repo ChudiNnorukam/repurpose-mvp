@@ -268,8 +268,7 @@ export async function storeTwitterAccount(params: {
       token_expires_at: expiresAt.toISOString(),
       scopes: scopes,
       is_active: true,
-      last_verified_at: new Date().toISOString(),
-      verification_error: null
+      last_verified_at: new Date().toISOString()
     }, {
       onConflict: 'user_id,platform,platform_user_id'
     })
