@@ -1,96 +1,117 @@
+/**
+ * Twitter OAuth Callback Route
+ *
+ * GET /api/auth/twitter/callback
+ *
+ * Handles the Twitter OAuth callback:
+ * 1. Verifies state (CSRF protection)
+ * 2. Exchanges authorization code for access token
+ * 3. Fetches Twitter user info
+ * 4. Stores encrypted tokens in database
+ * 5. Redirects to success page
+ *
+ * Called by Twitter after user authorizes the app
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getTwitterAccessToken, getTwitterUser } from '@/lib/twitter'
-import { logger } from "@/lib/logger"
+import { createClient } from '@/lib/supabase-client'
+import {
+  exchangeTwitterCode,
+  getTwitterUser,
+  storeTwitterAccount
+} from '@/lib/twitter/oauth'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
-    const searchParams = request.nextUrl.searchParams
+    // Check if user is authenticated
+    const supabase = createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/login?error=unauthorized`
+      )
+    }
+
+    // Get OAuth parameters from URL
     const code = searchParams.get('code')
-    const encodedState = searchParams.get('state')
+    const state = searchParams.get('state')
     const error = searchParams.get('error')
 
-    // Handle OAuth errors
+    // Check for OAuth errors
     if (error) {
+      console.error('Twitter OAuth error:', error)
       return NextResponse.redirect(
-        new URL(`/connections?error=${encodeURIComponent(error)}`, baseUrl)
+        `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=twitter_${error}`
       )
     }
 
-    if (!code || !encodedState) {
+    if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/connections?error=missing_parameters', baseUrl)
+        `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=missing_params`
       )
     }
 
-    // Decode state to get userId
-    let userId: string
-    try {
-      const stateData = JSON.parse(Buffer.from(encodedState, 'base64url').toString())
-      userId = stateData.userId
-      if (!userId) throw new Error('Missing userId in state')
-    } catch (e) {
-      return NextResponse.redirect(
-        new URL('/connections?error=invalid_state', baseUrl)
-      )
-    }
-
-    // Use service role client to insert data directly (we already have userId from state)
-    const { getSupabaseAdmin } = await import('@/lib/supabase')
-    const supabase = getSupabaseAdmin()
-
-    // Retrieve code verifier from cookie
-    const cookieStore = await cookies()
+    // Retrieve stored values from cookies
+    const cookieStore = cookies()
     const codeVerifier = cookieStore.get('twitter_code_verifier')?.value
+    const storedState = cookieStore.get('twitter_oauth_state')?.value
 
-    if (!codeVerifier) {
+    if (!codeVerifier || !storedState) {
       return NextResponse.redirect(
-        new URL('/connections?error=missing_code_verifier', baseUrl)
+        `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=session_expired`
       )
     }
 
-    // Exchange code for access token using PKCE
-    const { accessToken, refreshToken } = await getTwitterAccessToken(code, codeVerifier)
+    // Verify state (CSRF protection)
+    if (state !== storedState) {
+      console.error('State mismatch:', { received: state, expected: storedState })
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=invalid_state`
+      )
+    }
 
-    // Delete the code verifier cookie (one-time use)
+    // Clear cookies (they're one-time use)
     cookieStore.delete('twitter_code_verifier')
+    cookieStore.delete('twitter_oauth_state')
 
-    // Get Twitter user info
-    const twitterUser = await getTwitterUser(accessToken)
+    // Exchange code for access token
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/twitter/callback`
 
-    // Save to database
-    const { error: dbError } = await supabase
-      .from('social_accounts')
-      .upsert({
-        user_id: userId,
-        platform: 'twitter',
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        account_username: twitterUser.username,
-        account_id: twitterUser.id,
-        connected_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,platform'
-      })
+    const tokenData = await exchangeTwitterCode({
+      code,
+      codeVerifier,
+      redirectUri
+    })
 
-    if (dbError) {
-      logger.error('Error saving Twitter account:', dbError)
-      return NextResponse.redirect(
-        new URL('/connections?error=save_failed', baseUrl)
-      )
-    }
+    // Fetch Twitter user info
+    const twitterUser = await getTwitterUser(tokenData.accessToken)
 
-    // Redirect to connections page with success
+    // Store account in database (with encrypted tokens)
+    await storeTwitterAccount({
+      userId: user.id,
+      twitterUser,
+      accessToken: tokenData.accessToken,
+      refreshToken: tokenData.refreshToken,
+      expiresIn: tokenData.expiresIn,
+      scopes: tokenData.scope.split(' ')
+    })
+
+    // Success! Redirect to connections page
     return NextResponse.redirect(
-      new URL('/connections?connected=twitter', baseUrl)
+      `${process.env.NEXT_PUBLIC_APP_URL}/connections?success=twitter_connected&username=${twitterUser.username}`
     )
+
   } catch (error: any) {
-    logger.error('Twitter OAuth callback error:', error)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.url
+    console.error('Twitter OAuth callback error:', error)
+
     return NextResponse.redirect(
-      new URL(`/connections?error=${encodeURIComponent(error.message)}`, baseUrl)
+      `${process.env.NEXT_PUBLIC_APP_URL}/connections?error=twitter_failed&message=${encodeURIComponent(error.message)}`
     )
   }
 }

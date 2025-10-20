@@ -15,7 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createClient } from '@/lib/supabase-client'
+import { createRouteHandlerClient } from '@/lib/supabase-client'
 import {
   exchangeLinkedInCode,
   getLinkedInUser,

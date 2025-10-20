@@ -1,4 +1,3 @@
-// @ts-nocheck - TODO: Fix Supabase Database type inference issues
 import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 

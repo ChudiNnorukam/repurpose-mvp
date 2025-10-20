@@ -56,31 +56,40 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                Dashboard
-              </h1>
-              <p className="text-sm text-gray-600">
-                Welcome back, {user?.email?.split('@')[0] || 'there'}
-              </p>
+    <>
+      <div className="min-h-screen bg-gray-50">
+        {/* App Header with Navigation */}
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
+                Repurpose
+              </Link>
+              <nav className="hidden md:flex items-center gap-6">
+                <Link href="/dashboard" className="text-sm font-semibold text-gray-900 border-b-2 border-blue-600 pb-1">Dashboard</Link>
+                <Link href="/create" className="text-sm text-gray-600 hover:text-gray-900">Create</Link>
+                <Link href="/batch-create" className="text-sm text-gray-600 hover:text-gray-900">Batch Create</Link>
+                <Link href="/posts" className="text-sm text-gray-600 hover:text-gray-900">Posts</Link>
+                <Link href="/templates" className="text-sm text-gray-600 hover:text-gray-900">Templates</Link>
+                <Link href="/connections" className="text-sm text-gray-600 hover:text-gray-900">Connections</Link>
+                <span className="text-sm text-gray-600">{user?.email}</span>
+                <button onClick={async () => { await createClient().auth.signOut(); window.location.href = '/login'; }} className="text-sm text-gray-600 hover:text-gray-900">
+                  Logout
+                </button>
+              </nav>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <ProgressIndicator
-        completed={onboarding.completed}
-        totalSteps={5}
-        completedSteps={onboarding.stepsCompleted.length}
-      />
+        <ProgressIndicator
+          completed={onboarding.completed}
+          totalSteps={5}
+          completedSteps={onboarding.stepsCompleted.length}
+        />
 
-      <WelcomeModal />
+        <WelcomeModal />
 
-      <main className="container mx-auto px-4 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-8 space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -172,7 +181,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 

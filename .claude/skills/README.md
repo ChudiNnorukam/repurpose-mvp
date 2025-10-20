@@ -4,7 +4,7 @@ Project-specific skills for Claude Code orchestration system.
 
 ## Overview
 
-This directory contains 13 specialized skills that enhance Claude Code's built-in subagents with Repurpose MVP-specific context, patterns, and templates.
+This directory contains 14 specialized skills that enhance Claude Code's built-in subagents with Repurpose MVP-specific context, patterns, and templates.
 
 ## Architecture: Hybrid Skills + Subagents
 
@@ -84,11 +84,19 @@ Returns Result to User
     - Examples: Quick wins, security-first review
     - Delegates to: solodev-claude-reviewer subagent
 
+11. **n8n-automation-engineer** (NEW) - Enterprise n8n workflow automation expert
+    - Expertise: AI agents, multi-agent systems, RAG pipelines, workflow orchestration
+    - Capabilities: Workflow design, API integration, production monitoring, cost optimization
+    - Templates: Single agents, multi-agent patterns, RAG implementation, business processes
+    - Examples: Lead generation, customer onboarding, content automation, data sync
+    - Use cases: Building workflows, debugging, AI agents, integrations, production deployment
+    - Delegates to: None (comprehensive direct implementation)
+
 ### Utility Skills
 
-11. **statusline-setup** - Configures status display
-12. **output-style-setup** - Customizes output formatting
-13. **general-purpose** - Fallback for general requests
+12. **statusline-setup** - Configures status display
+13. **output-style-setup** - Customizes output formatting
+14. **general-purpose** - Fallback for general requests
 
 ## Structure
 
@@ -218,6 +226,11 @@ Test that skills activate properly:
 
 # Should trigger researcher-expert
 "Find authoritative sources for OAuth PKCE"
+
+# Should trigger n8n-automation-engineer
+"Build an n8n workflow for lead enrichment"
+"Create a multi-agent system in n8n"
+"Set up RAG pipeline with Pinecone"
 ```
 
 ## Maintenance

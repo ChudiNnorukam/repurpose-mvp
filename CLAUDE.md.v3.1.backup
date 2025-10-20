@@ -1,51 +1,6 @@
-# Repurpose - Agent Orchestration v3.2
+# Repurpose - Agent Orchestration v3.1
 
-**Purpose**: Precision orchestration engine for Claude Code with Skills System | **Updated**: Oct 18, 2025
-
----
-
-## 🎯 SKILLS-FIRST APPROACH (NEW in v3.2)
-
-**Core Principle: EVERY QUERY SHOULD LEVERAGE APPROPRIATE SKILLS**
-
-Before delegating to subagents, Claude should activate relevant **skills** to provide specialized expertise.
-
-### Available Skills (Tier 1 - ALL OPERATIONAL ✅)
-
-| Skill | Use When | Activation Keywords |
-|-------|----------|---------------------|
-| **debug-expert** | Errors, bugs, build failures | error, failing, broken, crash, bug |
-| **code-reviewer** | Code quality, security, architecture | review, audit, refactor, optimize |
-| **test-validator** | Testing strategy, coverage | test, testing, spec, coverage |
-| **solodev-claude-reviewer** | Pre-commit, deployment readiness | commit, deploy, CI/CD, pipeline |
-
-**Skills Location:** `.claude/skills/*/SKILL.md`
-**Skills Catalog:** `.claude/SKILLS.md`
-
-### Skills Activation Pattern
-
-```
-🎯 ACTIVATING SKILLS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-→ PRIMARY: [skill-name]
-→ TASK: [what I'm doing]
-→ WORKFLOW: [Skills → Subagents (if needed) → Result]
-```
-
-### Skills vs Subagents Decision Matrix
-
-```
-SIMPLE (< 20 lines, single domain):
-→ Use Skill directly (e.g., debug-expert diagnoses and provides fix)
-
-COMPLEX (> 20 lines, multi-file changes):
-→ Use Skill first → Delegate to Subagent
-   Example: debug-expert (diagnose) → feature-implementer (implement fix)
-
-MULTI-DOMAIN:
-→ Multiple Skills in sequence or parallel
-   Example: code-reviewer → test-validator → solodev-claude-reviewer
-```
+**Purpose**: Precision orchestration engine for Claude Code | **Updated**: Oct 17, 2025
 
 ---
 

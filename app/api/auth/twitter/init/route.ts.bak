@@ -1,0 +1,85 @@
+/**
+ * Twitter OAuth Initialization Route
+ *
+ * GET /api/auth/twitter/init
+ *
+ * Starts the Twitter OAuth 2.0 PKCE flow:
+ * 1. Generates PKCE code_verifier and code_challenge
+ * 2. Stores code_verifier in encrypted cookie
+ * 3. Redirects user to Twitter authorization page
+ *
+ * Usage:
+ *   <a href="/api/auth/twitter/init">Connect Twitter</a>
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/lib/supabase-client'
+import {
+  generatePKCE,
+  generateOAuthState,
+  getTwitterAuthUrl
+} from '@/lib/twitter/oauth'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: NextRequest) {
+  try {
+    // Check if user is authenticated
+    const supabase = createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Generate PKCE codes
+    const { codeVerifier, codeChallenge } = generatePKCE()
+
+    // Generate state for CSRF protection
+    const state = generateOAuthState()
+
+    // Build redirect URI
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/twitter/callback`
+
+    // Store code_verifier and state in secure httpOnly cookies
+    // These will be verified in the callback
+    const cookieStore = cookies()
+
+    cookieStore.set('twitter_code_verifier', codeVerifier, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 10, // 10 minutes
+      path: '/'
+    })
+
+    cookieStore.set('twitter_oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 10, // 10 minutes
+      path: '/'
+    })
+
+    // Generate Twitter authorization URL
+    const authUrl = getTwitterAuthUrl({
+      codeChallenge,
+      state,
+      redirectUri
+    })
+
+    // Redirect user to Twitter
+    return NextResponse.redirect(authUrl)
+
+  } catch (error: any) {
+    console.error('Twitter OAuth init error:', error)
+    return NextResponse.json(
+      { error: 'Failed to initialize Twitter OAuth' },
+      { status: 500 }
+    )
+  }
+}
