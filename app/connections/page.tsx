@@ -3,11 +3,11 @@
 import { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { COLOR_PRIMARY, COLOR_DESTRUCTIVE, COLOR_SUCCESS, BUTTON_VARIANTS, ALERT_VARIANTS } from '@/lib/design-tokens'
-
+import { ALERT_VARIANTS } from '@/lib/design-tokens'
+import { ConnectionsHeader } from '@/components/connections/ConnectionsHeader'
+import { PlatformCard } from '@/components/connections/PlatformCard'
 
 interface SocialAccount {
   id: string
@@ -162,119 +162,48 @@ function ConnectionsContent() {
 
   return (
     <DashboardLayout user={user}>
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Connected Accounts</h2>
-          <p className="mt-2 text-gray-600">
-            Connect your social media accounts to publish content automatically
-          </p>
+      <ConnectionsHeader />
+
+      {message && (
+        <div className={`mb-6 ${ALERT_VARIANTS.success} px-4 py-3 rounded`}>
+          {message}
         </div>
+      )}
 
-        {message && (
-          <div className={`mb-6 ${ALERT_VARIANTS.success} px-4 py-3 rounded`}>
-            {message}
-          </div>
-        )}
-
-        {error && (
-          <div className={`mb-6 ${ALERT_VARIANTS.error} px-4 py-3 rounded`}>
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {/* Twitter */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl font-bold">
-                  𝕏
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Twitter</h3>
-                  {isConnected('twitter') ? (
-                    <p className="text-sm text-green-600">
-                      Connected as @{accounts.find(a => a.platform === 'twitter')?.platform_username}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500">Not connected</p>
-                  )}
-                </div>
-              </div>
-              {isConnected('twitter') ? (
-                <button
-                  onClick={() => handleDisconnect('twitter')}
-                  className="px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50"
-                >
-                  Disconnect
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleConnect('twitter')}
-                  className={BUTTON_VARIANTS.primary}
-                >
-                  Connect Twitter
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* LinkedIn */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-700 rounded-lg flex items-center justify-center text-white text-xl font-bold">
-                  in
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">LinkedIn</h3>
-                  {isConnected('linkedin') ? (
-                    <p className="text-sm text-green-600">
-                      Connected as {accounts.find(a => a.platform === 'linkedin')?.platform_username}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500">Not connected</p>
-                  )}
-                </div>
-              </div>
-              {isConnected('linkedin') ? (
-                <button
-                  onClick={() => handleDisconnect('linkedin')}
-                  className="px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50"
-                >
-                  Disconnect
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleConnect('linkedin')}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-md hover:bg-blue-800"
-                >
-                  Connect LinkedIn
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Instagram - Coming soon */}
-          <div className="bg-white rounded-lg shadow p-6 opacity-50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-lg flex items-center justify-center text-white text-xl font-bold">
-                  IG
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Instagram</h3>
-                  <p className="text-sm text-gray-500">Coming soon</p>
-                </div>
-              </div>
-              <button
-                disabled
-                className="px-4 py-2 text-sm font-medium text-gray-400 border border-gray-300 rounded-md cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
-            </div>
-          </div>
+      {error && (
+        <div className={`mb-6 ${ALERT_VARIANTS.error} px-4 py-3 rounded`}>
+          {error}
         </div>
+      )}
+
+      <div className="space-y-4">
+        <PlatformCard
+          platform="twitter"
+          icon="𝕏"
+          isConnected={isConnected('twitter')}
+          username={accounts.find(a => a.platform === 'twitter')?.platform_username}
+          onConnect={() => handleConnect('twitter')}
+          onDisconnect={() => handleDisconnect('twitter')}
+        />
+
+        <PlatformCard
+          platform="linkedin"
+          icon="in"
+          isConnected={isConnected('linkedin')}
+          username={accounts.find(a => a.platform === 'linkedin')?.platform_username}
+          onConnect={() => handleConnect('linkedin')}
+          onDisconnect={() => handleDisconnect('linkedin')}
+        />
+
+        <PlatformCard
+          platform="instagram"
+          icon="IG"
+          isConnected={false}
+          onConnect={() => {}}
+          onDisconnect={() => {}}
+          isComingSoon={true}
+        />
+      </div>
     </DashboardLayout>
   )
 }
